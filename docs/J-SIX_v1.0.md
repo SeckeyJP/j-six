@@ -572,8 +572,8 @@ Agent Teams    なし          なし            なし       ──→   並列
 | 2 | CLAUDE.md 設計・運用ガイド | GitHub MD + 記事 | ✅ テンプレート完成 |
 | 3 | 3層ドキュメント戦略の実践 | 記事 | 予定 |
 | 4 | TDD × CC サブエージェント実践 | 記事 | 予定 |
-| 5 | 設計書逆生成 Skill の実装 | GitHub（Skill コード） | 予定 |
-| 6 | j-six Plugin | GitHub（Plugin） | 予定 |
+| 5 | 設計書逆生成 Skill の実装 | GitHub（Skill コード） | ✅ 完成 |
+| 6 | j-six Plugin | GitHub（Plugin） | ✅ 完成 |
 | 7 | 導入事例・ROI レポート | 記事 | 予定 |
 
 ### C. 用語集

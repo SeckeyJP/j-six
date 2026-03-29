@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-03-30
+
+### Added
+- J-SIX Plugin for Claude Code（plugin/）
+  - Skills 6 件: spec-create, design-review, tdd-cycle, doc-reverse-gen, quality-metrics, traceability
+  - Agents 5 件: red-agent, green-agent, refactor-agent, qa-reviewer, doc-generator
+  - Hooks: コーディング規約チェック、テスト結果監視、ADR 検出
+
+### Changed
+- README.md: Plugin セクション追加、「今後の展開」状態更新
+- J-SIX_v1.0.md: 付録B の展開予定を更新
+
+### Removed
+- docs/HANDOFF_TO_CLAUDE_CODE.md（内部引き継ぎ資料を除去）
+
+### Fixed
+- LICENSE を CC BY 4.0 正規リーガルコードに置換（GitHub が正しく認識するように）
+- .gitignore 追加（.DS_Store, .claude/, memory/）
+
 ## [1.0.0] - 2026-03-29
 
 ### Added
