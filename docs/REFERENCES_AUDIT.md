@@ -24,12 +24,12 @@
 
 | # | 主張 | 数値 | 出典 | URL | 使用箇所 |
 |---|---|---|---|---|---|
-| A1 | CC 初回自律実行成功率 | 約33% | Anthropic 社内報告 "How Anthropic teams use Claude Code"（2025.07） | https://claude.com/blog/how-anthropic-teams-use-claude-code | J-SIX v1.0 第1章, 論点3 |
+| A1 | CC 自律実行時の人間介入頻度の減少 | 33%減少（6.2→4.1ターン/タスク） | Anthropic "How AI is Transforming Work at Anthropic"（2025） | https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic | J-SIX v1.0 第1章, 論点3 |
 | A2 | AI生成PRのイシュー率（人間比） | 約1.7倍 | CodeRabbit "State of AI vs Human Code Generation Report"（2025.12） | https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report | J-SIX v1.0 第1章, 論点3 |
 | A3 | ロジック/正確性エラー（人間比） | 1.75倍 | 同上（ACM 2025 との記載もあり、FlorianBruniaux guide 経由） | 同上 | 論点1a, 論点3 |
 | A4 | セキュリティイシュー（人間比） | 最大2.74倍 | 同上 | 同上 | J-SIX v1.0 第1章, 論点3 |
 | A5 | エラーハンドリングの抜け（人間比） | 約2倍 | 同上 | 同上 | 論点3 |
-| A6 | Sonnet 4.5 コード編集エラー率 | 0%（内部ベンチマーク） | Anthropic 公式発表 "Introducing Claude Sonnet 4.5"（2026.02） | https://www.anthropic.com/news/claude-sonnet-4-5 | J-SIX v1.0 第1章, 論点3 |
+| A6 | Sonnet 4.5 コード編集エラー率 | 9%→0%（Replit 内部ベンチマーク、Sonnet 4→4.5） | Anthropic 公式発表 "Introducing Claude Sonnet 4.5"（2025.09） | https://www.anthropic.com/news/claude-sonnet-4-5 | J-SIX v1.0 第1章, 論点3 |
 | A7 | Anthropic社内タスク複雑度の推移 | 平均 3.2→3.8（5段階） | Anthropic "How AI is Transforming Work at Anthropic"（2025） | https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic | 論点3 |
 | A8 | コンテキスト70%で精度低下 | 70%超で精度低下、85%で幻覚増加 | FlorianBruniaux "claude-code-ultimate-guide" | https://github.com/FlorianBruniaux/claude-code-ultimate-guide | 論点3 |
 | A9 | CC $2.5B ARR（2026.02時点） | $2.5B 年間ランレート | devFlokers "How to Use Claude in March 2026" | https://www.devflokers.com/blog/how-to-use-claude-march-2026-enterprise-guide | 参考情報 |
@@ -215,14 +215,14 @@
 | 主張 | 状況 | 対応案 |
 |---|---|---|
 | 「ACM 2025 の報告でCC生成コードは1.75倍のロジックエラー」 | FlorianBruniaux guide 経由の記述。ACMの具体的な論文タイトルは未特定 | CodeRabbit レポート [8] の1.7倍を一次ソースとして使用。ACM への言及は削除 |
-| Anthropic社内「CC初回成功率33%」 | 複数の二次ソースで引用（[2][16][19]）されているが、原文の正確な文脈は「RL Engineering team」の報告 | 「Anthropic RL Engineering チームの報告として複数のソースで引用」と表記 |
+| ~~Anthropic社内「CC初回成功率33%」~~ | **訂正（2026-04-18）**: 一次ソース [3] の原文は「人間の介入ターン数が33%減少（6.2→4.1）」であり、「初回自律実行成功率33%」ではなかった。二次ソース [16] (DataCamp) で "unguided attempts 成功率約33%" と引用されていたが、原文の文脈と異なる可能性がある | J-SIX v1.0 を「人間の介入頻度33%減少」に修正。連続自律アクション数（約10→約20）を併記 |
 
 ### 7.2 時間経過で陳腐化する可能性がある情報
 
 | 情報 | リスク | 対応 |
 |---|---|---|
-| CC のモデル名・バージョン（Opus 4.6, Sonnet 4.5） | 新モデルのリリースで陳腐化 | 「2026年3月時点」を明記 |
-| CC の機能一覧（Agent Teams等） | 実験的機能が正式リリース/廃止される可能性 | 「2026年3月時点の機能」を明記 |
+| CC のモデル名・バージョン（Opus 4.7, 4.6, Sonnet 4.5 等） | 新モデルのリリースで陳腐化 | データ時点を明記。v2.0 で Opus 4.6/4.7 に言及追加済み |
+| CC の機能一覧（Agent Teams, LSP, Monitors等） | 実験的機能が正式リリース/廃止される可能性 | v2.0 で LSP, Monitors, 新 Hook イベント等を追加済み |
 | CC の料金（Max 5x $100/月） | 料金改定の可能性 | 「2026年3月時点の料金」を明記 |
 | 各SDDフレームワークの比較 | フレームワークの急速な進化 | 「2026年3月時点の評価」を明記 |
 

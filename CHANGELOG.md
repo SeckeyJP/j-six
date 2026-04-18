@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2026-04-18
+
+### Changed
+- J-SIX_v1.0.md → v2.0 に改訂
+  - 第1章: データ精度改善（「初回成功率33%」→「人間介入33%減少」に訂正、出典と数値を正確化）
+  - 第1章: Sonnet 4.5 発表日を 2026.02 → 2025.09 に訂正
+  - 第4章: CC ネイティブ機能に LSP, Monitors, Remote Control, Push Notifications を追加
+  - 第4章: Phase 別マッピングに新 Hook イベント（TaskCreated, PermissionDenied, StopFailure）、/ultrareview、/effort を追加
+  - 第4章: Plugin 構成を実装済みの構成に更新
+- REFERENCES_AUDIT.md: A1（33%出典）・A6（Sonnet 4.5日付）を訂正、7.1 に訂正経緯を記録
+- article-plan.md: 「初回成功率33%」の表現を修正
+- Plugin hooks.json: StopFailure, PermissionDenied Hook を追加
+
 ## [1.1.0] - 2026-03-30
 
 ### Added

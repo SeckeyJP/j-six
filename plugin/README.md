@@ -36,6 +36,8 @@ J-SIX プロセスの Phase 0-6 を Claude Code のネイティブ機能（Skill
 | PreToolUse | Edit/Write | CLAUDE.md コーディング規約準拠チェック |
 | PostToolUse | Bash | テスト実行結果の自動確認 |
 | Stop | 全体 | ADR 記録すべき技術判断の検出 |
+| StopFailure | 全体 | エラー終了時のリトライ/エスカレーション判断 |
+| PermissionDenied | 全体 | 権限拒否時の代替アプローチ提案 |
 
 ## 使い方
 
