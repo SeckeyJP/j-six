@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [2.0.0] - 2026-04-18
 
+### Fixed
+- IPA 参考文献リンク修正（/sec/ → /digital/architecture/）
+- README.md 文言修正（「Plugin で補強予定」→ 完成済みの表現に）
+
 ### Changed
 - J-SIX_v1.0.md → v2.0 に改訂
   - 第1章: データ精度改善（「初回成功率33%」→「人間介入33%減少」に訂正、出典と数値を正確化）
