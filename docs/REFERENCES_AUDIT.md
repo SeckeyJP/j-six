@@ -121,7 +121,7 @@
 | ADR（Architecture Decision Records） | Michael Nygard (2011) / https://adr.github.io/ |
 | SDD（Spec-Driven Development） | 2024-2025年に普及した概念。単一の原典はない |
 | Red-Green-Refactor サイクル | TDD の標準的なプラクティス |
-| IPA/SEC 共通フレーム | https://www.ipa.go.jp/sec/ |
+| IPA 共通フレーム | https://www.ipa.go.jp/digital/architecture/ |
 
 ---
 
