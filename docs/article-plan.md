@@ -253,3 +253,21 @@ J-SIX.md
 
 概要編（#0）は J-SIX.md の **エグゼクティブサマリーの拡張版** であり、
 シリーズ全体は J-SIX.md の **各章を読者向けに再構成** したものである。
+
+---
+
+## 6. 番外編（追加公開）
+
+シリーズ6本の公開後、以下の9本を番外編として追加公開した。
+
+| slug | タイトル | テーマ | 公開済 |
+|---|---|---|---|
+| j-six-tdd-antipatterns | TDD × AI の10のアンチパターン | CC 特有の TDD 失敗パターンと対策 | ✅ |
+| j-six-agent-teams | Agent Teams 実践ガイド | 複数 CC で並列開発する方法 | ✅ |
+| j-six-sdd-hands-on | SDD 実践入門 | Spec → 実装を一気通貫ハンズオン | ✅ |
+| j-six-hooks-guide | CC Hooks 実践ガイド | 品質ガードレールの自動化 | ✅ |
+| j-six-spec-writing | AI が実装できる Spec の書き方 | ダメな Spec vs 良い Spec のビフォア/アフター | ✅ |
+| j-six-legacy-code | レガシーコード × Claude Code | 特性化テストで安全に改修する4ステップ | ✅ |
+| j-six-code-review | CC Code Review 活用ガイド | マルチエージェント PR レビュー | ✅ |
+| j-six-doc-reverse-gen | 設計書逆生成の実装 — Phase 6 | コードから納品物を自動生成 | ✅ |
+| j-six-scheduled-tasks | CC Scheduled Tasks | CC の定期実行で開発を自動化 | ✅ |

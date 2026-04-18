@@ -123,12 +123,12 @@ L0         L1-L2             L2-L3                L3-L4
 
 | # | テーマ | 形態 | 状態 |
 |---|---|---|---|
-| 1 | J-SIX 概論 | Qiita/Zenn 記事 | 予定 |
-| 2 | CLAUDE.md テンプレート | テンプレート集 | ✅ 完成 |
-| 3 | ADR テンプレート・運用ガイド | テンプレート + ガイド | ✅ 完成 |
-| 4 | 設計書逆生成 Skill | Claude Code Skill | ✅ 完成 |
-| 5 | j-six-plugin | Claude Code Plugin | ✅ 完成 |
-| 6 | TDD × CC サブエージェント実践 | Qiita/Zenn 記事 | 予定 |
+| 1 | J-SIX シリーズ記事（#0-#5） | Qiita/Zenn 記事 | ✅ 全6本公開済 |
+| 2 | 番外編記事（9本） | Qiita/Zenn 記事 | ✅ 全9本公開済 |
+| 3 | CLAUDE.md テンプレート | テンプレート集 | ✅ 完成 |
+| 4 | ADR テンプレート・運用ガイド | テンプレート + ガイド | ✅ 完成 |
+| 5 | 設計書逆生成 Skill | Claude Code Skill | ✅ 完成 |
+| 6 | j-six-plugin | Claude Code Plugin | ✅ 完成 |
 
 ---
 
