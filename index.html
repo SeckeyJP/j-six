@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J-SIX 全体像 — Japanese SI Transformation</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#161d2e; --panel2:#1d2740; --ink:#e8edf7; --muted:#9aa7c2;
+    --line:#2a3550; --brand:#5b8cff; --brand2:#8b6cff; --ok:#3ecf8e; --warn:#f5c451;
+    --info:#54b3ff; --chip:#243150; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+    line-height:1.7;font-size:15px}
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* header */
+  header.hero{background:
+      radial-gradient(1200px 400px at 80% -10%,rgba(139,108,255,.25),transparent),
+      radial-gradient(900px 380px at 0% 0%,rgba(91,140,255,.28),transparent),
+      linear-gradient(180deg,#121829,#0f1420);
+    border-bottom:1px solid var(--line);padding:64px 0 40px}
+  .hero h1{font-size:clamp(34px,6vw,60px);margin:0 0 6px;letter-spacing:.5px;
+    background:linear-gradient(90deg,#fff,#9db8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{font-size:clamp(15px,2.4vw,20px);color:var(--muted);margin:0 0 22px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px}
+  .badge{background:var(--chip);border:1px solid var(--line);color:var(--muted);
+    padding:5px 12px;border-radius:999px;font-size:12.5px}
+
+  /* nav */
+  nav.toc{position:sticky;top:0;z-index:10;background:rgba(15,20,32,.85);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding:10px 20px}
+  nav.toc a{white-space:nowrap;color:var(--muted);font-size:13px;padding:6px 11px;border-radius:8px}
+  nav.toc a:hover{background:var(--panel2);color:var(--ink);text-decoration:none}
+
+  section{padding:46px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:clamp(22px,3.4vw,30px);margin:0 0 6px;display:flex;align-items:center;gap:12px}
+  h2 .n{font-size:14px;color:var(--brand);border:1px solid var(--line);border-radius:8px;
+    padding:2px 9px;background:var(--panel)}
+  .lead{color:var(--muted);margin:0 0 24px;max-width:760px}
+
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px}
+  .card h3{margin:0 0 6px;font-size:16px}
+  .card p{margin:0;color:var(--muted);font-size:13.5px}
+  .card .k{font-size:26px;font-weight:700;color:#fff}
+  .card .pill{display:inline-block;font-size:11px;color:var(--brand);background:var(--chip);
+    border:1px solid var(--line);border-radius:999px;padding:2px 9px;margin-bottom:8px}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel2);color:#cdd8f2;font-weight:600}
+  tr:last-child td{border-bottom:none}
+  td code,p code,li code{background:#0d1322;border:1px solid var(--line);border-radius:6px;
+    padding:1px 6px;font-size:12.5px;color:#c7d6ff}
+
+  .tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:600}
+  .t-ok{background:rgba(62,207,142,.14);color:var(--ok);border:1px solid rgba(62,207,142,.4)}
+  .t-warn{background:rgba(245,196,81,.14);color:var(--warn);border:1px solid rgba(245,196,81,.4)}
+  .t-info{background:rgba(84,179,255,.14);color:var(--info);border:1px solid rgba(84,179,255,.4)}
+  .t-mut{background:var(--chip);color:var(--muted);border:1px solid var(--line)}
+
+  /* phase flow */
+  .flow{display:flex;flex-direction:column;gap:10px}
+  .phase{display:grid;grid-template-columns:88px 1fr 150px;gap:14px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .phase .ph{font-weight:700;color:#fff;font-size:14px}
+  .phase .ph small{display:block;color:var(--brand);font-size:11px;font-weight:600}
+  .phase .desc{color:var(--muted);font-size:13.5px}
+  .phase .who{font-size:12px;color:#cdd8f2;text-align:right}
+  .phase.auto{border-color:rgba(91,140,255,.5);box-shadow:inset 0 0 0 1px rgba(91,140,255,.12)}
+  .divider{display:flex;align-items:center;gap:10px;color:var(--brand);font-size:12px;
+    margin:4px 0;font-weight:600}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--brand),transparent)}
+  @media(max-width:820px){.phase{grid-template-columns:64px 1fr}.phase .who{display:none}}
+
+  /* stages */
+  .stages{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);
+    border-radius:12px;overflow:hidden}
+  .stages .st{padding:16px;border-right:1px solid var(--line);background:var(--panel)}
+  .stages .st:last-child{border-right:none}
+  .stages .st b{color:#fff}
+  .stages .st .lv{font-size:11px;color:var(--brand);font-weight:600}
+  .stages .st .red{font-size:22px;font-weight:700;color:#fff;margin-top:6px}
+  @media(max-width:820px){.stages{grid-template-columns:1fr 1fr}.stages .st:nth-child(2){border-right:none}}
+
+  ul.clean{margin:0;padding-left:18px;color:var(--muted);font-size:13.5px}
+  ul.clean li{margin:3px 0}
+  .note{font-size:12.5px;color:var(--muted);margin-top:10px}
+  .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:820px){.layers{grid-template-columns:1fr}}
+  .layer{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);
+    border-radius:12px;padding:16px}
+  .layer .lab{font-size:12px;color:var(--brand);font-weight:700}
+  .layer h3{margin:4px 0 6px;font-size:17px}
+
+  footer{padding:40px 0 70px;color:var(--muted);font-size:13px}
+  .kicker{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+  .src{font-size:12px;color:var(--muted);margin-top:14px}
+  .src code{font-size:11.5px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Japanese SI Transformation</div>
+    <h1>J-SIX</h1>
+    <p class="sub">Claude Code を前提にゼロから再設計した、日本の SI 開発のための AI ネイティブ開発プロセス</p>
+    <div class="badges">
+      <span class="badge">著者: H.Sekita</span>
+      <span class="badge">License: CC BY 4.0</span>
+      <span class="badge">プロセス定義 v2.0</span>
+      <span class="badge">Plugin v2.1.0</span>
+      <span class="badge">この全体像: 2026-06-15 時点</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#what">概要</a>
+    <a href="#principles">4原則</a>
+    <a href="#process">プロセス</a>
+    <a href="#docs">3層ドキュメント</a>
+    <a href="#migration">段階的移行</a>
+    <a href="#effects">期待効果</a>
+    <a href="#evidence">実証</a>
+    <a href="#repo">リポジトリ</a>
+    <a href="#plugin">Plugin</a>
+    <a href="#articles">記事</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- 概要 -->
+<section id="what">
+  <h2><span class="n">01</span> J-SIX とは</h2>
+  <p class="lead">日本の SI 業界で広く使われる V字モデル（ウォーターフォール）を、Claude Code（CC）の能力を前提に再設計した開発プロセス。従来モデルに AI を「貼り付ける」のではなく、世界標準の Spec-Driven Development（SDD）の原則を採りつつ、日本特有の品質基準・設計書文化・受発注構造に対応する <b>日本品質レイヤー</b> を独自に設計している。</p>
+  <div class="grid g3">
+    <div class="card"><h3>捨てるのではなく進化させる</h3><p>V字モデルの品質基準は維持し、変えるのは「作り方」。既存案件を止めずに移行できる。</p></div>
+    <div class="card"><h3>CC ネイティブ</h3><p>外部フレームワークに依存せず、Claude Code の Skills / Agents / Hooks のみで構成。</p></div>
+    <div class="card"><h3>正直な数値</h3><p>主張には出典を付け、著者推定は「推定」と明記。実測と推定を切り分けて提示する。</p></div>
+  </div>
+</section>
+
+<!-- 4原則 -->
+<section id="principles">
+  <h2><span class="n">02</span> 4つの設計原則</h2>
+  <div class="grid g2">
+    <div class="card"><span class="pill">原則 1</span><h3>CC ネイティブ</h3><p>BMAD 等の外部 FW に依存せず、Claude Code のネイティブ機能のみで構築する。</p></div>
+    <div class="card"><span class="pill">原則 2</span><h3>3層ドキュメント</h3><p>Spec（Why）+ ADR（Why Not）+ 逆生成設計書（What/How）で従来設計書を超える。</p></div>
+    <div class="card"><span class="pill">原則 3</span><h3>TDD が品質の中核</h3><p>テストファーストにより、CC の自律実行の品質を担保する。</p></div>
+    <div class="card"><span class="pill">原則 4</span><h3>段階的移行</h3><p>既存 V字モデルから3ステージで移行。既存案件を止めない。</p></div>
+  </div>
+</section>
+
+<!-- プロセス -->
+<section id="process">
+  <h2><span class="n">03</span> プロセス全体像（Phase 0–6）</h2>
+  <p class="lead">人間が主導する上流から、CC が自律実行する下流へ。Phase 4 以降が生産性の源泉となる「CC 自律実行圏」。</p>
+  <div class="flow">
+    <div class="phase"><div class="ph">Phase 0<small>憲法策定</small></div><div class="desc">プロジェクト憲法（CLAUDE.md）の策定</div><div class="who">人間が主導</div></div>
+    <div class="phase"><div class="ph">Phase 1<small>要求合意</small></div><div class="desc">要求の合意（Spec 策定）</div><div class="who">人間主導／CC支援</div></div>
+    <div class="phase"><div class="ph">Phase 2<small>技術設計</small></div><div class="desc">Design Spec + プロトタイプ</div><div class="who">人間が判断／CC具現化</div></div>
+    <div class="phase"><div class="ph">Phase 3<small>タスク分解</small></div><div class="desc">タスクへの分解</div><div class="who">CC提案／人間承認</div></div>
+    <div class="divider">ここから CC 自律実行圏（L3–L4）</div>
+    <div class="phase auto"><div class="ph">Phase 4<small>TDD 実装</small></div><div class="desc">★生産性の源泉 — Red → Green → Refactor</div><div class="who">CC 自律実行</div></div>
+    <div class="phase auto"><div class="ph">Phase 5<small>品質検証</small></div><div class="desc">自動検証 + 人間サンプリング</div><div class="who">自動＋人間</div></div>
+    <div class="phase auto"><div class="ph">Phase 6<small>ドキュメント</small></div><div class="desc">3層戦略で設計書を逆生成</div><div class="who">CC逆生成／人間承認</div></div>
+  </div>
+  <p class="note">自律度モデル L0（手動）〜 L4（完全自律）。Phase 4 で L3–L4 が成立するのは、テストファースト・明確な CLAUDE.md・ADR による判断記録という3つのメカニズムが揃うため。</p>
+</section>
+
+<!-- 3層ドキュメント -->
+<section id="docs">
+  <h2><span class="n">04</span> 3層ドキュメント戦略</h2>
+  <p class="lead">「設計書はどうなるのか」という日本 SI 最大の関心に対する回答。コードを Source of Truth とし、コードから復元できない情報だけを人が書く。</p>
+  <div class="layers">
+    <div class="layer"><div class="lab">第1層 — WHY</div><h3>Spec（仕様）</h3><p style="margin:0;color:var(--muted);font-size:13.5px">なぜ作るか。業務背景・目的・要件。人が書き、合意する。</p></div>
+    <div class="layer"><div class="lab">第2層 — WHY NOT</div><h3>ADR（判断記録）</h3><p style="margin:0;color:var(--muted);font-size:13.5px">なぜその選択をしたか。検討した代替案と却下理由。</p></div>
+    <div class="layer"><div class="lab">第3層 — WHAT / HOW</div><h3>逆生成設計書</h3><p style="margin:0;color:var(--muted);font-size:13.5px">何をどう実装したか。コードから自動生成（例: OpenAPI）。</p></div>
+  </div>
+  <p class="note">第3層はコードから逆生成されるため <b>設計書⇔コードの乖離が原理的にゼロ</b>。一方、Why を記す第1・2層は逆生成できず人手更新のため乖離リスクが残る（→ 実証セクション参照）。</p>
+</section>
+
+<!-- 移行 -->
+<section id="migration">
+  <h2><span class="n">05</span> 段階的移行パス</h2>
+  <p class="lead">既存の V字モデル案件を止めずに移行できる3ステージ。自律度（L）と工数削減を段階的に引き上げる。</p>
+  <div class="stages">
+    <div class="st"><div class="lv">L0</div><b>Stage 0</b><div class="red">従来V字</div><div style="color:var(--muted);font-size:12.5px;margin-top:6px">現状</div></div>
+    <div class="st"><div class="lv">L1–L2</div><b>Stage 1（3ヶ月）</b><div class="red">20–30%</div><div style="color:var(--muted);font-size:12.5px;margin-top:6px">V字 + CC 補助</div></div>
+    <div class="st"><div class="lv">L2–L3</div><b>Stage 2（3–6ヶ月）</b><div class="red">40–50%</div><div style="color:var(--muted);font-size:12.5px;margin-top:6px">SDD + V字互換</div></div>
+    <div class="st"><div class="lv">L3–L4</div><b>Stage 3（6ヶ月〜）</b><div class="red">60–70%</div><div style="color:var(--muted);font-size:12.5px;margin-top:6px">J-SIX 全面適用</div></div>
+  </div>
+  <p class="note">工数削減率はステージ完了基準としての著者推定目標値。下段「赤字」は工数削減の目安。</p>
+</section>
+
+<!-- 期待効果 -->
+<section id="effects">
+  <h2><span class="n">06</span> 期待効果と検証ステータス</h2>
+  <p class="lead">J-SIX の数値は実測と推定を切り分けて扱う。<span class="tag t-ok">実測</span> はケーススタディ等で検証済（ただしサンプル数は限定的）、<span class="tag t-warn">推定</span> は著者推定で未実測。</p>
+  <table>
+    <thead><tr><th>指標</th><th>従来V字</th><th>J-SIX</th><th>改善</th><th>検証ステータス</th></tr></thead>
+    <tbody>
+      <tr><td>実装工数</td><td>100%</td><td>30–40%</td><td><b>60–70%削減</b></td><td><span class="tag t-warn">推定（未実測）</span></td></tr>
+      <tr><td>設計書⇔コード乖離</td><td>常態化</td><td>原理的にゼロ</td><td><b>解消</b></td><td><span class="tag t-ok">一部実測</span></td></tr>
+      <tr><td>設計判断の記録率</td><td>10–20%</td><td>80%以上(ADR)</td><td><b>4倍以上</b></td><td><span class="tag t-warn">推定</span></td></tr>
+      <tr><td>テストカバレッジ</td><td>60–70%</td><td>85–95%</td><td><b>15–25pt向上</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
+      <tr><td>手戻り率</td><td>15–25%</td><td>5–10%</td><td><b>半減以下</b></td><td><span class="tag t-warn">推定</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note">「一部実測」: IF 設計書（OpenAPI）の逆生成による乖離ゼロを確認。Why を記す Spec/ADR の乖離リスクは残る。「実測例あり」: ケーススタディ #1 でカバレッジ 99% を実測（N=1・小規模）。</p>
+</section>
+
+<!-- 実証 -->
+<section id="evidence">
+  <h2><span class="n">07</span> 実証 — ケーススタディ #1</h2>
+  <p class="lead">題材「申請承認ワークフロー」（FastAPI / Python）で J-SIX を Phase 1→6 まで一周。再現可能な実測値を取得した（<code>examples/approval-workflow/</code>）。</p>
+  <div class="grid g4">
+    <div class="card"><div class="k">37</div><p>テスト件数</p></div>
+    <div class="card"><div class="k">99%</div><p>ステートメントカバレッジ</p></div>
+    <div class="card"><div class="k">10/10</div><p>要件トレーサビリティ</p></div>
+    <div class="card"><div class="k">354 / 290</div><p>実装 / テスト LOC</p></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3 style="color:var(--ok)">✅ 言えること</h3><ul class="clean">
+      <li>プロセスが小規模題材で実際に一周できる</li>
+      <li>テスト網羅・トレーサビリティ・IF 設計書の逆生成は実物として成立</li>
+      <li>カバレッジ品質ゲート（95%）を実測で充足</li>
+    </ul></div>
+    <div class="card"><h3 style="color:var(--warn)">⚠ 言えないこと</h3><ul class="clean">
+      <li>「工数 60–70% 削減」は本ケースでも N=0 の推定のまま</li>
+      <li>実証には「人手のみ」との A/B 工数比較が必要（次の課題）</li>
+      <li>カバレッジ 99% は N=1・小規模で一般化不可</li>
+    </ul></div>
+  </div>
+  <p class="src">再現: <code>cd examples/approval-workflow &amp;&amp; pytest -q --cov=app</code> ／ 詳細: <code>docs/case-study-01.md</code></p>
+</section>
+
+<!-- リポジトリ -->
+<section id="repo">
+  <h2><span class="n">08</span> リポジトリ構成</h2>
+  <table>
+    <thead><tr><th>パス</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>docs/J-SIX.md</code></td><td>メインのプロセス定義（全8章 + 付録）</td></tr>
+      <tr><td><code>docs/case-study-01.md</code></td><td>実証ケーススタディ（実測 vs 推定の切り分け）</td></tr>
+      <tr><td><code>docs/discussions/</code></td><td>設計判断に至る議論の記録（5本）</td></tr>
+      <tr><td><code>docs/REFERENCES_AUDIT.md</code></td><td>出典・参考文献の監査レポート（四半期レビュー運用）</td></tr>
+      <tr><td><code>templates/</code></td><td>CLAUDE.md / Spec / ADR テンプレート + 記入済み実例への導線</td></tr>
+      <tr><td><code>examples/approval-workflow/</code></td><td>動くサンプル（ケーススタディ題材・テンプレ実例・Plugin デモを兼ねる）</td></tr>
+      <tr><td><code>plugin/</code></td><td>Claude Code Plugin（Skills / Agents / Hooks / 決定論チェック）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Plugin -->
+<section id="plugin">
+  <h2><span class="n">09</span> Claude Code Plugin（v2.1.0）</h2>
+  <p class="lead">J-SIX の各 Phase を Claude Code のネイティブ機能で実装。Skills 6件・Agents 5件・Hooks に加え、LLM を介さない決定論的チェックを同梱。</p>
+  <div class="grid g2">
+    <div class="card"><span class="pill">Skills（6）</span><ul class="clean">
+      <li><code>spec-create</code> — 要求/Design Spec の対話的策定（P1–P2）</li>
+      <li><code>design-review</code> — Spec・ADR・コード整合性検証（P2）</li>
+      <li><code>tdd-cycle</code> — Red→Green→Refactor 管理（P4）</li>
+      <li><code>quality-metrics</code> — メトリクス計測・品質ゲート（P5）</li>
+      <li><code>doc-reverse-gen</code> — 設計書逆生成（P6）</li>
+      <li><code>traceability</code> — 要件→テスト→コード追跡（P1–P6）</li>
+    </ul></div>
+    <div class="card"><span class="pill">Agents（5）</span><ul class="clean">
+      <li><code>red-agent</code> — テスト作成のみ（P4）</li>
+      <li><code>green-agent</code> — 最小実装のみ（P4）</li>
+      <li><code>refactor-agent</code> — 品質改善のみ（P4）</li>
+      <li><code>qa-reviewer</code> — 品質レビュー（読み取り専用）</li>
+      <li><code>doc-generator</code> — 設計書一式の自動生成（P6）</li>
+    </ul></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><span class="pill">Hooks</span><ul class="clean">
+      <li><b>prompt型</b>: 規約準拠チェック / テスト結果確認 / ADR 検出 / リトライ判断 / 権限拒否対応</li>
+      <li><b>command型（新）</b>: Stop 時に決定論的品質ゲートを実行（オプトイン）</li>
+    </ul></div>
+    <div class="card"><span class="pill">決定論的チェック（新）</span><ul class="clean">
+      <li><code>jsix_traceability_check.py</code> — 要件⇔テストの機械検証</li>
+      <li><code>jsix_coverage_gate.py</code> — カバレッジ閾値判定</li>
+      <li><code>jsix_run_checks.py</code> — <code>.jsix-checks.json</code> 同梱時のみ動く no-op 既定ランナー</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- 記事 -->
+<section id="articles">
+  <h2><span class="n">10</span> 記事シリーズ（全15本公開済）</h2>
+  <div class="grid g2">
+    <div class="card"><span class="pill">本編シリーズ（6）</span><ul class="clean">
+      <li>#0 J-SIX 概論</li>
+      <li>#1 V字モデルの前提崩壊と SDD の台頭</li>
+      <li>#2 3層ドキュメント戦略 — 設計書は逆生成へ</li>
+      <li>#3 TDD × Claude Code</li>
+      <li>#4 CLAUDE.md 実践ガイド</li>
+      <li>#5 V字モデルからの段階的移行</li>
+    </ul></div>
+    <div class="card"><span class="pill">番外編（9）</span><ul class="clean">
+      <li>TDD × AI の10のアンチパターン</li>
+      <li>Agent Teams 実践ガイド</li>
+      <li>SDD 実践入門 / Spec の書き方</li>
+      <li>CC Hooks 実践ガイド</li>
+      <li>レガシーコード × Claude Code</li>
+      <li>CC Code Review 活用ガイド</li>
+      <li>設計書逆生成の実装（Phase 6）</li>
+      <li>CC Scheduled Tasks</li>
+    </ul></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>J-SIX</b> — Japanese SI Transformation ／ 著者: H.Sekita ／ License: CC BY 4.0</p>
+    <p class="src">本ページはリポジトリの内容から生成した全体像サマリー（2026-06-15 時点）。一次情報は <code>docs/J-SIX.md</code> 及び各ドキュメントを参照。期待効果の数値は実測と著者推定が混在し、ステータスを明示している。</p>
+  </div>
+</footer>
+
+</body>
+</html>

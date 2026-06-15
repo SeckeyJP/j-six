@@ -91,3 +91,14 @@ J-SIX プロセスの Phase 5（品質検証）で、プロジェクトの品質
 
 [不合格項目に対する具体的な改善アクション]
 ```
+
+## 決定論的バックエンド
+
+カバレッジの品質ゲート判定は、LLM の推定ではなく決定論的スクリプトで行うこと。
+Cobertura 形式の `coverage.xml` がある場合:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jsix_coverage_gate.py" --file coverage.xml --min 95
+```
+
+終了コード 0=充足 / 1=未達。実例は `examples/approval-workflow/`。

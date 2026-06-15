@@ -31,13 +31,45 @@ J-SIX プロセスの Phase 0-6 を Claude Code のネイティブ機能（Skill
 
 ### Hooks
 
-| イベント | 対象 | 内容 |
+| イベント | 型 | 対象 | 内容 |
+|---|---|---|---|
+| PreToolUse | prompt | Edit/Write | CLAUDE.md コーディング規約準拠チェック |
+| PostToolUse | prompt | Bash | テスト実行結果の自動確認 |
+| Stop | prompt | 全体 | ADR 記録すべき技術判断の検出 |
+| Stop | **command** | 全体 | 決定論的品質ゲート（トレーサビリティ / カバレッジ）※オプトイン |
+| StopFailure | prompt | 全体 | エラー終了時のリトライ/エスカレーション判断 |
+| PermissionDenied | prompt | 全体 | 権限拒否時の代替アプローチ提案 |
+
+### 決定論的チェック（command 型 Hook）
+
+prompt 型 Hook は LLM の判断に依存するが、品質ゲートは**決定論的**であるべき。
+`plugin/scripts/` に LLM を介さないチェックスクリプトを同梱している。
+
+| スクリプト | 役割 | 終了コード |
 |---|---|---|
-| PreToolUse | Edit/Write | CLAUDE.md コーディング規約準拠チェック |
-| PostToolUse | Bash | テスト実行結果の自動確認 |
-| Stop | 全体 | ADR 記録すべき技術判断の検出 |
-| StopFailure | 全体 | エラー終了時のリトライ/エスカレーション判断 |
-| PermissionDenied | 全体 | 権限拒否時の代替アプローチ提案 |
+| `jsix_traceability_check.py` | 要件ID（既定 `REQ-\d+`）⇔ テストの対応を検証 | 0=全トレース / 1=未トレースあり |
+| `jsix_coverage_gate.py` | Cobertura `coverage.xml` のライン網羅率を閾値判定 | 0=充足 / 1=未達 |
+| `jsix_run_checks.py` | 上記をまとめて実行する Stop Hook のエントリポイント | 0=合格/未設定 / 2=未達（Stop をブロック） |
+
+**オプトイン方式**: Stop Hook（command）は、プロジェクト直下に `.jsix-checks.json` が
+存在する場合のみチェックを実行する。無いプロジェクトでは何もしない（安全な no-op）。
+
+`.jsix-checks.json` の例:
+
+```json
+{
+  "traceability": { "requirements": "docs/requirement-spec.md", "tests": "tests" },
+  "coverage": { "file": "coverage.xml", "min": 95 }
+}
+```
+
+動作する実例は [`examples/approval-workflow/`](../examples/approval-workflow/)（`.jsix-checks.json` 同梱）。
+個別実行も可能:
+
+```bash
+python3 plugin/scripts/jsix_traceability_check.py --requirements <spec> --tests <dir>
+python3 plugin/scripts/jsix_coverage_gate.py --file coverage.xml --min 95
+```
 
 ## 使い方
 

@@ -21,11 +21,13 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 | 3 | **TDD が品質の中核** | テストファーストにより CC 自律実行の品質を担保 |
 | 4 | **段階的移行** | 既存V字モデルから3ステージで移行。既存案件を止めない |
 
-### 期待効果（著者推定）
+### 期待効果
 
-- 実装工数 **60-70% 削減**
-- 設計書⇔コード乖離 **原理的にゼロ**
-- テストカバレッジ **85-95%**（TDD全面適用時）
+- 実装工数 **60-70% 削減** 🟡 著者推定（未実測）
+- 設計書⇔コード乖離 **原理的にゼロ** 🟢 一部実測（IF設計書の逆生成を[ケーススタディ #1](docs/case-study-01.md)で確認）
+- テストカバレッジ **85-95%**（TDD全面適用時）🟢 実測例あり（同ケースで99%。N=1）
+
+> 各数値の検証ステータス（実測／推定）は [J-SIX.md の期待効果テーブル](docs/J-SIX.md) と [ケーススタディ #1](docs/case-study-01.md) を参照。
 
 ---
 
@@ -36,6 +38,7 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 | ドキュメント | 内容 |
 |---|---|
 | **[J-SIX.md](docs/J-SIX.md)** | J-SIX プロセス定義 v2.0（全8章 + 付録） |
+| [index.html](index.html) | **全体像を1枚にまとめた HTML**（ブラウザで開くだけ。原則・プロセス・移行・期待効果・実証・Plugin） |
 
 ### 実践ガイド
 
@@ -43,6 +46,13 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 |---|---|
 | [Phase 4 TDD ワークスルー](docs/walkthrough-phase4-tdd.md) | TDD サイクルの具体的なコマンド・プロンプト・出力例 |
 | [レガシーコード適用ガイド](docs/guide-legacy-code.md) | 既存コードベースへの J-SIX 段階的適用戦略 |
+
+### 実証（動くサンプル）
+
+| ドキュメント | 内容 |
+|---|---|
+| [ケーススタディ #1](docs/case-study-01.md) | 申請承認ワークフローで J-SIX を一周。**実測値**と推定値を切り分けて提示 |
+| [examples/approval-workflow/](examples/approval-workflow/) | 上記の動くサンプル（FastAPI / 37テスト / カバレッジ99%）。テンプレ記入済み実例も兼ねる |
 
 ### テンプレート
 
@@ -76,6 +86,7 @@ J-SIX の設計判断に至る議論の過程を記録したドキュメント�
 
 | ドキュメント | 内容 |
 |---|---|
+| [ROADMAP.md](docs/ROADMAP.md) | 改善・追加機能ロードマップ（v2.1 → v2.5 想定） |
 | [REFERENCES_AUDIT.md](docs/REFERENCES_AUDIT.md) | 出典・参考文献の監査レポート |
 | [01_process_overview.md](docs/archive/01_process_overview.md) | 初版俯瞰図（V字+CC補助版。参考資料） |
 
@@ -129,6 +140,8 @@ L0         L1-L2             L2-L3                L3-L4
 | 4 | ADR テンプレート・運用ガイド | テンプレート + ガイド | ✅ 完成 |
 | 5 | 設計書逆生成 Skill | Claude Code Skill | ✅ 完成 |
 | 6 | j-six-plugin | Claude Code Plugin | ✅ 完成 |
+
+次フェーズ（実証・テンプレート実例・Plugin 実用拡張）の計画は [ROADMAP.md](docs/ROADMAP.md) を参照してください。
 
 ---
 
