@@ -64,3 +64,15 @@ J-SIX プロセス全体を通じて、要件からコード・テスト・設�
 2. 全てのテストに対応する実装が存在すること
 3. 主要な技術判断に ADR が存在すること
 4. 逆生成設計書が実装をカバーしていること
+
+## 決定論的バックエンド
+
+検証ルール 1（要件⇔テスト）は決定論的スクリプトで機械的に確認できる。
+要件ファイルに `REQ-NNN`、テストに同タグを付けておくと:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jsix_traceability_check.py" \
+  --requirements docs/requirement-spec.md --tests tests
+```
+
+未トレース要件があれば終了コード 1。実例は `examples/approval-workflow/`（10/10 トレース済）。
