@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+
+**v2.1: レビュー前品質ゲートの再設計**
+
+- docs/J-SIX.md 第9章「証跡パッケージ（品質の証明と納品）」— 証跡 / 参考所見 / 承認の3区分、`reports/evidence/<task-id>/` の構成、従来納品物への対応付け
+- docs/J-SIX.md 第4章 4.4「内側ループ（Hook）と外側ループ（CI）の二重化」— Stop hook は8回連続ブロックで自動解除されるため CI ゲートを併設する
+- docs/J-SIX.md Phase 4: 順序固定の4層品質ゲート（G1 決定論的検証 / G2 テスト品質検証 / G3 意図・スコープ判定 / G4 証跡生成）、テスト改変検出の判定表、hold-out 受入テスト、「G3 は固定装備ではない」節
+- docs/J-SIX.md Phase 2: 受入条件 → Property（PROP-nnn）の導出工程 / Phase 3: 変更許可ファイル範囲の事前承認 / Phase 0: CLAUDE.md をコードとして扱う月次ループ
+- docs/J-SIX.md 期待効果に mutation score 行を追加（🟡 未実測。閾値はケーススタディ #2 の実測後に決める）
+- templates/spec/requirement-spec.md: 3.2 要件ID（REQ-nnn）、3.3 受入条件と Property（PROP-nnn）、3.4 hold-out 受入テストの対象
+- templates/spec/design-spec.md: 8. Property の実装方針（PBT ライブラリ・入力生成戦略）、9. 品質ゲートの設定
+- docs/REFERENCES_AUDIT.md: 2.7「品質ゲート・検証」（A36-A43）、カテゴリB に B15-B20
+- index.html: セクション 04「レビュー前の4層品質ゲート」を追加（既存セクションを繰り下げ）
+- README.md: 4層品質ゲートの概要、期待効果に mutation score 行
+
+**実証・テンプレート実例・決定論的チェック（先行実装分）**
+
 - docs/ROADMAP.md: 次フェーズの改善・追加機能ロードマップ（実証・信頼性 / テンプレート充実 / Plugin 実用拡張）
 - docs/case-study-01.md: ケーススタディ #1（申請承認ワークフローで J-SIX を一周。実測値と推定値を切り分け）— ROADMAP A1
 - examples/approval-workflow/: 動く FastAPI サンプル（37テスト / カバレッジ99%）。記入済みテンプレ実例（CLAUDE.md / Spec×2 / ADR×2 / traceability）を兼ねる — ROADMAP B1/B2/C2
@@ -13,6 +29,15 @@ All notable changes to this project will be documented in this file.
 - index.html: J-SIX の全体像を1枚に集約した自己完結型 HTML（外部依存なし。GitHub Pages のルートとしても機能）
 
 ### Changed
+
+**v2.1: レビュー前品質ゲートの再設計**
+
+- docs/J-SIX.md: Version 2.0 → 2.1。自律度モデル L4 の条件を「自動テスト通過」から「G1〜G4 全層通過」へ変更（reward hacking 対策。根拠は SpecBench [26]）。Phase 5 を「機械が原理的に見られないものを人間が見る工程」として再定義し、集計メトリクス（mutation score / judge 却下率 / ゲート失敗理由分布 / 人間レビュー指摘数）を追加。第4章 4.2 マッピング表に `/goal`・`/verify`・`/code-review`・auto mode 分類器・dynamic workflows・`/batch` を追加。用語集に G1-G4 / PROP / PBT / mutation score / hold-out / reward hacking / 証跡パッケージ等を追加。参考文献 [26]-[31] を追加
+- docs/REFERENCES_AUDIT.md: 監査日に 2026-09-10 を追記（四半期鮮度レビュー第2回）。7.1 に「DORA の verification tax は一次情報で確認できず不採用」を記録
+- docs/ROADMAP.md: A2/A3 を実績反映、A4（ケーススタディ #2）・A5（1.3 能力データ更新）・C4/C5/C6（品質ゲート実装・証跡パック・CI 例）を追加
+
+**実証・テンプレート実例・決定論的チェック（先行実装分）**
+
 - README.md: 参考資料テーブルに ROADMAP を追加、「実証（動くサンプル）」セクション追加、期待効果に検証ステータス（実測/推定）を明示、「今後の展開」に次フェーズ計画への誘導を追記 — ROADMAP A2
 - templates/README.md: 「テンプレ → 記入済み実例 → 該当 Skill」の導線表を追加 — ROADMAP B3
 - docs/J-SIX.md: 期待効果テーブルに「検証ステータス」列を追加（実測/推定の切り分け）— ROADMAP A2 / 付録B（展開予定）の鮮度更新、ROADMAP への誘導を追記

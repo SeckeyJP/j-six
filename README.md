@@ -28,8 +28,23 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 - 実装工数 **60-70% 削減** 🟡 著者推定（未実測）
 - 設計書⇔コード乖離 **原理的にゼロ** 🟢 一部実測（IF設計書の逆生成を[ケーススタディ #1](docs/case-study-01.md)で確認）
 - テストカバレッジ **85-95%**（TDD全面適用時）🟢 実測例あり（同ケースで99%。N=1）
+- mutation score（テストスイート自体の有効性）🟡 **未実測**（閾値はケーススタディ #2 の実測後に決める）
 
 > 各数値の検証ステータス（実測／推定）は [J-SIX.md の期待効果テーブル](docs/J-SIX.md) と [ケーススタディ #1](docs/case-study-01.md) を参照。
+
+### レビュー前の4層品質ゲート（v2.1）
+
+人間レビューに出す前に、性質の異なる4つの監督面を**順に**通します。後段は前段を通過した場合のみ実行します。
+
+| 層 | 内容 | 判定主体 |
+|---|---|---|
+| **G1** 決定論的検証 | build / lint / SAST / secret / 依存脆弱性 / スコープ検査 | script |
+| **G2** テスト品質検証 | テスト通過 / カバレッジ / mutation score / テスト改変検出 / hold-out 受入テスト / トレーサビリティ | script |
+| **G3** 意図・スコープ判定 | 正確性・要件未充足・スコープ逸脱**のみ**を fresh context の judge が判定 | LLM |
+| **G4** 証跡パッケージ生成 | 人間レビュー用・顧客納品用の記録を構造化出力 | script + LLM（要約のみ） |
+
+**なぜテスト通過だけでは足りないのか**: 監督面がテストスイート単独だと、エージェントはそれを
+最適化対象として扱う（reward hacking）。詳細と出典は [J-SIX.md 第2章 2.3](docs/J-SIX.md) を参照。
 
 ---
 
@@ -39,7 +54,7 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 
 | ドキュメント | 内容 |
 |---|---|
-| **[J-SIX.md](docs/J-SIX.md)** | J-SIX プロセス定義 v2.0（全8章 + 付録） |
+| **[J-SIX.md](docs/J-SIX.md)** | J-SIX プロセス定義 v2.1（全9章 + 付録） |
 | [index.html](index.html) | **全体像を1枚にまとめた HTML**（ブラウザで開くだけ。原則・プロセス・移行・期待効果・実証・Plugin） |
 
 ### 実践ガイド
@@ -142,6 +157,9 @@ L0         L1-L2             L2-L3                L3-L4
 | 4 | ADR テンプレート・運用ガイド | テンプレート + ガイド | ✅ 完成 |
 | 5 | 設計書逆生成 Skill | Claude Code Skill | ✅ 完成 |
 | 6 | j-six-plugin | Claude Code Plugin | ✅ 完成 |
+| 7 | 4層品質ゲート（G1-G4）の Plugin 実装 | Plugin scripts / Agents / Skills | ⏳ v2.1 で実装中 |
+| 8 | 証跡パッケージ（顧客納品対応） | evidence-pack Skill | ⏳ v2.1 で実装中 |
+| 9 | ケーススタディ #2（mutation score の実測） | 記事 + GitHub | ⏳ v2.1 で実施 |
 
 次フェーズ（実証・テンプレート実例・Plugin 実用拡張）の計画は [ROADMAP.md](docs/ROADMAP.md) を参照してください。
 
