@@ -21,6 +21,10 @@ All notable changes to this project will be documented in this file.
 - plugin/scripts/: G1/G2 の決定論的チェック 7種を追加 — `jsix_config.py`（設定の正規化と v2.0 後方互換）/ `jsix_result.py`（Check 共通インタフェース）/ `jsix_gitutil.py` / `jsix_junit_check.py`（JUnit XML）/ `jsix_sarif_gate.py`（SARIF の severity 集計）/ `jsix_mutation_gate.py`（mutation-testing-elements JSON と最小契約 JSON）/ `jsix_scope_check.py`（変更ファイル ⊆ 許可リスト）/ `jsix_test_tamper_check.py`（テスト弱体化の検出）
 - plugin/scripts/tests/: 111 件の単体テストとフィクスチャ（JUnit / Cobertura / LCOV / SARIF / mutation / 新旧 config）
 - examples/approval-workflow/: `Makefile`（build/lint/format/sast/test/gate）と `requirements-dev.txt`（ruff / bandit / bandit-sarif-formatter / hypothesis）
+- plugin/agents/scope-judge.md: G3 の判定エージェント。正確性・要件未充足・スコープ逸脱の3分類のみを報告し、スタイル指摘を禁止（「gap を探せと言われたレビュアーは健全な作業でも何かを報告する」問題への対処）。判定は `judge.json` に書き出す
+- plugin/agents/holdout-test-writer.md: hold-out 受入テストの作成エージェント。実装コードを読まず、Spec の受入条件（UC-nnn）と PROP から `tests/acceptance/` を生成する
+- plugin/scripts/jsix_guard_tests.py: green-agent 用の PreToolUse Hook。`tests/` への書き込みと `tests/acceptance/` の読み取りを機械的に拒否する（想定外の入力では止めない fail-open）
+- examples/approval-workflow/tests/acceptance/: hold-out 受入テスト 10件（UC-001〜006 を各1件以上）
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 
@@ -44,6 +48,12 @@ All notable changes to this project will be documented in this file.
 - examples/approval-workflow/: `.jsix-checks.json` を v2.1 の gates 形式へ。ruff format による整形に伴い行数が変化（app 354→368 / tests 290→299。テスト件数・カバレッジ・トレーサビリティは変化なし）
 - docs/case-study-01.md / examples/approval-workflow/README.md: 上記の再計測値を反映し、変化の理由を注記
 - .gitignore: `**/reports/`（ゲートの生成物）を除外
+- plugin/agents/green-agent.md: subagent スコープの `hooks` で `tests/` への書込と hold-out の読取を拒否。テストの期待値が誤っていると考えた場合は修正せず人間へ報告する手順を追加（subagent frontmatter に `permissions` フィールドは無いため `hooks` で実現）
+- plugin/agents/red-agent.md: PROP から property-based test を生成する手順と、完了時に `git tag jsix/red-<タスクID>` を打つ手順を追加（G2 テスト改変検出の基準点）
+- plugin/agents/refactor-agent.md: テストのリファクタリングで越えてはいけない線（アサーション・テスト関数の総数を減らさない / 無効化マーカーを増やさない）を明記
+- plugin/agents/qa-reviewer.md: 役割を「証跡パックの人間向け要約と探索的テスト観点の提示」へ再定義。合否判定は G1-G3 に委譲し、出力は「参考所見」と明記する
+- plugin/skills/tdd-cycle/SKILL.md: Hold-out → Red → Green → Refactor → G1〜G4 の流れへ改訂。RED タグ、G3 の2段構成、`/goal` の併用、エスカレーション条件を追加
+- examples/approval-workflow/.jsix-checks.json: hold-out / G3 / G4 を有効化
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 

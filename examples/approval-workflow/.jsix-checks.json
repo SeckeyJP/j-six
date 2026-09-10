@@ -40,6 +40,11 @@
         "junit": "reports/junit.xml",
         "max_skipped": 0
       },
+      "holdout": {
+        "cmd": "make test-acceptance",
+        "junit": "reports/junit-acceptance.xml",
+        "max_skipped": 0
+      },
       "coverage": {
         "file": "coverage.xml",
         "min": 95
@@ -62,6 +67,18 @@
         ],
         "junit": "reports/junit.xml"
       }
+    },
+    "g3": {
+      "agent": "scope-judge",
+      "verdict": "reports/evidence/judge.json",
+      "max_auto_fix": 1
+    },
+    "g4": {
+      "out": "reports/evidence/",
+      "formats": [
+        "md",
+        "json"
+      ]
     }
   }
 }
