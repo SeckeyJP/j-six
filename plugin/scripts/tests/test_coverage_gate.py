@@ -43,3 +43,13 @@ def test_lowest_files_reported(fixtures):
 
 def test_missing_file(fixtures):
     assert not cov.check({"file": "nope.xml"}, fixtures).ok
+
+
+def test_optional_missing_is_skipped(fixtures):
+    r = cov.check({"file": "nope.xml", "min": 95, "optional": True}, fixtures)
+    assert r.ok and r.skipped
+
+
+def test_missing_is_failure_by_default(fixtures):
+    r = cov.check({"file": "nope.xml", "min": 95}, fixtures)
+    assert not r.ok and not r.skipped

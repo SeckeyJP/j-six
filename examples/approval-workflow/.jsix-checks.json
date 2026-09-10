@@ -5,15 +5,27 @@
         "cmd": "make build"
       },
       "lint": {
-        "cmd": "make lint"
+        "cmd": "make lint",
+        "hook_cmd": ".venv/bin/python -m ruff check --fix {file}"
       },
       "format": {
-        "cmd": "make format"
+        "cmd": "make format",
+        "hook_cmd": ".venv/bin/python -m ruff format {file}"
       },
       "sast": {
         "cmd": "make sast",
         "sarif": "reports/sast.sarif",
         "max_severity": "error"
+      },
+      "secrets": {
+        "sarif": "reports/secrets.sarif",
+        "max_severity": "warning",
+        "optional": true
+      },
+      "deps": {
+        "sarif": "reports/deps.sarif",
+        "max_severity": "error",
+        "optional": true
       },
       "scope": {
         "allow": [

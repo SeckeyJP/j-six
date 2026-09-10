@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from jsix_result import Result, failed, passed  # noqa: E402
+from jsix_result import Result, failed, missing_artifact, passed  # noqa: E402
 
 #: 分子に数える status（殺せた）
 KILLED = {"Killed", "Timeout"}
@@ -163,7 +163,7 @@ def check(cfg: dict, base_dir: Path | None = None, changed_files: list | None = 
 
     path = base / target
     if not path.is_file():
-        return failed(f"mutation: {target} が見つかりません（mutation testing を実行してください）")
+        return missing_artifact("mutation", target, cfg, "mutation testing を実行してください")
 
     try:
         data = parse_mutation_report(path)

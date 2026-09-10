@@ -48,3 +48,23 @@ def failed(summary: str, metrics: dict | None = None, findings: list | None = No
 
 def passed(summary: str, metrics: dict | None = None, findings: list | None = None) -> Result:
     return Result(ok=True, summary=summary, metrics=metrics or {}, findings=findings or [])
+
+
+def missing_artifact(label: str, path, cfg: dict, hint: str = "") -> Result:
+    """宣言された成果物が見つからない場合の Result。
+
+    既定は**不合格**。成果物が無いのに合格にすると、検証していないものを
+    検証済みとして扱うことになるため。
+
+    ただし `optional: true` が明示されている場合はスキップ扱いにする。
+    CI でのみ生成する成果物（secret スキャンや依存脆弱性の SARIF など）を、
+    ローカルの内側ループでは要求しないための逃げ道である。
+    """
+    if cfg.get("optional"):
+        return Result(
+            ok=True,
+            summary=f"{label}: {path} が無いためスキップ（optional 指定。CI で生成される想定）",
+            skipped=True,
+        )
+    suffix = f"（{hint}）" if hint else ""
+    return failed(f"{label}: {path} が見つかりません{suffix}")

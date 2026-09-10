@@ -295,33 +295,42 @@
 <!-- Plugin -->
 <section id="plugin">
   <h2><span class="n">10</span> Claude Code Plugin（v2.1.0）</h2>
-  <p class="lead">J-SIX の各 Phase を Claude Code のネイティブ機能で実装。Skills 6件・Agents 5件・Hooks に加え、LLM を介さない決定論的チェックを同梱。</p>
+  <p class="lead">J-SIX の各 Phase を Claude Code のネイティブ機能で実装。Skills 7件・Agents 7件・Hooks に加え、LLM を介さない決定論的チェック 11本を同梱。<b>Plugin は言語別ツールを直接呼ばず</b>、標準フォーマット（JUnit XML / Cobertura・LCOV / SARIF / mutation-testing-elements JSON）のパースと閾値判定だけを行う。</p>
   <div class="grid g2">
-    <div class="card"><span class="pill">Skills（6）</span><ul class="clean">
+    <div class="card"><span class="pill">Skills（7）</span><ul class="clean">
       <li><code>spec-create</code> — 要求/Design Spec の対話的策定（P1–P2）</li>
       <li><code>design-review</code> — Spec・ADR・コード整合性検証（P2）</li>
-      <li><code>tdd-cycle</code> — Red→Green→Refactor 管理（P4）</li>
-      <li><code>quality-metrics</code> — メトリクス計測・品質ゲート（P5）</li>
-      <li><code>doc-reverse-gen</code> — 設計書逆生成（P6）</li>
+      <li><code>tdd-cycle</code> — Hold-out→Red→Green→Refactor→G1〜G4（P4）</li>
+      <li><code>evidence-pack</code> — 証跡パッケージへの要約付加（P4）<b>新</b></li>
+      <li><code>quality-metrics</code> — プロセス健全性の集計（P5）</li>
+      <li><code>doc-reverse-gen</code> — 設計書逆生成・品質納品物（P6）</li>
       <li><code>traceability</code> — 要件→テスト→コード追跡（P1–P6）</li>
     </ul></div>
-    <div class="card"><span class="pill">Agents（5）</span><ul class="clean">
-      <li><code>red-agent</code> — テスト作成のみ（P4）</li>
-      <li><code>green-agent</code> — 最小実装のみ（P4）</li>
+    <div class="card"><span class="pill">Agents（7）</span><ul class="clean">
+      <li><code>holdout-test-writer</code> — hold-out 受入テスト作成 <b>新</b></li>
+      <li><code>red-agent</code> — テスト作成＋PROP から PBT＋RED タグ（P4）</li>
+      <li><code>green-agent</code> — 最小実装のみ。テストに触れない（P4）</li>
       <li><code>refactor-agent</code> — 品質改善のみ（P4）</li>
-      <li><code>qa-reviewer</code> — 品質レビュー（読み取り専用）</li>
+      <li><code>scope-judge</code> — G3 意図・スコープ判定 <b>新</b></li>
+      <li><code>qa-reviewer</code> — 証跡の要約・探索的テスト観点（P5）</li>
       <li><code>doc-generator</code> — 設計書一式の自動生成（P6）</li>
     </ul></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><span class="pill">Hooks</span><ul class="clean">
-      <li><b>prompt型</b>: 規約準拠チェック / テスト結果確認 / ADR 検出 / リトライ判断 / 権限拒否対応</li>
-      <li><b>command型（新）</b>: Stop 時に決定論的品質ゲートを実行（オプトイン）</li>
+      <li><b>command型</b>: PreToolUse で決定論的な format / lint（v2.0 の prompt 型を置換）</li>
+      <li><b>command型</b>: Stop 時に品質ゲート G1→G4 を実行（オプトイン）</li>
+      <li><b>prompt型</b>: G3 の起動 / ADR 検出 / テスト結果確認 / リトライ判断 / 権限拒否対応 — <i>助言用途に限定</i></li>
+      <li><b>subagent スコープ</b>: green-agent の <code>tests/</code> 書込と hold-out 読取を拒否</li>
     </ul></div>
-    <div class="card"><span class="pill">決定論的チェック（新）</span><ul class="clean">
-      <li><code>jsix_traceability_check.py</code> — 要件⇔テストの機械検証</li>
-      <li><code>jsix_coverage_gate.py</code> — カバレッジ閾値判定</li>
-      <li><code>jsix_run_checks.py</code> — <code>.jsix-checks.json</code> 同梱時のみ動く no-op 既定ランナー</li>
+    <div class="card"><span class="pill">決定論的チェック（11本）</span><ul class="clean">
+      <li><code>jsix_run_checks.py</code> — G1→G4 を順に実行。前段失敗で打ち切り</li>
+      <li><code>jsix_scope_check.py</code> / <code>jsix_sarif_gate.py</code> — G1</li>
+      <li><code>jsix_junit_check.py</code> / <code>jsix_coverage_gate.py</code> / <code>jsix_mutation_gate.py</code> — G2</li>
+      <li><code>jsix_test_tamper_check.py</code> — G2: テスト<b>弱体化</b>の検出</li>
+      <li><code>jsix_traceability_check.py</code> — G2: REQ / PROP ⇔ テスト</li>
+      <li><code>jsix_evidence_pack.py</code> — G4: 証跡パッケージ生成</li>
+      <li>既定は<b>レポート駆動</b>（成果物を読むだけ）。CI では <code>--run-commands</code></li>
     </ul></div>
   </div>
 </section>

@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from jsix_result import Result, failed, passed  # noqa: E402
+from jsix_result import Result, failed, missing_artifact, passed  # noqa: E402
 
 
 class CoverageParseError(ValueError):
@@ -153,6 +153,9 @@ def check(cfg: dict, base_dir: Path | None = None) -> Result:
     target = cfg.get("file", "coverage.xml")
     path = base / target
 
+    if not path.is_file():
+        return missing_artifact("coverage", target, cfg,
+                                "テストをカバレッジ付きで実行してください")
     try:
         data = parse_coverage(path)
     except CoverageParseError as exc:

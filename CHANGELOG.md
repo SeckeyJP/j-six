@@ -27,6 +27,9 @@ All notable changes to this project will be documented in this file.
 - examples/approval-workflow/tests/acceptance/: hold-out 受入テスト 10件（UC-001〜006 を各1件以上）
 - plugin/scripts/jsix_evidence_pack.py: G4 の証跡パッケージ生成。`evidence.json` ＋ `00_summary.md`〜`07_approval.md` ＋ `env.json` を出力。証跡 / 参考所見 / 承認 の3区分を混ぜず、スクリプトは推定値を一切書かない（LLM 要約欄は空で出力する）。納品物に実行環境の絶対パスを残さない
 - plugin/skills/evidence-pack/SKILL.md: 証跡に LLM 要約（変更概要・リスク箇所・計画からの逸脱）を「参考所見」として付加する手順。数値は証跡から引用し推定しないこと、納品前チェックリストを規定
+- plugin/scripts/jsix_format_hook.py: PreToolUse の決定論的 format / lint。`.jsix-checks.json` の `hook_cmd` に宣言されたコマンドのみ実行（未宣言なら no-op）。言語別ツール名を plugin に持ち込まない
+- examples/approval-workflow/.github/workflows/jsix-gate.yml: 外側ループ（CI）の例。内側ループと同じ判定スクリプト・同じ設定で `--run-commands` 実行し、gitleaks / trivy の SARIF を G1 に投入、証跡をアーティファクトとして保存する
+- `.jsix-checks.json` に `optional` オプション: 成果物が無い場合にスキップする（CI でのみ生成する SARIF 等）。**既定は不合格**（検証していないものを検証済みとして扱わないため）
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 
@@ -59,6 +62,13 @@ All notable changes to this project will be documented in this file.
 - plugin/skills/quality-metrics/SKILL.md: 役割を「個別タスクの合否判定」から「タスク横断のプロセス健全性の集計」へ。mutation score / G3 judge 却下率と理由分布 / ゲート失敗理由の分布 / 人間レビュー指摘数 を追加。judge を外す判断の材料として却下率を使う運用を明記
 - plugin/skills/doc-reverse-gen/SKILL.md: 種別 `quality` を追加。証跡パッケージから従来の品質・テスト系納品物（テスト結果報告書 / 品質報告書 / セキュリティ診断結果 / トレーサビリティマトリクス / レビュー記録）へ変換する対応表と、3区分を保つ変換ルールを規定
 - plugin/scripts/jsix_junit_check.py: 出力ラベルを引数化し、通常テストと hold-out を区別して表示
+- plugin/hooks/hooks.json: PreToolUse の規約チェックを **prompt 型から command 型（決定論的 lint/format）へ置換**。prompt 型は助言用途に限定。Stop に「G3 未実施なら scope-judge を起動する」prompt hook を追加。StopFailure に Stop hook の8回上限を踏まえた判断基準を追記
+- plugin/README.md: 4層ゲート、設計原則（ツールを呼ばず契約を決める）、scripts 一覧（11本）、`.jsix-checks.json` の新旧形式、内側/外側ループの二重化を反映。Skills 6→7 件 / Agents 5→7 件
+- plugin/.claude-plugin/plugin.json: description を v2.1 の内容へ更新、`keywords` を追加（version は 2.1.0 のまま）
+- docs/J-SIX.md 4.3: Plugin 構成を実装済みの構成（scripts 12本を含む）へ更新
+- docs/walkthrough-phase4-tdd.md: v2.1 の全体像（Hold-out → Red → Green → Refactor → G1〜G4）を冒頭に追記し、Step 6 として品質ゲートの実行例を追加
+- examples/approval-workflow/README.md: `make` ターゲット、品質ゲートの出力例、テスト弱体化がブロックされることの確認手順、Plugin デモ表に holdout-test-writer / scope-judge / evidence-pack を追加
+- index.html / README.md: Plugin セクションを Skills 7 件 / Agents 7 件 / 決定論的チェック 11 本に更新
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 

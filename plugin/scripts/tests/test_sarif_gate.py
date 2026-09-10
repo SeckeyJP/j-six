@@ -50,3 +50,22 @@ def test_invalid_severity(fixtures):
 def test_not_sarif(fixtures):
     r = sarif.check({"sarif": "mutation-minimal.json"}, fixtures)
     assert not r.ok and "SARIF ではありません" in r.summary
+
+
+class TestOptionalArtifact:
+    """CI でのみ生成する成果物を、ローカルの内側ループでは要求しない。"""
+
+    def test_missing_is_failure_by_default(self, fixtures):
+        """既定は不合格。検証していないものを検証済みとして扱わない。"""
+        r = sarif.check({"sarif": "nope.sarif", "max_severity": "error"}, fixtures)
+        assert not r.ok and not r.skipped
+
+    def test_optional_missing_is_skipped(self, fixtures):
+        r = sarif.check({"sarif": "nope.sarif", "max_severity": "error", "optional": True}, fixtures)
+        assert r.ok and r.skipped
+        assert "optional" in r.summary
+
+    def test_optional_present_is_still_judged(self, fixtures):
+        """optional でもファイルがあれば通常どおり判定する。"""
+        r = sarif.check({"sarif": "sast.sarif", "max_severity": "error", "optional": True}, fixtures)
+        assert not r.ok and not r.skipped

@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from jsix_result import Result, failed, passed  # noqa: E402
+from jsix_result import Result, failed, missing_artifact, passed  # noqa: E402
 
 #: 重大度の順序（大きいほど深刻）
 LEVEL_RANK = {"none": 0, "note": 1, "warning": 2, "error": 3}
@@ -115,7 +115,7 @@ def check(cfg: dict, base_dir: Path | None = None, label: str = "sast") -> Resul
 
     path = base / target
     if not path.is_file():
-        return failed(f"{label}: {target} が見つかりません（解析ツールを実行して SARIF を出力してください）")
+        return missing_artifact(label, target, cfg, "解析ツールを実行して SARIF を出力してください")
 
     try:
         data = parse_sarif(path)

@@ -556,22 +556,43 @@ plugin/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin マニフェスト
 ├── skills/
-│   ├── spec-create/SKILL.md     # Spec 策定スキル（日本語テンプレート）
-│   ├── design-review/SKILL.md   # 設計レビュースキル
-│   ├── tdd-cycle/SKILL.md       # TDD サイクル管理スキル
-│   ├── doc-reverse-gen/SKILL.md # 設計書逆生成スキル（基本/詳細/IF/DB）
-│   ├── quality-metrics/SKILL.md # 品質メトリクス計測スキル
-│   └── traceability/SKILL.md    # トレーサビリティ管理スキル
+│   ├── spec-create/SKILL.md     # Spec 策定（日本語テンプレート）
+│   ├── design-review/SKILL.md   # 設計レビュー
+│   ├── tdd-cycle/SKILL.md       # Hold-out→Red→Green→Refactor→G1〜G4 の管理
+│   ├── evidence-pack/SKILL.md   # 証跡パッケージへの要約付加（G4）
+│   ├── doc-reverse-gen/SKILL.md # 設計書逆生成（基本/詳細/IF/DB/品質）
+│   ├── quality-metrics/SKILL.md # プロセス健全性の集計
+│   └── traceability/SKILL.md    # トレーサビリティ管理
 ├── agents/
-│   ├── red-agent.md             # TDD Red Phase エージェント
-│   ├── green-agent.md           # TDD Green Phase エージェント
-│   ├── refactor-agent.md        # TDD Refactor Phase エージェント
-│   ├── qa-reviewer.md           # 品質レビューエージェント
-│   └── doc-generator.md         # ドキュメント生成エージェント
+│   ├── holdout-test-writer.md   # hold-out 受入テスト作成
+│   ├── red-agent.md             # TDD Red Phase（PROP→PBT / RED タグ）
+│   ├── green-agent.md           # TDD Green Phase（テストに触れない）
+│   ├── refactor-agent.md        # TDD Refactor Phase
+│   ├── scope-judge.md           # G3 意図・スコープ判定
+│   ├── qa-reviewer.md           # 証跡の要約・探索的テスト観点
+│   └── doc-generator.md         # ドキュメント生成
+├── scripts/                     # 決定論的チェック（LLM を介さない）
+│   ├── jsix_run_checks.py       # ゲートを G1→G4 の順に実行する基盤
+│   ├── jsix_scope_check.py      # G1: 変更ファイル ⊆ 許可リスト
+│   ├── jsix_sarif_gate.py       # G1: SARIF の severity 判定
+│   ├── jsix_junit_check.py      # G2: JUnit XML の判定
+│   ├── jsix_coverage_gate.py    # G2: Cobertura / LCOV の閾値判定
+│   ├── jsix_mutation_gate.py    # G2: mutation score の判定
+│   ├── jsix_test_tamper_check.py# G2: テスト弱体化の検出
+│   ├── jsix_traceability_check.py # G2: REQ / PROP ⇔ テスト
+│   ├── jsix_evidence_pack.py    # G4: 証跡パッケージ生成
+│   ├── jsix_format_hook.py      # PreToolUse: 決定論的 format / lint
+│   ├── jsix_guard_tests.py      # PreToolUse: green-agent の監督面保護
+│   └── tests/                   # スクリプト自体の単体テスト
 ├── hooks/
-│   └── hooks.json               # Hooks 設定（規約チェック、ADR検出等）
+│   └── hooks.json               # Hooks 設定
 └── README.md
 ```
+
+**Plugin は言語別ツールを直接呼ばない**。`.jsix-checks.json` が「コマンド」と
+「成果物のパス・形式」を宣言し、Plugin は標準フォーマット（JUnit XML / Cobertura・LCOV /
+SARIF / mutation-testing-elements JSON）の**パースと閾値判定のみ**を行う。
+これにより、特定言語のツール名を Plugin に持ち込まずに済む。
 
 テンプレート（CLAUDE.md / Spec / ADR）はリポジトリルートの `templates/` に配置し、Skills から参照する構成としている。
 

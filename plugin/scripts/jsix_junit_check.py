@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from jsix_result import Result, failed, passed  # noqa: E402
+from jsix_result import Result, failed, missing_artifact, passed  # noqa: E402
 
 
 def _iter_suites(root: ET.Element):
@@ -89,7 +89,7 @@ def check(cfg: dict, base_dir: Path | None = None, label: str = "tests") -> Resu
 
     path = base / junit
     if not path.is_file():
-        return failed(f"{label}: {junit} が見つかりません（テストを実行して JUnit XML を出力してください）")
+        return missing_artifact(label, junit, cfg, "テストを実行して JUnit XML を出力してください")
 
     try:
         data = parse_junit(path)

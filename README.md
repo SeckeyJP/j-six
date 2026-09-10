@@ -83,7 +83,7 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 
 | ディレクトリ | 内容 |
 |---|---|
-| [plugin/](plugin/) | J-SIX Plugin（Skills 6件 / Agents 5件 / Hooks） |
+| [plugin/](plugin/) | J-SIX Plugin（Skills 7件 / Agents 7件 / Hooks / 決定論的チェック 11本） |
 
 詳細は [plugin/README.md](plugin/README.md) を参照してください。
 

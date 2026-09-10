@@ -1,0 +1,109 @@
+# J-SIX 品質ゲート — 外側ループ（CI）
+#
+# 内側ループ（ローカルの Stop hook）と**同じ判定スクリプト・同じ設定ファイル**を使う。
+# ローカルで緑になったものが CI で赤になる（またはその逆）ことを避けるため。
+#
+# なぜ二重化するのか:
+#   1. Stop hook は8回連続ブロックすると Claude Code が上書きしてターンを終了する
+#   2. Hook の有効化は各開発者のローカル設定に依存する
+#   3. J-SIX Plugin は .jsix-checks.json が無ければ何もしない（オプトイン）
+# つまり Hook は最終防衛線にならない。解除されても CI で止まる構成にする。
+#
+# このファイルはサンプルアプリ（examples/approval-workflow/）用の例である。
+# 実プロジェクトではリポジトリ直下の .github/workflows/ に置く。
+
+name: J-SIX Quality Gate
+
+on:
+  pull_request:
+    paths:
+      - "examples/approval-workflow/**"
+      - "plugin/scripts/**"
+  push:
+    branches: [main]
+    paths:
+      - "examples/approval-workflow/**"
+      - "plugin/scripts/**"
+
+# SARIF を GitHub の Code scanning に上げるために必要
+permissions:
+  contents: read
+  security-events: write
+
+defaults:
+  run:
+    working-directory: examples/approval-workflow
+
+jobs:
+  gate:
+    name: G1 → G2 → G4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # G2 のテスト改変検出が RED タグと比較するため、履歴とタグが必要
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 依存インストール
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -q -r requirements.txt -r requirements-dev.txt
+
+      # --- G1 の成果物のうち、外部ツールが要るものを CI で生成する -------------
+      # plugin は SARIF を読むだけで、どのツールを使うかはプロジェクトが決める。
+      - name: secret スキャン（SARIF 生成）
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true      # 判定は plugin 側の閾値で行う
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          config-path: ""
+          report-format: sarif
+          report-path: examples/approval-workflow/reports/secrets.sarif
+
+      - name: 依存脆弱性スキャン（SARIF 生成）
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true      # 判定は plugin 側の閾値で行う
+        with:
+          scan-type: fs
+          scan-ref: examples/approval-workflow
+          format: sarif
+          output: examples/approval-workflow/reports/deps.sarif
+
+      # --- ゲート本体 -----------------------------------------------------------
+      # --run-commands を付けるのは CI だけ。ローカルの Stop hook は既存の成果物を
+      # 読むだけで、build や test を毎ターン走らせない（Hook が無効化される運用を避ける）。
+      #
+      # G3（LLM judge）は CI では必須にしない。CI で LLM の API キーを扱わずに済ませ、
+      # 判定は PR 上の /code-review とレビュアーに委ねる。
+      - name: J-SIX 品質ゲート（G1 → G2 → G4）
+        run: |
+          python3 ../../plugin/scripts/jsix_run_checks.py \
+            --run-commands \
+            --json reports/gate.json
+
+      # --- 証跡を残す ------------------------------------------------------------
+      - name: 証跡パッケージを生成
+        if: always()
+        run: |
+          python3 ../../plugin/scripts/jsix_evidence_pack.py \
+            --results reports/gate.json --out reports/evidence/ || true
+
+      - name: 証跡をアーティファクトとして保存
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsix-evidence-${{ github.sha }}
+          path: examples/approval-workflow/reports/
+          retention-days: 90
+
+      - name: SARIF を Code scanning に登録
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: examples/approval-workflow/reports/
