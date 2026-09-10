@@ -43,6 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import jsix_config as config  # noqa: E402
 import jsix_coverage_gate as coverage_gate  # noqa: E402
+import jsix_evidence_pack as evidence_pack  # noqa: E402
 import jsix_gitutil as git  # noqa: E402
 import jsix_junit_check as junit_check  # noqa: E402
 import jsix_mutation_gate as mutation_gate  # noqa: E402
@@ -64,6 +65,9 @@ class Context:
         self.base = base
         self.run_commands = run_commands
         self._changed = None
+        #: G4 は G1〜G3 の結果を入力に取るため、実行中の結果を参照できるようにする
+        self.results: dict = {}
+        self.config_path: Path | None = None
 
     @property
     def changed_files(self) -> list | None:
@@ -126,7 +130,7 @@ def _tests_check(name: str, cfg: dict, ctx: Context) -> Result:
         return fail
     if not (cfg.get("junit") or cfg.get("file")):
         return _command_only(name, cfg, ctx)
-    return junit_check.check(cfg, ctx.base)
+    return junit_check.check(cfg, ctx.base, label=name)
 
 
 def _mutation_check(name: str, cfg: dict, ctx: Context) -> Result:
@@ -186,8 +190,14 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
 
 
 def _evidence_check(name: str, cfg: dict, ctx: Context) -> Result:
-    """G4: 証跡パッケージ生成。Step 4 で実装する。"""
-    return skipped("evidence: 証跡パッケージ生成は未実装（Step 4）")
+    """G4: 証跡パッケージ生成。
+
+    ここに到達しているのは G1〜G3 がすべて通過した場合だけなので、
+    証跡パッケージは「通過した状態の記録」になる。未通過時の記録が必要な場合は
+    `--json` の出力から `jsix_evidence_pack.py` を直接実行する。
+    """
+    return evidence_pack.check(cfg, ctx.base, ctx.results, overall_ok=True,
+                               config_path=ctx.config_path)
 
 
 CHECKS = {
@@ -227,6 +237,7 @@ def run_gates(cfg: dict, ctx: Context) -> tuple:
             results[gate] = {"status": "not-run", "reason": f"{aborted_after} が未通過のため未実行", "checks": {}}
             continue
 
+        ctx.results = results  # 実行中のゲートより前の結果を G4 から読めるようにする
         gate_results: dict = {}
         gate_ok = True
         for g, name, check_cfg in config.iter_checks({"gates": {gate: gate_cfg}}):
@@ -246,6 +257,7 @@ def run_gates(cfg: dict, ctx: Context) -> tuple:
             "status": "passed" if gate_ok else "failed",
             "checks": gate_results,
         }
+        ctx.results = results  # G4 が G1〜G3 の結果を参照できるようにする
         if not gate_ok:
             aborted_after = gate.upper()
 
@@ -304,6 +316,7 @@ def main(argv: list | None = None) -> int:
         return EXIT_OK  # 未設定プロジェクトでは no-op
 
     ctx = Context(base, args.run_commands)
+    ctx.config_path = Path(cfg["_path"]) if cfg.get("_path") else None
     ok, results = run_gates(cfg, ctx)
     lines, has_failure = render(results, cfg.get("_legacy", False))
 

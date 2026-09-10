@@ -54,3 +54,10 @@ def test_missing_file(fixtures):
 def test_missing_config(fixtures):
     r = junit.check({}, fixtures)
     assert not r.ok and "junit" in r.summary
+
+
+def test_label_distinguishes_holdout(fixtures):
+    """通常テストと hold-out 受入テストを同じロジックで判定しつつ、出力で区別できる。"""
+    r = junit.check({"junit": "junit-pass.xml"}, fixtures, label="holdout")
+    assert r.summary.startswith("holdout:")
+    assert junit.check({"junit": "junit-pass.xml"}, fixtures).summary.startswith("tests:")

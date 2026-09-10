@@ -76,27 +76,32 @@ def parse_junit(xml_path: Path) -> dict:
     }
 
 
-def check(cfg: dict, base_dir: Path | None = None) -> Result:
+def check(cfg: dict, base_dir: Path | None = None, label: str = "tests") -> Result:
+    """JUnit XML を判定する。
+
+    label は出力の見出し（`tests` / `holdout` 等）。同じ判定ロジックを通常テストと
+    hold-out 受入テストの両方で使うため、どちらの結果かが読んで分かるようにする。
+    """
     base = base_dir or Path.cwd()
     junit = cfg.get("junit") or cfg.get("file")
     if not junit:
-        return failed("tests: 設定に junit（JUnit XML のパス）がありません")
+        return failed(f"{label}: 設定に junit（JUnit XML のパス）がありません")
 
     path = base / junit
     if not path.is_file():
-        return failed(f"tests: {junit} が見つかりません（テストを実行して JUnit XML を出力してください）")
+        return failed(f"{label}: {junit} が見つかりません（テストを実行して JUnit XML を出力してください）")
 
     try:
         data = parse_junit(path)
     except ET.ParseError as exc:
-        return failed(f"tests: {junit} の解析に失敗: {exc}")
+        return failed(f"{label}: {junit} の解析に失敗: {exc}")
 
     metrics = {k: data[k] for k in ("tests", "failures", "errors", "skipped")}
     broken = data["failures"] + data["errors"]
 
     if broken:
         return failed(
-            f"tests: 失敗 {data['failures']}件 / エラー {data['errors']}件（全 {data['tests']}件）",
+            f"{label}: 失敗 {data['failures']}件 / エラー {data['errors']}件（全 {data['tests']}件）",
             metrics,
             [{"test": t, "kind": "failure"} for t in data["failed_tests"][:20]],
         )
@@ -104,17 +109,17 @@ def check(cfg: dict, base_dir: Path | None = None) -> Result:
     max_skipped = cfg.get("max_skipped")
     if max_skipped is not None and data["skipped"] > int(max_skipped):
         return failed(
-            f"tests: スキップ {data['skipped']}件 > 上限 {max_skipped}件",
+            f"{label}: スキップ {data['skipped']}件 > 上限 {max_skipped}件",
             metrics,
             [{"test": t, "kind": "skipped"} for t in data["skipped_tests"][:20]],
         )
 
     min_tests = cfg.get("min_tests")
     if min_tests is not None and data["tests"] < int(min_tests):
-        return failed(f"tests: テスト総数 {data['tests']}件 < 下限 {min_tests}件", metrics)
+        return failed(f"{label}: テスト総数 {data['tests']}件 < 下限 {min_tests}件", metrics)
 
     skip_note = f"（スキップ {data['skipped']}件）" if data["skipped"] else ""
-    return passed(f"tests: 全 {data['tests']}件 通過{skip_note}", metrics)
+    return passed(f"{label}: 全 {data['tests']}件 通過{skip_note}", metrics)
 
 
 def main(argv: list | None = None) -> int:

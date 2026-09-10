@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file.
 - plugin/agents/holdout-test-writer.md: hold-out 受入テストの作成エージェント。実装コードを読まず、Spec の受入条件（UC-nnn）と PROP から `tests/acceptance/` を生成する
 - plugin/scripts/jsix_guard_tests.py: green-agent 用の PreToolUse Hook。`tests/` への書き込みと `tests/acceptance/` の読み取りを機械的に拒否する（想定外の入力では止めない fail-open）
 - examples/approval-workflow/tests/acceptance/: hold-out 受入テスト 10件（UC-001〜006 を各1件以上）
+- plugin/scripts/jsix_evidence_pack.py: G4 の証跡パッケージ生成。`evidence.json` ＋ `00_summary.md`〜`07_approval.md` ＋ `env.json` を出力。証跡 / 参考所見 / 承認 の3区分を混ぜず、スクリプトは推定値を一切書かない（LLM 要約欄は空で出力する）。納品物に実行環境の絶対パスを残さない
+- plugin/skills/evidence-pack/SKILL.md: 証跡に LLM 要約（変更概要・リスク箇所・計画からの逸脱）を「参考所見」として付加する手順。数値は証跡から引用し推定しないこと、納品前チェックリストを規定
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 
@@ -54,6 +56,9 @@ All notable changes to this project will be documented in this file.
 - plugin/agents/qa-reviewer.md: 役割を「証跡パックの人間向け要約と探索的テスト観点の提示」へ再定義。合否判定は G1-G3 に委譲し、出力は「参考所見」と明記する
 - plugin/skills/tdd-cycle/SKILL.md: Hold-out → Red → Green → Refactor → G1〜G4 の流れへ改訂。RED タグ、G3 の2段構成、`/goal` の併用、エスカレーション条件を追加
 - examples/approval-workflow/.jsix-checks.json: hold-out / G3 / G4 を有効化
+- plugin/skills/quality-metrics/SKILL.md: 役割を「個別タスクの合否判定」から「タスク横断のプロセス健全性の集計」へ。mutation score / G3 judge 却下率と理由分布 / ゲート失敗理由の分布 / 人間レビュー指摘数 を追加。judge を外す判断の材料として却下率を使う運用を明記
+- plugin/skills/doc-reverse-gen/SKILL.md: 種別 `quality` を追加。証跡パッケージから従来の品質・テスト系納品物（テスト結果報告書 / 品質報告書 / セキュリティ診断結果 / トレーサビリティマトリクス / レビュー記録）へ変換する対応表と、3区分を保つ変換ルールを規定
+- plugin/scripts/jsix_junit_check.py: 出力ラベルを引数化し、通常テストと hold-out を区別して表示
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 
