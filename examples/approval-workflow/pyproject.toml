@@ -1,0 +1,7 @@
+# mutation testing の設定（ケーススタディ #2）
+# mutmut 3.x は pyproject.toml の [tool.mutmut] を読む。
+[tool.mutmut]
+paths_to_mutate = ["app/"]
+tests_dir = ["tests/"]
+# hold-out（tests/acceptance/）もミュータント検出に使う。可視テストが取り逃した
+# 変異を hold-out が捕まえるかを見たいため。

@@ -42,9 +42,17 @@ test-acceptance: | $(REPORTS)
 
 coverage: test
 
-# mutation testing はケーススタディ #2 で導入する（実測してから閾値を決める）
-mutation:
-	@echo "mutation: 未導入（ケーススタディ #2 で実測してから閾値を決める）"
+# mutation testing。mutmut 3.x は Python 3.10+ を要するため専用の venv を使う
+# （本体は Python 3.9 でも動く。ケーススタディ #2 の経緯は docs/case-study-02.md）。
+MUT_PY := .venv-mut/bin/python
+
+setup-mutation:
+	python3.13 -m venv .venv-mut || python3 -m venv .venv-mut
+	$(MUT_PY) -m pip install -q -r requirements.txt -r requirements-dev.txt mutmut
+
+mutation: | $(REPORTS)
+	$(MUT_PY) -m mutmut run
+	python3 scripts/mutmut_to_json.py --out $(REPORTS)/mutation.json
 
 ## ゲート -----------------------------------------------------------
 JSIX := python3 ../../plugin/scripts/jsix_run_checks.py
@@ -58,4 +66,4 @@ gate-ci:
 	$(JSIX) --run-commands --json $(REPORTS)/gate.json
 
 clean:
-	$(RM) -r $(REPORTS) coverage.xml .coverage .pytest_cache
+	$(RM) -r $(REPORTS) coverage.xml .coverage .pytest_cache mutants

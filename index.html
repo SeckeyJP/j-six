@@ -243,36 +243,52 @@
       <tr><td>設計書⇔コード乖離</td><td>常態化</td><td>原理的にゼロ</td><td><b>解消</b></td><td><span class="tag t-ok">一部実測</span></td></tr>
       <tr><td>設計判断の記録率</td><td>10–20%</td><td>80%以上(ADR)</td><td><b>4倍以上</b></td><td><span class="tag t-warn">推定</span></td></tr>
       <tr><td>テストカバレッジ（必要条件）</td><td>60–70%</td><td>85–95%</td><td><b>15–25pt向上</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
-      <tr><td>mutation score（十分条件側）</td><td>通常は未計測</td><td>閾値は実測後に設定</td><td>—</td><td><span class="tag t-warn">未実測</span></td></tr>
+      <tr><td>mutation score（十分条件側）</td><td>通常は未計測</td><td>90%以上</td><td><b>新規指標</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
       <tr><td>手戻り率</td><td>15–25%</td><td>5–10%</td><td><b>半減以下</b></td><td><span class="tag t-warn">推定</span></td></tr>
     </tbody>
   </table>
-  <p class="note">「一部実測」: IF 設計書（OpenAPI）の逆生成による乖離ゼロを確認。Why を記す Spec/ADR の乖離リスクは残る。「実測例あり」: ケーススタディ #1 でカバレッジ 99% を実測（N=1・小規模）。</p>
+  <p class="note">「一部実測」: IF 設計書（OpenAPI）の逆生成による乖離ゼロを確認。Why を記す Spec/ADR の乖離リスクは残る。「実測例あり」: ケーススタディ #1 でカバレッジ 99% を実測（N=1・小規模）。mutation score はケーススタディ #2 で 91.8%（PBT 追加後 93.4%）を実測。</p>
 </section>
 
 <!-- 実証 -->
 <section id="evidence">
-  <h2><span class="n">08</span> 実証 — ケーススタディ #1</h2>
+  <h2><span class="n">08</span> 実証 — ケーススタディ #1 / #2</h2>
   <p class="lead">題材「申請承認ワークフロー」（FastAPI / Python）で J-SIX を Phase 1→6 まで一周。再現可能な実測値を取得した（<code>examples/approval-workflow/</code>）。</p>
   <div class="grid g4">
-    <div class="card"><div class="k">37</div><p>テスト件数</p></div>
+    <div class="card"><div class="k">45 + 10</div><p>テスト件数（＋hold-out）</p></div>
     <div class="card"><div class="k">99%</div><p>ステートメントカバレッジ</p></div>
-    <div class="card"><div class="k">10/10</div><p>要件トレーサビリティ</p></div>
-    <div class="card"><div class="k">354 / 290</div><p>実装 / テスト LOC</p></div>
+    <div class="card"><div class="k">93.4%</div><p>mutation score</p></div>
+    <div class="card"><div class="k">16/16</div><p>REQ / PROP トレーサビリティ</p></div>
   </div>
+
+  <h3 style="margin-top:22px">ケーススタディ #2 — 「カバレッジ 99%」の mutation score</h3>
+  <p class="lead">カバレッジは「テストが実行した行」を測るが、「テストが誤りを検出できるか」は測らない。同じコードで両方を実測して差を見た。</p>
+  <table>
+    <thead><tr><th>指標</th><th>実測値</th><th>意味</th></tr></thead>
+    <tbody>
+      <tr><td>ステートメントカバレッジ</td><td><b>99%</b></td><td>207 stmt 中 未到達 2</td></tr>
+      <tr><td>mutation score（PBT 前）</td><td><b>91.8%</b></td><td>183 ミュータント中 15 生存</td></tr>
+      <tr><td>生存のうち<b>本物のテストの穴</b></td><td><b>3 件</b></td><td>境界値 1 / 監査ログの操作者・理由 2</td></tr>
+      <tr><td>mutation score（PBT 後）</td><td><b>93.4%</b></td><td>性質テスト 8 件を追加し、狙った 3 件を正確に殺した</td></tr>
+    </tbody>
+  </table>
+  <p class="note">残る 12 件はエラーメッセージ文言と既定引数の変異で、外部から見た振る舞いを変えない。仕様が規定していない詳細をテストで固定すると脆いテストになるため、<b>意図的に生かしている</b>。mutation score 100% は目的ではない。</p>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><h3 style="color:var(--ok)">✅ 言えること</h3><ul class="clean">
       <li>プロセスが小規模題材で実際に一周できる</li>
       <li>テスト網羅・トレーサビリティ・IF 設計書の逆生成は実物として成立</li>
       <li>カバレッジ品質ゲート（95%）を実測で充足</li>
+      <li><b>カバレッジ 99% でも本物のテストの穴が3件残っていた</b>（うち2件は内部統制要件）</li>
+      <li>生存ミュータントは性質テスト（PBT）の出発点として質が高い</li>
     </ul></div>
     <div class="card"><h3 style="color:var(--warn)">⚠ 言えないこと</h3><ul class="clean">
       <li>「工数 60–70% 削減」は本ケースでも N=0 の推定のまま</li>
       <li>実証には「人手のみ」との A/B 工数比較が必要（次の課題）</li>
-      <li>カバレッジ 99% は N=1・小規模で一般化不可</li>
+      <li>カバレッジ 99% / mutation 93.4% は N=1・小規模・外部依存なしで一般化不可</li>
+      <li>mutation の閾値 90% は本題材の実測値。他プロジェクトへは持ち込めない</li>
     </ul></div>
   </div>
-  <p class="src">再現: <code>cd examples/approval-workflow &amp;&amp; pytest -q --cov=app</code> ／ 詳細: <code>docs/case-study-01.md</code></p>
+  <p class="src">再現: <code>cd examples/approval-workflow &amp;&amp; make test &amp;&amp; make mutation &amp;&amp; make gate</code> ／ 詳細: <code>docs/case-study-01.md</code>, <code>docs/case-study-02.md</code></p>
 </section>
 
 <!-- リポジトリ -->

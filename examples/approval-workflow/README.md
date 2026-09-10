@@ -21,6 +21,7 @@ approval-workflow/
 │   └── jsix-gate.yml         # 外側ループ（CI）の例
 ├── tests/
 │   ├── test_workflow.py      # ドメイン単体テスト（REQ-NNN タグ付き）
+│   ├── test_properties.py    # 性質テスト（PROP-NNN / Hypothesis）
 │   ├── test_api.py           # API 結線テスト
 │   └── acceptance/           # hold-out 受入テスト（GREEN 実装者は読めない）
 │       ├── test_uc001_create.py
@@ -28,7 +29,7 @@ approval-workflow/
 │       ├── test_uc004_uc005_reject_remand.py
 │       └── test_uc006_withdraw.py
 ├── docs/
-│   ├── requirement-spec.md   # 記入済み 要求 Spec 実例
+│   ├── requirement-spec.md   # 記入済み 要求 Spec 実例（REQ / PROP / hold-out 対象）
 │   ├── design-spec.md        # 記入済み Design Spec 実例
 │   ├── traceability.md       # 要件⇔テスト⇔コード 対応表
 │   └── adr/
@@ -43,8 +44,10 @@ approval-workflow/
 cd examples/approval-workflow
 make setup                    # venv 作成 + 依存インストール（本体 + 開発用）
 
-make test                     # 単体・結合テスト（JUnit XML + カバレッジを生成）
+make test                     # 単体・結合・性質テスト（JUnit XML + カバレッジを生成）
 make test-acceptance          # hold-out 受入テスト
+make setup-mutation           # mutation testing 用の venv（Python 3.10+ が必要）
+make mutation                 # mutation score 計測 → reports/mutation.json
 make gate                     # 品質ゲート G1→G4（既存の成果物を読んで判定）
 make gate-ci                  # 品質ゲート（コマンドも実行してから判定）
 
@@ -61,11 +64,12 @@ make gate-ci                  # 品質ゲート（コマンドも実行してか
   ✅ [G1] sast: error 以上の指摘なし（error 0 / warning 0 / note 0）
   ⏭ [G1] secrets / deps: SARIF が無いためスキップ（optional 指定。CI で生成される想定）
   ✅ [G1] scope: 変更ファイルはすべて許可範囲内
-  ✅ [G2] tests: 全 37件 通過
+  ✅ [G2] tests: 全 45件 通過
   ✅ [G2] holdout: 全 10件 通過
   ✅ [G2] coverage: 99.0% ≥ 閾値 95.0%
+  ✅ [G2] mutation: 全体 score 93.4% ≥ 閾値 90.0%
   ⏭ [G2] test_tamper: 基準点（jsix/red-* タグ）が無いため差分検査をスキップ
-  ✅ [G2] traceability: 全10件トレース済
+  ✅ [G2] traceability: 全16件トレース済（REQ 10 / PROP 6）
   ✅ [G3] judge: PASS
   ✅ [G4] evidence: 証跡パッケージを生成しました → reports/evidence/<タスクID>/
 ```
@@ -92,9 +96,10 @@ git checkout tests/ app/
 |---|---|
 | アプリ実装 LOC | 368 行（app/） |
 | テスト LOC | 299 行（tests/） |
-| テスト件数 | 37 件 |
+| テスト件数 | 45 件（例ベース 37 + 性質テスト 8）＋ hold-out 受入 10 件 |
 | ステートメントカバレッジ | 99% |
-| 要件トレーサビリティ | 10/10 要件にテスト存在 |
+| **mutation score** | **93.44%**（183 ミュータント中 171 killed）— [ケーススタディ #2](../../docs/case-study-02.md) |
+| トレーサビリティ | 16/16（REQ 10 + PROP 6）にテスト存在 |
 
 > 行数は v2.1 の format ゲート導入に伴う整形で変化している（app 354→368 / tests 290→299）。
 > テスト件数・カバレッジ・トレーサビリティは変化なし。

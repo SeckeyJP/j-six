@@ -28,7 +28,7 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 - 実装工数 **60-70% 削減** 🟡 著者推定（未実測）
 - 設計書⇔コード乖離 **原理的にゼロ** 🟢 一部実測（IF設計書の逆生成を[ケーススタディ #1](docs/case-study-01.md)で確認）
 - テストカバレッジ **85-95%**（TDD全面適用時）🟢 実測例あり（同ケースで99%。N=1）
-- mutation score（テストスイート自体の有効性）🟡 **未実測**（閾値はケーススタディ #2 の実測後に決める）
+- mutation score（テストスイート自体の有効性）🟢 実測例あり（[ケーススタディ #2](docs/case-study-02.md) で **カバレッジ 99% のコードが 91.8%**。性質テスト追加後 93.4%。N=1）
 
 > 各数値の検証ステータス（実測／推定）は [J-SIX.md の期待効果テーブル](docs/J-SIX.md) と [ケーススタディ #1](docs/case-study-01.md) を参照。
 
@@ -69,7 +69,8 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 | ドキュメント | 内容 |
 |---|---|
 | [ケーススタディ #1](docs/case-study-01.md) | 申請承認ワークフローで J-SIX を一周。**実測値**と推定値を切り分けて提示 |
-| [examples/approval-workflow/](examples/approval-workflow/) | 上記の動くサンプル（FastAPI / 37テスト / カバレッジ99%）。テンプレ記入済み実例も兼ねる |
+| [ケーススタディ #2](docs/case-study-02.md) | **「カバレッジ 99%」の mutation score を実測**。生存ミュータントから性質テスト（PBT）を導く |
+| [examples/approval-workflow/](examples/approval-workflow/) | 上記の動くサンプル（FastAPI / 45テスト + hold-out 10件 / カバレッジ99% / mutation 93.4%）。テンプレ記入済み実例も兼ねる |
 
 ### テンプレート
 
@@ -157,9 +158,9 @@ L0         L1-L2             L2-L3                L3-L4
 | 4 | ADR テンプレート・運用ガイド | テンプレート + ガイド | ✅ 完成 |
 | 5 | 設計書逆生成 Skill | Claude Code Skill | ✅ 完成 |
 | 6 | j-six-plugin | Claude Code Plugin | ✅ 完成 |
-| 7 | 4層品質ゲート（G1-G4）の Plugin 実装 | Plugin scripts / Agents / Skills | ⏳ v2.1 で実装中 |
-| 8 | 証跡パッケージ（顧客納品対応） | evidence-pack Skill | ⏳ v2.1 で実装中 |
-| 9 | ケーススタディ #2（mutation score の実測） | 記事 + GitHub | ⏳ v2.1 で実施 |
+| 7 | 4層品質ゲート（G1-G4）の Plugin 実装 | Plugin scripts / Agents / Skills | ✅ 完成 |
+| 8 | 証跡パッケージ（顧客納品対応） | evidence-pack Skill | ✅ 完成 |
+| 9 | [ケーススタディ #2](docs/case-study-02.md)（mutation score の実測） | 記事 + GitHub | ✅ 完成 |
 
 次フェーズ（実証・テンプレート実例・Plugin 実用拡張）の計画は [ROADMAP.md](docs/ROADMAP.md) を参照してください。
 

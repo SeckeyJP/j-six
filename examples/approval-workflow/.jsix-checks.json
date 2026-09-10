@@ -39,7 +39,9 @@
           ".jsix-checks.json",
           "README.md",
           "CLAUDE.md",
-          ".github/**"
+          ".github/**",
+          "pyproject.toml",
+          "scripts/**"
         ],
         "deny": [
           "tests/acceptance/**"
@@ -60,6 +62,11 @@
       "coverage": {
         "file": "coverage.xml",
         "min": 95
+      },
+      "mutation": {
+        "cmd": "make mutation",
+        "report": "reports/mutation.json",
+        "min_score": 90
       },
       "test_tamper": {
         "paths": [

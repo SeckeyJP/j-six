@@ -11,3 +11,6 @@ MEMORY.md
 **/coverage.xml
 **/htmlcov/
 **/reports/
+**/.hypothesis/
+**/mutants/
+**/.venv-mut/

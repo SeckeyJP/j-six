@@ -30,6 +30,10 @@ All notable changes to this project will be documented in this file.
 - plugin/scripts/jsix_format_hook.py: PreToolUse の決定論的 format / lint。`.jsix-checks.json` の `hook_cmd` に宣言されたコマンドのみ実行（未宣言なら no-op）。言語別ツール名を plugin に持ち込まない
 - examples/approval-workflow/.github/workflows/jsix-gate.yml: 外側ループ（CI）の例。内側ループと同じ判定スクリプト・同じ設定で `--run-commands` 実行し、gitleaks / trivy の SARIF を G1 に投入、証跡をアーティファクトとして保存する
 - `.jsix-checks.json` に `optional` オプション: 成果物が無い場合にスキップする（CI でのみ生成する SARIF 等）。**既定は不合格**（検証していないものを検証済みとして扱わないため）
+- docs/case-study-02.md: 「カバレッジ 99%」の mutation score を実測。**91.8%**（183 ミュータント中 15 生存）。生存のうち **3件が本物のテストの穴**（境界値 1件・監査ログの操作者と理由 2件）。性質テスト（PBT）8件を追加して **93.4%** に改善し、狙った3件を正確に殺した
+- examples/approval-workflow/tests/test_properties.py: PROP-001〜006 の property-based test（Hypothesis）
+- examples/approval-workflow/scripts/mutmut_to_json.py: mutmut → 最小契約 JSON のアダプタ。**plugin ではなく利用者側**に置く（特定ツールへの依存を plugin に持ち込まないため）
+- examples/approval-workflow/docs/requirement-spec.md: 3.3 受入条件と Property（PROP-001〜006）、3.4 hold-out 受入テストの対象
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 
@@ -69,6 +73,12 @@ All notable changes to this project will be documented in this file.
 - docs/walkthrough-phase4-tdd.md: v2.1 の全体像（Hold-out → Red → Green → Refactor → G1〜G4）を冒頭に追記し、Step 6 として品質ゲートの実行例を追加
 - examples/approval-workflow/README.md: `make` ターゲット、品質ゲートの出力例、テスト弱体化がブロックされることの確認手順、Plugin デモ表に holdout-test-writer / scope-judge / evidence-pack を追加
 - index.html / README.md: Plugin セクションを Skills 7 件 / Agents 7 件 / 決定論的チェック 11 本に更新
+- docs/J-SIX.md: mutation score 行の検証ステータスを 🟡 未実測 → **🟢 実測例あり**（ケーススタディ #2 の実測に基づく。閾値 90% も実測由来であり、Plugin の既定値としては引き続き置かない）
+- README.md / index.html: ケーススタディ #2 の実測値を反映。付録の展開予定を完了状態へ
+- examples/approval-workflow/: `make mutation` / `make setup-mutation` を追加。`.jsix-checks.json` に mutation ゲート（`min_score: 90`）を有効化。トレーサビリティを REQ 10 + PROP 6 = 16 件に拡張
+- examples/approval-workflow/docs/traceability.md: PROP ⇔ テスト、hold-out ⇔ ユースケースの対応表を追加
+- docs/ROADMAP.md: A4 / C3 / C4 / C5 / C6 を完了に更新。v2.1 完了後の残タスクを整理
+- .gitignore: mutation testing の生成物（`.hypothesis/`, `mutants/`, `.venv-mut/`）を除外
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 

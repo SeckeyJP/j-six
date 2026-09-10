@@ -29,7 +29,7 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 | A2 | 期待効果の数値に「検証ステータス」列を追加（推定/実測/外部出典を明示） | `docs/J-SIX.md` 第1章, `README.md` | 小 | ✅ 2026-06-14 |
 | A3 | 出典鮮度の定期レビュー運用（四半期）。`/schedule` 化も検討 | `docs/REFERENCES_AUDIT.md` に運用節追加 | 小 | ✅ 2026-06-14（7.3 に運用節。2026-09-10 に第2回を実施） |
 | A1' | 同一題材で「人手のみ実装」との工数 A/B 比較（工数削減の初の実測） | case-study に追記 | 中 | ☐（A1 で次アクションとして提起） |
-| A4 | **ケーススタディ #2**: カバレッジ 99% のコードの mutation score を実測。生存ミュータントから導出した PBT で何が見つかったかを記録 | `docs/case-study-02.md` ＋ `examples/approval-workflow/` | 中 | ⏳ v2.1（実装順序 6） |
+| A4 | **ケーススタディ #2**: カバレッジ 99% のコードの mutation score を実測。生存ミュータントから導出した PBT で何が見つかったかを記録 | `docs/case-study-02.md` ＋ `examples/approval-workflow/` | 中 | ✅ 2026-09-10（91.8% → PBT 追加で 93.4%。本物のテストの穴3件を検出） |
 | A5 | 第1章 1.3「CC の現実的な能力水準」のデータ更新（Sonnet 4.5 世代のまま。最新モデル・最新調査へ差し替え） | `docs/J-SIX.md` 第1章 | 小 | ☐（v2.1 の範囲外。次回の鮮度レビューで実施） |
 
 ## B. テンプレート充実
@@ -51,10 +51,10 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 |---|---|---|---|---|
 | C1 | **コマンド型 Hook 追加**（カバレッジ閾値ゲート、要件⇔テストのトレーサビリティ自動チェック）。番外編 Hooks 記事の知見を本体還元 | `plugin/scripts/` ×3 + Stop command Hook（オプトイン） | 中 | ✅ 2026-06-14 |
 | C2 | **end-to-end デモ**（B1/A1 と同一題材で Skills 6 / Agents 5 を実際に動かした証跡） | `examples/approval-workflow/README.md`（Phase別 Skill 対応表） | 大 | ◐ 部分（成果物と対応表は整備済。各 Skill の実行ログ取得は残） |
-| C3 | plugin.json に `keywords` 等メタ補強、インストール手順の検証 | `plugin/.claude-plugin/plugin.json` | 小 | ⏳ v2.1（実装順序 5） |
-| C4 | **4層品質ゲート（G1-G4）の実装**。標準フォーマット（JUnit XML / Cobertura・LCOV / SARIF / mutation-testing-elements JSON）のパースと閾値判定に限定し、言語依存のツール呼び出しを持ち込まない | `plugin/scripts/` ×11, `plugin/agents/` ×7, `plugin/skills/` ×7 | 大 | ⏳ v2.1（実装順序 2-4） |
-| C5 | **証跡パッケージ**（顧客納品対応）。証跡 / 参考所見 / 承認の3区分で出力 | `jsix_evidence_pack.py` + `evidence-pack` Skill | 中 | ⏳ v2.1（実装順序 4） |
-| C6 | **CI 例（外側ループ）**。Hook が解除されても止まる二重化 | `examples/approval-workflow/.github/workflows/jsix-gate.yml` | 小 | ⏳ v2.1（実装順序 5） |
+| C3 | plugin.json に `keywords` 等メタ補強、インストール手順の検証 | `plugin/.claude-plugin/plugin.json` | 小 | ✅ 2026-09-10 |
+| C4 | **4層品質ゲート（G1-G4）の実装**。標準フォーマット（JUnit XML / Cobertura・LCOV / SARIF / mutation-testing-elements JSON）のパースと閾値判定に限定し、言語依存のツール呼び出しを持ち込まない | `plugin/scripts/` ×13, `plugin/agents/` ×7, `plugin/skills/` ×7 | 大 | ✅ 2026-09-10（単体テスト 155 件） |
+| C5 | **証跡パッケージ**（顧客納品対応）。証跡 / 参考所見 / 承認の3区分で出力 | `jsix_evidence_pack.py` + `evidence-pack` Skill | 中 | ✅ 2026-09-10 |
+| C6 | **CI 例（外側ループ）**。Hook が解除されても止まる二重化 | `examples/approval-workflow/.github/workflows/jsix-gate.yml` | 小 | ✅ 2026-09-10 |
 
 ---
 
@@ -67,6 +67,16 @@ C1（Hook）は独立して並行可
 A2,A3,B3,C3 は仕上げ
 ```
 
+### v2.1 完了後の残タスク
+
+```
+A1'（人手のみ実装との工数 A/B 比較）← 唯一残る「工数削減」の実証手段
+A5 （第1章 1.3 の能力データ更新）  ← 次回の四半期鮮度レビューで実施
+B1'（Next.js / Spring Boot の記入済み実例）
+C2 （各 Skill の実行ログ取得）
+中規模題材での mutation score 再現（ケーススタディ #2 の次アクション）
+```
+
 ---
 
 ## 改訂履歴
@@ -75,3 +85,4 @@ A2,A3,B3,C3 は仕上げ
 |---|---|
 | 2026-06-14 | 初版作成（v2.0 完了後の次フェーズ計画） |
 | 2026-09-10 | v2.1（レビュー前品質ゲートの再設計）を反映。A2/A3 の実績を反映、A4/A5・C4/C5/C6 を追加 |
+| 2026-09-10 | v2.1 完了。A4・C3・C4・C5・C6 を実績反映。残タスクは A1'（工数 A/B 比較）、A5（1.3 能力データ更新）、B1'（別スタック実例）、C2（Skill 実行ログ）|
