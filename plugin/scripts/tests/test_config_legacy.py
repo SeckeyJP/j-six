@@ -39,10 +39,20 @@ def test_legacy_does_not_invent_checks(fixtures):
     assert "mutation" not in cfg["gates"]["g2"]
 
 
-def test_legacy_without_pattern_uses_defaults():
-    """pattern 未指定の旧形式（v2.0 の既定は REQ-\\d+）も読める。"""
+def test_legacy_without_pattern_pins_v20_default():
+    """pattern 未指定の旧形式は v2.0 の既定（REQ-\\d+ のみ）に固定する。
+
+    v2.1 の既定は REQ と PROP の両方だが、それを旧形式に適用すると、Spec に
+    PROP-nnn を書いた既存利用者のゲートが突然落ちる。回帰を防ぐための固定。
+    """
     cfg = config.normalize({"traceability": {"requirements": "a.md", "tests": "tests"}})
-    assert "ids" not in cfg["gates"]["g2"]["traceability"]
+    assert cfg["gates"]["g2"]["traceability"]["ids"] == [r"REQ-\d+"]
+
+
+def test_v21_without_ids_checks_both_req_and_prop():
+    """新形式で ids 未指定なら REQ と PROP の両方を見る（v2.1 の既定）。"""
+    import jsix_traceability_check as tr
+    assert tr._patterns_from({}) == [r"REQ-\d+", r"PROP-\d+"]
 
 
 def test_v21_format(fixtures):

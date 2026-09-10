@@ -23,6 +23,9 @@ from pathlib import Path
 
 CONFIG_NAME = ".jsix-checks.json"
 
+#: v2.0 のトレーサビリティ既定パターン。旧形式の設定はこの挙動を維持する。
+LEGACY_DEFAULT_ID = r"REQ-\d+"
+
 GATE_ORDER = ("g1", "g2", "g3", "g4")
 
 #: 各ゲートで実行するチェックの順序。設定に無いものは飛ばす。
@@ -55,8 +58,10 @@ def _migrate_legacy(raw: dict) -> dict:
         tr = dict(raw["traceability"])
         # 旧: pattern（単一の正規表現文字列） → 新: ids（正規表現のリスト）
         pattern = tr.pop("pattern", None)
-        if pattern is not None:
-            tr["ids"] = [pattern]
+        # v2.0 の既定は REQ-\d+ のみだった。v2.1 の既定（REQ と PROP の両方）を
+        # 旧形式に適用すると、Spec に PROP-nnn を書いた既存利用者が突然落ちる。
+        # 旧形式では v2.0 の既定を明示的に固定する。
+        tr["ids"] = [pattern] if pattern is not None else [LEGACY_DEFAULT_ID]
         g2["traceability"] = tr
 
     if "coverage" in raw:

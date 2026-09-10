@@ -80,6 +80,10 @@ All notable changes to this project will be documented in this file.
 - docs/ROADMAP.md: A4 / C3 / C4 / C5 / C6 を完了に更新。v2.1 完了後の残タスクを整理
 - .gitignore: mutation testing の生成物（`.hypothesis/`, `mutants/`, `.venv-mut/`）を除外
 
+### Fixed
+
+- plugin/scripts/jsix_config.py: v2.0 のフラット形式でトレーサビリティの ID パターンが未指定の場合、v2.1 の既定（`REQ-\d+` と `PROP-\d+` の両方）ではなく **v2.0 の既定（`REQ-\d+` のみ）に固定**するようにした。そうしないと、Spec に `PROP-nnn` を書いた既存利用者のゲートが Plugin 更新だけで突然落ちる
+
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 
 - README.md: 参考資料テーブルに ROADMAP を追加、「実証（動くサンプル）」セクション追加、期待効果に検証ステータス（実測/推定）を明示、「今後の展開」に次フェーズ計画への誘導を追記 — ROADMAP A2
