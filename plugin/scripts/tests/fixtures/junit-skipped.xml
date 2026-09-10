@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuite name="jest" tests="2">
+  <testcase classname="approval" name="handles order"/>
+  <testcase classname="approval" name="rejects self approval">
+    <skipped message="temporarily disabled"/>
+  </testcase>
+</testsuite>

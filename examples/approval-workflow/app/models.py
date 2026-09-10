@@ -7,6 +7,7 @@ J-SIX ケーススタディ（A1）/ テンプレ実例（B）/ Plugin デモ（
 - ADR-0001: 状態遷移を明示的なステートマシンで表現する
 - ADR-0002: 監査ログを全状態遷移で必須化する
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,10 +19,10 @@ from typing import Optional
 class Status(str, Enum):
     """申請の状態。"""
 
-    DRAFT = "DRAFT"          # 起票中（申請者が編集可能）
-    PENDING = "PENDING"      # 承認待ち
-    APPROVED = "APPROVED"    # 承認完了（終了状態）
-    REJECTED = "REJECTED"    # 却下（終了状態）
+    DRAFT = "DRAFT"  # 起票中（申請者が編集可能）
+    PENDING = "PENDING"  # 承認待ち
+    APPROVED = "APPROVED"  # 承認完了（終了状態）
+    REJECTED = "REJECTED"  # 却下（終了状態）
     WITHDRAWN = "WITHDRAWN"  # 取下げ（終了状態）
 
     @property
@@ -36,7 +37,7 @@ class Action(str, Enum):
     SUBMIT = "SUBMIT"
     APPROVE = "APPROVE"
     REJECT = "REJECT"
-    REMAND = "REMAND"      # 差し戻し
+    REMAND = "REMAND"  # 差し戻し
     WITHDRAW = "WITHDRAW"  # 取下げ
 
 

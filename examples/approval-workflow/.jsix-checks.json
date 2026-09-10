@@ -1,10 +1,67 @@
 {
-  "traceability": {
-    "requirements": "docs/requirement-spec.md",
-    "tests": "tests"
-  },
-  "coverage": {
-    "file": "coverage.xml",
-    "min": 95
+  "gates": {
+    "g1": {
+      "build": {
+        "cmd": "make build"
+      },
+      "lint": {
+        "cmd": "make lint"
+      },
+      "format": {
+        "cmd": "make format"
+      },
+      "sast": {
+        "cmd": "make sast",
+        "sarif": "reports/sast.sarif",
+        "max_severity": "error"
+      },
+      "scope": {
+        "allow": [
+          "app/**",
+          "tests/**",
+          "docs/**",
+          "reports/**",
+          "coverage.xml",
+          "Makefile",
+          "requirements*.txt",
+          ".jsix-checks.json",
+          "README.md",
+          "CLAUDE.md",
+          ".github/**"
+        ],
+        "deny": [
+          "tests/acceptance/**"
+        ]
+      }
+    },
+    "g2": {
+      "tests": {
+        "cmd": "make test",
+        "junit": "reports/junit.xml",
+        "max_skipped": 0
+      },
+      "coverage": {
+        "file": "coverage.xml",
+        "min": 95
+      },
+      "test_tamper": {
+        "paths": [
+          "tests/**"
+        ],
+        "holdout_dir": "tests/acceptance",
+        "source_paths": [
+          "app/**"
+        ]
+      },
+      "traceability": {
+        "requirements": "docs/requirement-spec.md",
+        "tests": "tests",
+        "ids": [
+          "REQ-\\d+",
+          "PROP-\\d+"
+        ],
+        "junit": "reports/junit.xml"
+      }
+    }
   }
 }

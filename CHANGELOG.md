@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file.
 - docs/REFERENCES_AUDIT.md: 2.7「品質ゲート・検証」（A36-A43）、カテゴリB に B15-B20
 - index.html: セクション 04「レビュー前の4層品質ゲート」を追加（既存セクションを繰り下げ）
 - README.md: 4層品質ゲートの概要、期待効果に mutation score 行
+- plugin/scripts/: G1/G2 の決定論的チェック 7種を追加 — `jsix_config.py`（設定の正規化と v2.0 後方互換）/ `jsix_result.py`（Check 共通インタフェース）/ `jsix_gitutil.py` / `jsix_junit_check.py`（JUnit XML）/ `jsix_sarif_gate.py`（SARIF の severity 集計）/ `jsix_mutation_gate.py`（mutation-testing-elements JSON と最小契約 JSON）/ `jsix_scope_check.py`（変更ファイル ⊆ 許可リスト）/ `jsix_test_tamper_check.py`（テスト弱体化の検出）
+- plugin/scripts/tests/: 111 件の単体テストとフィクスチャ（JUnit / Cobertura / LCOV / SARIF / mutation / 新旧 config）
+- examples/approval-workflow/: `Makefile`（build/lint/format/sast/test/gate）と `requirements-dev.txt`（ruff / bandit / bandit-sarif-formatter / hypothesis）
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 
@@ -35,6 +38,12 @@ All notable changes to this project will be documented in this file.
 - docs/J-SIX.md: Version 2.0 → 2.1。自律度モデル L4 の条件を「自動テスト通過」から「G1〜G4 全層通過」へ変更（reward hacking 対策。根拠は SpecBench [26]）。Phase 5 を「機械が原理的に見られないものを人間が見る工程」として再定義し、集計メトリクス（mutation score / judge 却下率 / ゲート失敗理由分布 / 人間レビュー指摘数）を追加。第4章 4.2 マッピング表に `/goal`・`/verify`・`/code-review`・auto mode 分類器・dynamic workflows・`/batch` を追加。用語集に G1-G4 / PROP / PBT / mutation score / hold-out / reward hacking / 証跡パッケージ等を追加。参考文献 [26]-[31] を追加
 - docs/REFERENCES_AUDIT.md: 監査日に 2026-09-10 を追記（四半期鮮度レビュー第2回）。7.1 に「DORA の verification tax は一次情報で確認できず不採用」を記録
 - docs/ROADMAP.md: A2/A3 を実績反映、A4（ケーススタディ #2）・A5（1.3 能力データ更新）・C4/C5/C6（品質ゲート実装・証跡パック・CI 例）を追加
+- plugin/scripts/jsix_run_checks.py: ゲートを G1→G2→G3→G4 の順に実行する基盤へ。前段のゲートが落ちたら後段は実行しない。既定は**レポート駆動**（宣言された成果物を読むだけ。`cmd` は `--run-commands` 指定時のみ実行）。G3 は判定ファイルを介した2段構成
+- plugin/scripts/jsix_coverage_gate.py: LCOV に対応（Cobertura と自動判別）。`min` 未指定時は計測のみ。低カバレッジのファイル上位5件を証跡に出す
+- plugin/scripts/jsix_traceability_check.py: ID パターンを複数指定可能に（REQ と PROP を同時検証）。JUnit XML のテスト名も走査対象に
+- examples/approval-workflow/: `.jsix-checks.json` を v2.1 の gates 形式へ。ruff format による整形に伴い行数が変化（app 354→368 / tests 290→299。テスト件数・カバレッジ・トレーサビリティは変化なし）
+- docs/case-study-01.md / examples/approval-workflow/README.md: 上記の再計測値を反映し、変化の理由を注記
+- .gitignore: `**/reports/`（ゲートの生成物）を除外
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**
 

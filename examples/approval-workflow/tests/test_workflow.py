@@ -2,6 +2,7 @@
 
 各テストは要求Spec の REQ-NNN に対応する（トレーサビリティ用タグ）。
 """
+
 from datetime import datetime
 
 import pytest

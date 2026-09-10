@@ -1,0 +1,56 @@
+"""G2: JUnit XML 判定のテスト。"""
+import jsix_junit_check as junit
+
+
+def test_counts_from_testsuites(fixtures):
+    data = junit.parse_junit(fixtures / "junit-pass.xml")
+    assert data["tests"] == 3
+    assert data["failures"] == 0 and data["errors"] == 0 and data["skipped"] == 0
+    assert "tests.test_workflow.test_req_001_levels" in data["test_names"]
+
+
+def test_counts_from_bare_testsuite(fixtures):
+    """<testsuites> でラップされていない <testsuite> 単体も読める。"""
+    data = junit.parse_junit(fixtures / "junit-skipped.xml")
+    assert data["tests"] == 2
+    assert data["skipped"] == 1
+
+
+def test_failure_and_error_block(fixtures):
+    r = junit.check({"junit": "junit-fail.xml"}, fixtures)
+    assert not r.ok
+    assert r.metrics["failures"] == 1 and r.metrics["errors"] == 1
+    assert len(r.findings) == 2
+
+
+def test_pass(fixtures):
+    r = junit.check({"junit": "junit-pass.xml"}, fixtures)
+    assert r.ok
+    assert r.metrics["tests"] == 3
+
+
+def test_skip_is_allowed_by_default(fixtures):
+    assert junit.check({"junit": "junit-skipped.xml"}, fixtures).ok
+
+
+def test_max_skipped_blocks_added_skips(fixtures):
+    """テストを skip で黙らせる操作を検出できる。"""
+    r = junit.check({"junit": "junit-skipped.xml", "max_skipped": 0}, fixtures)
+    assert not r.ok
+    assert "スキップ" in r.summary
+    assert r.findings[0]["kind"] == "skipped"
+
+
+def test_min_tests_blocks_shrinking_suite(fixtures):
+    r = junit.check({"junit": "junit-pass.xml", "min_tests": 10}, fixtures)
+    assert not r.ok
+
+
+def test_missing_file(fixtures):
+    r = junit.check({"junit": "nope.xml"}, fixtures)
+    assert not r.ok and "見つかりません" in r.summary
+
+
+def test_missing_config(fixtures):
+    r = junit.check({}, fixtures)
+    assert not r.ok and "junit" in r.summary

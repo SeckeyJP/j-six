@@ -1,0 +1,16 @@
+{
+  "gates": {
+    "g1": {
+      "lint": {"cmd": "make lint"},
+      "sast": {"cmd": "make sast", "sarif": "reports/sast.sarif", "max_severity": "error"},
+      "scope": {"allow": ["app/**", "tests/**"], "deny": ["tests/acceptance/**"]}
+    },
+    "g2": {
+      "tests": {"cmd": "make test", "junit": "reports/junit.xml"},
+      "coverage": {"file": "coverage.xml", "min": 95},
+      "traceability": {"requirements": "docs/requirement-spec.md", "tests": "tests", "ids": ["REQ-\\d+", "PROP-\\d+"]}
+    },
+    "g3": {"agent": "scope-judge", "verdict": "reports/evidence/judge.json", "max_auto_fix": 1},
+    "g4": {"out": "reports/evidence/", "formats": ["md", "json"]}
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "traceability": {"requirements": "docs/requirement-spec.md", "tests": "tests", "pattern": "REQ-\\d+"},
+  "coverage": {"file": "coverage.xml", "min": 95}
+}

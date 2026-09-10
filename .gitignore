@@ -10,3 +10,4 @@ MEMORY.md
 **/.coverage
 **/coverage.xml
 **/htmlcov/
+**/reports/
