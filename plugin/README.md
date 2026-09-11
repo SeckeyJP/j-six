@@ -142,7 +142,9 @@ python3 plugin/scripts/jsix_run_checks.py --run-commands --json reports/gate.jso
 「Hook が解除されても CI ゲートで止まる」構成を標準とします。両者は**同じ判定スクリプトと
 同じ設定ファイル**を使います。
 
-CI の例: [`examples/approval-workflow/.github/workflows/jsix-gate.yml`](../examples/approval-workflow/.github/workflows/jsix-gate.yml)
+CI の例: [`.github/workflows/jsix-gate.yml`](../.github/workflows/jsix-gate.yml)
+（対象は `examples/approval-workflow/` だが、GitHub Actions はサブディレクトリの
+`.github/workflows/` を読まないため、ワークフロー自体はリポジトリ直下に置く）
 
 ## `.jsix-checks.json`
 

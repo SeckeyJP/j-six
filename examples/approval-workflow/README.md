@@ -17,8 +17,6 @@ approval-workflow/
 │   └── main.py               # FastAPI 層
 ├── Makefile                  # 品質ゲート用ターゲット（build/lint/format/sast/test/gate）
 ├── .jsix-checks.json         # 品質ゲートの宣言（コマンドと成果物のパス・閾値）
-├── .github/workflows/
-│   └── jsix-gate.yml         # 外側ループ（CI）の例
 ├── tests/
 │   ├── test_workflow.py      # ドメイン単体テスト（REQ-NNN タグ付き）
 │   ├── test_properties.py    # 性質テスト（PROP-NNN / Hypothesis）
@@ -79,7 +77,9 @@ make gate-ci                  # 品質ゲート（コマンドも実行してか
 `reports/evidence/judge.json` に書き出し、ゲートを再実行してください。
 
 **内側ループと外側ループ**: `make gate` はローカルの内側ループ（成果物を読むだけ）、
-`.github/workflows/jsix-gate.yml` が外側ループ（コマンドを実行してから判定）です。
+リポジトリ直下の [`.github/workflows/jsix-gate.yml`](../../.github/workflows/jsix-gate.yml) が
+外側ループ（コマンドを実行してから判定）です。GitHub Actions はサブディレクトリの
+`.github/workflows/` を読まないため、ワークフローは対象がどこにあってもリポジトリ直下に置きます。
 両者は同じ判定スクリプトと同じ設定ファイルを使います。
 
 ### テストを弱める変更がブロックされることの確認

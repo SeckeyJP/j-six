@@ -39,7 +39,6 @@
           ".jsix-checks.json",
           "README.md",
           "CLAUDE.md",
-          ".github/**",
           "pyproject.toml",
           "scripts/**"
         ],

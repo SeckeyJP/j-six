@@ -9,8 +9,10 @@
 #   3. J-SIX Plugin は .jsix-checks.json が無ければ何もしない（オプトイン）
 # つまり Hook は最終防衛線にならない。解除されても CI で止まる構成にする。
 #
-# このファイルはサンプルアプリ（examples/approval-workflow/）用の例である。
-# 実プロジェクトではリポジトリ直下の .github/workflows/ に置く。
+# 対象はサンプルアプリ（examples/approval-workflow/）だが、ワークフロー自体は
+# **リポジトリ直下**に置く必要がある（GitHub Actions はサブディレクトリの
+# .github/workflows/ を読まない）。自プロジェクトへ持ち込む際も直下に置き、
+# working-directory と paths を対象に合わせて書き換える。
 
 name: J-SIX Quality Gate
 
@@ -35,8 +37,25 @@ defaults:
     working-directory: examples/approval-workflow
 
 jobs:
+  # Plugin のチェックスクリプト自体の単体テスト。
+  # ゲートを実行する道具が壊れていないことを先に確かめる。
+  plugin-scripts:
+    name: plugin/scripts 単体テスト
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -q pytest
+      - run: python -m pytest plugin/scripts/tests -q
+
   gate:
     name: G1 → G2 → G4
+    needs: plugin-scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,22 +74,29 @@ jobs:
 
       # --- G1 の成果物のうち、外部ツールが要るものを CI で生成する -------------
       # plugin は SARIF を読むだけで、どのツールを使うかはプロジェクトが決める。
-      - name: secret スキャン（SARIF 生成）
-        uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true      # 判定は plugin 側の閾値で行う
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          config-path: ""
-          report-format: sarif
-          report-path: examples/approval-workflow/reports/secrets.sarif
+      - name: レポート出力先を用意
+        run: mkdir -p reports
 
-      - name: 依存脆弱性スキャン（SARIF 生成）
-        uses: aquasecurity/trivy-action@master
-        continue-on-error: true      # 判定は plugin 側の閾値で行う
+      # plugin は SARIF を読むだけで、どのツールを使うかはプロジェクトが決める。
+      # ここでは trivy で secret と 依存脆弱性 の2種を出す（gitleaks 等でもよい）。
+      # continue-on-error なのは、検出の有無ではなく **閾値判定を plugin 側に寄せる**ため。
+      - name: secret スキャン（SARIF 生成）
+        uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true
         with:
           scan-type: fs
           scan-ref: examples/approval-workflow
+          scanners: secret
+          format: sarif
+          output: examples/approval-workflow/reports/secrets.sarif
+
+      - name: 依存脆弱性スキャン（SARIF 生成）
+        uses: aquasecurity/trivy-action@0.28.0
+        continue-on-error: true
+        with:
+          scan-type: fs
+          scan-ref: examples/approval-workflow
+          scanners: vuln
           format: sarif
           output: examples/approval-workflow/reports/deps.sarif
 
@@ -101,6 +127,8 @@ jobs:
           path: examples/approval-workflow/reports/
           retention-days: 90
 
+      # Code scanning への登録は private リポジトリでは Advanced Security が要るため、
+      # 失敗してもゲートの判定には影響させない。
       - name: SARIF を Code scanning に登録
         if: always()
         uses: github/codeql-action/upload-sarif@v3

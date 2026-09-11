@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - plugin/scripts/jsix_evidence_pack.py: G4 の証跡パッケージ生成。`evidence.json` ＋ `00_summary.md`〜`07_approval.md` ＋ `env.json` を出力。証跡 / 参考所見 / 承認 の3区分を混ぜず、スクリプトは推定値を一切書かない（LLM 要約欄は空で出力する）。納品物に実行環境の絶対パスを残さない
 - plugin/skills/evidence-pack/SKILL.md: 証跡に LLM 要約（変更概要・リスク箇所・計画からの逸脱）を「参考所見」として付加する手順。数値は証跡から引用し推定しないこと、納品前チェックリストを規定
 - plugin/scripts/jsix_format_hook.py: PreToolUse の決定論的 format / lint。`.jsix-checks.json` の `hook_cmd` に宣言されたコマンドのみ実行（未宣言なら no-op）。言語別ツール名を plugin に持ち込まない
-- examples/approval-workflow/.github/workflows/jsix-gate.yml: 外側ループ（CI）の例。内側ループと同じ判定スクリプト・同じ設定で `--run-commands` 実行し、gitleaks / trivy の SARIF を G1 に投入、証跡をアーティファクトとして保存する
+- .github/workflows/jsix-gate.yml: 外側ループ（CI）。内側ループと同じ判定スクリプト・同じ設定で `--run-commands` 実行し、trivy の SARIF（secret / 依存脆弱性）を G1 に投入、証跡をアーティファクトとして保存する。plugin/scripts の単体テストを先行ジョブとして実行する
 - `.jsix-checks.json` に `optional` オプション: 成果物が無い場合にスキップする（CI でのみ生成する SARIF 等）。**既定は不合格**（検証していないものを検証済みとして扱わないため）
 - docs/case-study-02.md: 「カバレッジ 99%」の mutation score を実測。**91.8%**（183 ミュータント中 15 生存）。生存のうち **3件が本物のテストの穴**（境界値 1件・監査ログの操作者と理由 2件）。性質テスト（PBT）8件を追加して **93.4%** に改善し、狙った3件を正確に殺した
 - examples/approval-workflow/tests/test_properties.py: PROP-001〜006 の property-based test（Hypothesis）
