@@ -42,17 +42,21 @@ test-acceptance: | $(REPORTS)
 
 coverage: test
 
-# mutation testing。mutmut 3.x は Python 3.10+ を要するため専用の venv を使う
-# （本体は Python 3.9 でも動く。ケーススタディ #2 の経緯は docs/case-study-02.md）。
-MUT_PY := .venv-mut/bin/python
+# mutation testing。mutmut 3.x は Python 3.10+ を要する。
+# ローカルの本体が Python 3.9 の場合は専用 venv（.venv-mut）を作って使い、
+# 本体が既に 3.10+ の環境（CI 等）では .venv をそのまま使う。
+# （経緯は docs/case-study-02.md「環境上のつまずき」）
+MUT_PY := $(shell [ -x .venv-mut/bin/python ] && echo .venv-mut/bin/python || echo .venv/bin/python)
 
+# MUT_PY は Makefile 読み込み時に評価されるため、.venv-mut を作る前は
+# .venv/bin/python に解決される。setup-mutation では明示的なパスを使う。
 setup-mutation:
 	python3.13 -m venv .venv-mut || python3 -m venv .venv-mut
-	$(MUT_PY) -m pip install -q -r requirements.txt -r requirements-dev.txt mutmut
+	.venv-mut/bin/python -m pip install -q -r requirements.txt -r requirements-dev.txt mutmut
 
 mutation: | $(REPORTS)
 	$(MUT_PY) -m mutmut run
-	python3 scripts/mutmut_to_json.py --out $(REPORTS)/mutation.json
+	python3 scripts/mutmut_to_json.py --python $(MUT_PY) --out $(REPORTS)/mutation.json
 
 ## ゲート -----------------------------------------------------------
 JSIX := python3 ../../plugin/scripts/jsix_run_checks.py

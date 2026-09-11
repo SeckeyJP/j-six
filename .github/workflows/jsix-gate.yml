@@ -67,10 +67,12 @@ jobs:
         with:
           python-version: "3.11"
 
+      # ランナーの Python は 3.11 なので、mutation testing も同じ venv で動かせる
+      # （ローカルが 3.9 の場合だけ .venv-mut を分ける。Makefile が自動で選ぶ）
       - name: 依存インストール
         run: |
           python -m venv .venv
-          .venv/bin/python -m pip install -q -r requirements.txt -r requirements-dev.txt
+          .venv/bin/python -m pip install -q -r requirements.txt -r requirements-dev.txt mutmut
 
       # --- G1 の成果物のうち、外部ツールが要るものを CI で生成する -------------
       # plugin は SARIF を読むだけで、どのツールを使うかはプロジェクトが決める。
