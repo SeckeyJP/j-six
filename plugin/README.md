@@ -125,7 +125,8 @@ Stop hook が毎ターン build や test を走らせて数分待たされると
 python3 plugin/scripts/jsix_run_checks.py
 
 # 外側ループ（CI）: コマンドを実行して成果物を作ってから判定する
-python3 plugin/scripts/jsix_run_checks.py --run-commands --json reports/gate.json
+# --gates で G3（LLM judge）を外す（CI で LLM の API キーを扱わずに済ませる）
+python3 plugin/scripts/jsix_run_checks.py --run-commands --gates g1,g2,g4 --json reports/gate.json
 ```
 
 ### 内側ループと外側ループの二重化
@@ -187,6 +188,15 @@ CI の例: [`.github/workflows/jsix-gate.yml`](../.github/workflows/jsix-gate.ym
 | `min` / `min_score` / `max_severity` | 閾値。**未指定なら計測・集計のみ**（判定しない） |
 | `scope: "changed"` | mutation を変更ファイルに限定して再計算する |
 | `max_auto_fix` | G3 の却下を自動修正する回数。超えたら人間へエスカレーション（既定 1） |
+
+### CLI オプション
+
+| オプション | 用途 |
+|---|---|
+| `--run-commands` | 設定の `cmd` を実際に実行する（CI 用。既定はレポート駆動） |
+| `--gates g1,g2,g4` | 実行するゲートを絞る。**CI で G3 を外す**のに使う。除外したゲートは「未実行」として結果に残り、黙って消えない |
+| `--json <path>` | 結果を JSON で書き出す（証跡パッケージ生成の入力になる） |
+| `--dir <path>` | 対象ディレクトリ（既定: カレント） |
 
 **mutation score の閾値に既定値はありません。** 根拠のない数値を仕様に固定しないためです。
 自プロジェクトで数タスク計測してから下限を決めてください。

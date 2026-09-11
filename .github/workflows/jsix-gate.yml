@@ -112,6 +112,7 @@ jobs:
         run: |
           python3 ../../plugin/scripts/jsix_run_checks.py \
             --run-commands \
+            --gates g1,g2,g4 \
             --json reports/gate.json
 
       # --- 証跡を残す ------------------------------------------------------------

@@ -146,15 +146,16 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     判定ファイルが無い場合は「G3 未実施」として不合格にする。Stop の prompt 型 Hook
     または tdd-cycle / evidence-pack Skill が scope-judge を呼び、結果を書き込む。
     """
-    verdict_path = ctx.base / cfg.get("verdict", "reports/evidence/judge.json")
+    verdict_rel = cfg.get("verdict", "reports/evidence/judge.json")
+    verdict_path = ctx.base / verdict_rel
     agent = cfg.get("agent", "scope-judge")
 
     if not verdict_path.is_file():
         return failed(
             f"judge: G3 未実施。`{agent}` サブエージェントに diff・タスク定義・該当 Spec を渡して判定させ、"
-            f"結果を {verdict_path} に書き出してください"
+            f"結果を {verdict_rel} に書き出してください"
             ' 形式: {"verdict": "PASS"|"REJECT", "reasons": [{"category": "correctness"|"requirement"|"scope", "detail": "..."}], "attempt": 1}',
-            {"verdict_path": str(verdict_path), "agent": agent},
+            {"verdict_path": verdict_rel, "agent": agent},
         )
 
     try:
@@ -220,8 +221,12 @@ CHECKS = {
 }
 
 
-def run_gates(cfg: dict, ctx: Context) -> tuple:
+def run_gates(cfg: dict, ctx: Context, only: set | None = None) -> tuple:
     """ゲートを順に実行する。前段のゲートが失敗したら後段は実行しない。
+
+    `only` を渡すと、そこに含まれるゲートだけを実行する。外側ループ（CI）で
+    G3（LLM judge）を外し、G1/G2/G4 だけを必須にする用途を想定している
+    （CI で LLM の API キーを扱わずに済ませるため）。
 
     戻り値: (全体の合否, ゲート別の結果)
     """
@@ -231,6 +236,12 @@ def run_gates(cfg: dict, ctx: Context) -> tuple:
     for gate in config.GATE_ORDER:
         gate_cfg = cfg.get("gates", {}).get(gate)
         if not gate_cfg:
+            continue
+
+        if only is not None and gate not in only:
+            results[gate] = {"status": "excluded",
+                             "reason": "--gates で対象外に指定されたため未実行",
+                             "checks": {}}
             continue
 
         if aborted_after:
@@ -271,7 +282,7 @@ def render(results: dict, legacy: bool) -> tuple:
 
     for gate, info in results.items():
         label = gate.upper()
-        if info["status"] == "not-run":
+        if info["status"] in ("not-run", "excluded"):
             lines.append(f"⏭ {label}: {info['reason']}")
             continue
         for name, res in info["checks"].items():
@@ -305,7 +316,19 @@ def main(argv: list | None = None) -> int:
     parser.add_argument("--json", dest="json_out", default=None,
                         help="結果を JSON で書き出すパス")
     parser.add_argument("--dir", default=None, help="対象ディレクトリ（既定: カレント）")
+    parser.add_argument("--gates", default=None,
+                        help="実行するゲートをカンマ区切りで指定（例: g1,g2,g4）。"
+                             "省略時は設定にあるゲートをすべて実行する")
     args = parser.parse_args(argv)
+
+    only = None
+    if args.gates:
+        only = {g.strip().lower() for g in args.gates.split(",") if g.strip()}
+        unknown = only - set(config.GATE_ORDER)
+        if unknown:
+            print(f"J-SIX checks: 未知のゲート: {', '.join(sorted(unknown))}"
+                  f"（有効: {', '.join(config.GATE_ORDER)}）", file=sys.stderr)
+            return EXIT_BLOCK
 
     base = Path(args.dir) if args.dir else Path.cwd()
 
@@ -320,7 +343,7 @@ def main(argv: list | None = None) -> int:
 
     ctx = Context(base, args.run_commands)
     ctx.config_path = Path(cfg["_path"]) if cfg.get("_path") else None
-    ok, results = run_gates(cfg, ctx)
+    ok, results = run_gates(cfg, ctx, only)
     lines, has_failure = render(results, cfg.get("_legacy", False))
 
     stream = sys.stderr if has_failure else sys.stdout

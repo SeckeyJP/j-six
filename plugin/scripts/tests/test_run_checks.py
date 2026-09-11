@@ -257,3 +257,61 @@ def test_failed_command_shows_its_stderr(project, capsys):
     err = capsys.readouterr().err
     assert "コマンドが失敗しました" in err
     assert "E501 line too long" in err
+
+
+class TestGateSelection:
+    """--gates で実行するゲートを絞る。
+
+    外側ループ（CI）で G3（LLM judge）を外し、G1/G2/G4 だけを必須にする用途。
+    CI で LLM の API キーを扱わずに済ませるため。
+    """
+
+    def _config(self, project):
+        _write(project / ".jsix-checks.json", {
+            "gates": {
+                "g1": {"scope": {"allow": ["**"]}},
+                "g2": {"coverage": {"file": "coverage.xml", "min": 10}},
+                "g3": {"agent": "scope-judge", "verdict": "reports/judge.json"},
+            }
+        })
+
+    def test_g3_blocks_without_selection(self, project):
+        """既定では設定にあるゲートをすべて実行するため、G3 未実施で止まる。"""
+        self._config(project)
+        assert runner.main(["--dir", str(project)]) == runner.EXIT_BLOCK
+
+    def test_excluding_g3_passes(self, project):
+        self._config(project)
+        assert runner.main(["--dir", str(project), "--gates", "g1,g2,g4"]) == runner.EXIT_OK
+
+    def test_excluded_gate_is_recorded_not_silently_dropped(self, project):
+        """除外したゲートは「未実行」として結果に残す。黙って消さない。"""
+        self._config(project)
+        cfg = runner.config.load(project)
+        ok, results = runner.run_gates(cfg, runner.Context(project, False), only={"g1", "g2"})
+        assert ok
+        assert results["g3"]["status"] == "excluded"
+        assert "--gates" in results["g3"]["reason"]
+
+    def test_unknown_gate_is_rejected(self, project):
+        self._config(project)
+        assert runner.main(["--dir", str(project), "--gates", "g1,g9"]) == runner.EXIT_BLOCK
+
+    def test_selection_does_not_skip_failures(self, project):
+        """選択しても、対象ゲートの失敗はそのままブロックする。"""
+        _write(project / ".jsix-checks.json", {
+            "gates": {"g2": {"coverage": {"file": "coverage.xml", "min": 99.9}}}
+        })
+        assert runner.main(["--dir", str(project), "--gates", "g1,g2,g4"]) == runner.EXIT_BLOCK
+
+
+def test_judge_message_uses_relative_path(project):
+    """G3 の案内に実行環境の絶対パスを出さない。"""
+    _write(project / ".jsix-checks.json", {
+        "gates": {"g3": {"agent": "scope-judge", "verdict": "reports/evidence/judge.json"}}
+    })
+    cfg = runner.config.load(project)
+    _, results = runner.run_gates(cfg, runner.Context(project, False))
+    summary = results["g3"]["checks"]["judge"]["summary"]
+    assert "reports/evidence/judge.json" in summary
+    assert str(project) not in summary
