@@ -81,7 +81,7 @@ jobs:
       # ここでは trivy で secret と 依存脆弱性 の2種を出す（gitleaks 等でもよい）。
       # continue-on-error なのは、検出の有無ではなく **閾値判定を plugin 側に寄せる**ため。
       - name: secret スキャン（SARIF 生成）
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         continue-on-error: true
         with:
           scan-type: fs
@@ -91,7 +91,7 @@ jobs:
           output: examples/approval-workflow/reports/secrets.sarif
 
       - name: 依存脆弱性スキャン（SARIF 生成）
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         continue-on-error: true
         with:
           scan-type: fs
