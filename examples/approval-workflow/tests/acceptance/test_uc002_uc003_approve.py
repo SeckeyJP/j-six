@@ -7,7 +7,12 @@
 def _create(client, amount, approvers, applicant="alice"):
     res = client.post(
         "/requests",
-        json={"applicant": applicant, "amount": amount, "title": "申請", "approvers": approvers},
+        json={
+            "applicant": applicant,
+            "amount": amount,
+            "title": "申請",
+            "approvers": approvers,
+        },
     )
     assert res.is_success, res.text
     return res.json()["id"]
@@ -41,7 +46,10 @@ def test_uc003_two_step_approval_requires_both_in_order(client):
     client.post(f"/requests/{rid}/submit", json={"actor": "alice"})
 
     # 2人目が先に承認しようとしても通らない（REQ-008）
-    assert client.post(f"/requests/{rid}/approve", json={"actor": "carol"}).status_code == 409
+    assert (
+        client.post(f"/requests/{rid}/approve", json={"actor": "carol"}).status_code
+        == 409
+    )
 
     first = client.post(f"/requests/{rid}/approve", json={"actor": "bob"})
     assert first.is_success, first.text

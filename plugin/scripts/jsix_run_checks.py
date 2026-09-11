@@ -283,7 +283,10 @@ def render(results: dict, legacy: bool) -> tuple:
                 has_failure = True
                 lines.append(f"  ❌ [{label}] {res['summary']}")
                 for f in res["findings"][:5]:
-                    detail = f.get("detail") or f.get("file") or f.get("test") or f.get("id") or f.get("message") or ""
+                    # コマンド失敗時の stderr は "text" に入る。ここを拾い損ねると
+                    # 「失敗した」とだけ出て理由が分からない出力になる。
+                    detail = (f.get("detail") or f.get("file") or f.get("test")
+                              or f.get("id") or f.get("message") or f.get("text") or "")
                     if detail:
                         lines.append(f"       - {detail}")
 

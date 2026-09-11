@@ -82,6 +82,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- plugin/scripts/jsix_run_checks.py: コマンド失敗時に stderr が出力から落ちていた（findings の `text` キーを render が拾っていなかった）。「失敗した」とだけ出て理由が分からない状態だったため、CI ログから原因を判断できなかった
+- examples/approval-workflow: hold-out 受入テストと性質テストに `ruff format` が未適用だった。内側ループ（レポート駆動）は `format` を実行しないため、CI（外側ループ）で初めて検出された
 - plugin/scripts/jsix_config.py: v2.0 のフラット形式でトレーサビリティの ID パターンが未指定の場合、v2.1 の既定（`REQ-\d+` と `PROP-\d+` の両方）ではなく **v2.0 の既定（`REQ-\d+` のみ）に固定**するようにした。そうしないと、Spec に `PROP-nnn` を書いた既存利用者のゲートが Plugin 更新だけで突然落ちる
 
 **実証・テンプレート実例・決定論的チェック（先行実装分）**

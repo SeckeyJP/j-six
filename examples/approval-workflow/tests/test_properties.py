@@ -52,7 +52,9 @@ def test_prop_002_any_valid_request_is_created_as_draft(applicant, amount, title
     """
     assume(title.strip())
     service = WorkflowService()
-    req = service.create_request(applicant, amount, title, _approvers_for(amount, applicant))
+    req = service.create_request(
+        applicant, amount, title, _approvers_for(amount, applicant)
+    )
 
     assert req.status is Status.DRAFT
     assert req.amount == amount

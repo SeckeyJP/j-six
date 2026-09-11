@@ -8,7 +8,12 @@ def test_uc001_applicant_creates_draft_request(client):
     """UC-001 / REQ-001: 金額に応じた承認段数で DRAFT の申請が起票できる。"""
     res = client.post(
         "/requests",
-        json={"applicant": "alice", "amount": 50000, "title": "備品購入", "approvers": ["bob"]},
+        json={
+            "applicant": "alice",
+            "amount": 50000,
+            "title": "備品購入",
+            "approvers": ["bob"],
+        },
     )
     assert res.is_success, res.text
 
@@ -30,6 +35,11 @@ def test_uc001_rejects_self_approval(client):
     """UC-001 / REQ-007: 申請者を承認者に含む起票は受け付けられない。"""
     res = client.post(
         "/requests",
-        json={"applicant": "alice", "amount": 50000, "title": "備品購入", "approvers": ["alice"]},
+        json={
+            "applicant": "alice",
+            "amount": 50000,
+            "title": "備品購入",
+            "approvers": ["alice"],
+        },
     )
     assert res.status_code == 409

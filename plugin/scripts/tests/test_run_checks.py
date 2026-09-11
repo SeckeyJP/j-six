@@ -242,3 +242,18 @@ def test_scope_uses_git_changed_files(tmp_path, fixtures):
         "gates": {"g1": {"scope": {"allow": ["app/**"]}}}
     })
     assert runner.main(["--dir", str(tmp_path)]) == runner.EXIT_BLOCK
+
+
+def test_failed_command_shows_its_stderr(project, capsys):
+    """コマンド失敗時は理由（stderr）まで出力する。
+
+    「失敗した」とだけ出て理由が分からないと、CI のログを見ても何を直せばよいか
+    判断できない。stderr は findings の "text" に入るため、render が拾う必要がある。
+    """
+    _write(project / ".jsix-checks.json", {
+        "gates": {"g1": {"lint": {"cmd": "echo 'E501 line too long' >&2; exit 1"}}}
+    })
+    assert runner.main(["--dir", str(project), "--run-commands"]) == runner.EXIT_BLOCK
+    err = capsys.readouterr().err
+    assert "コマンドが失敗しました" in err
+    assert "E501 line too long" in err

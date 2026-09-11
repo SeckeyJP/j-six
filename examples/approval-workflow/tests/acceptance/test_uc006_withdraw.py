@@ -7,7 +7,12 @@
 def _create(client, approvers=("bob",)):
     res = client.post(
         "/requests",
-        json={"applicant": "alice", "amount": 50000, "title": "申請", "approvers": list(approvers)},
+        json={
+            "applicant": "alice",
+            "amount": 50000,
+            "title": "申請",
+            "approvers": list(approvers),
+        },
     )
     return res.json()["id"]
 
@@ -33,4 +38,7 @@ def test_uc006_applicant_withdraws_from_pending(client):
 def test_uc006_others_cannot_withdraw(client):
     """UC-006 / REQ-006: 申請者以外は取下げられない。"""
     rid = _create(client)
-    assert client.post(f"/requests/{rid}/withdraw", json={"actor": "bob"}).status_code == 409
+    assert (
+        client.post(f"/requests/{rid}/withdraw", json={"actor": "bob"}).status_code
+        == 409
+    )

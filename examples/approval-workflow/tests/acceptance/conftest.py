@@ -7,6 +7,7 @@ HTTP API 経由でのみ検証する。ドメイン層（app.workflow）を直�
 ルール違反 409 / 対象不在 404 のみ）。仕様が定めていない詳細を hold-out で
 固定すると、正しい実装まで落としてしまうため、成功判定は 2xx で行う。
 """
+
 import pytest
 from fastapi.testclient import TestClient
 
