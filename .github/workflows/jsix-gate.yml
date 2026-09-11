@@ -46,8 +46,8 @@ jobs:
       run:
         working-directory: .
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - run: python -m pip install -q pytest
@@ -58,12 +58,12 @@ jobs:
     needs: plugin-scripts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # G2 のテスト改変検出が RED タグと比較するため、履歴とタグが必要
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: 証跡をアーティファクトとして保存
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jsix-evidence-${{ github.sha }}
           path: examples/approval-workflow/reports/
@@ -134,7 +134,7 @@ jobs:
       # 失敗してもゲートの判定には影響させない。
       - name: SARIF を Code scanning に登録
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         continue-on-error: true
         with:
           sarif_file: examples/approval-workflow/reports/
