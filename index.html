@@ -122,7 +122,7 @@
     <div class="badges">
       <span class="badge">著者: H.Sekita</span>
       <span class="badge">License: CC BY 4.0</span>
-      <span class="badge">プロセス定義 v2.0</span>
+      <span class="badge">プロセス定義 v2.1</span>
       <span class="badge">Plugin v2.1.0</span>
       <span class="badge">この全体像: 2026-06-15 時点</span>
     </div>
@@ -134,6 +134,7 @@
     <a href="#what">概要</a>
     <a href="#principles">4原則</a>
     <a href="#process">プロセス</a>
+    <a href="#gate">品質ゲート</a>
     <a href="#docs">3層ドキュメント</a>
     <a href="#migration">段階的移行</a>
     <a href="#effects">期待効果</a>
@@ -182,12 +183,33 @@
     <div class="phase auto"><div class="ph">Phase 5<small>品質検証</small></div><div class="desc">自動検証 + 人間サンプリング</div><div class="who">自動＋人間</div></div>
     <div class="phase auto"><div class="ph">Phase 6<small>ドキュメント</small></div><div class="desc">3層戦略で設計書を逆生成</div><div class="who">CC逆生成／人間承認</div></div>
   </div>
-  <p class="note">自律度モデル L0（手動）〜 L4（完全自律）。Phase 4 で L3–L4 が成立するのは、テストファースト・明確な CLAUDE.md・ADR による判断記録という3つのメカニズムが揃うため。</p>
+  <p class="note">自律度モデル L0（手動）〜 L4（完全自律）。v2.1 では L4 の条件を「自動テスト通過」から <b>Phase 4 の G1〜G4 全層通過</b>へ改めた（次節）。テストスイート単独を監督面にすると、それが最適化対象になり「テストは通るが意図を満たさない実装」が生じるため。</p>
+</section>
+
+<!-- 品質ゲート -->
+<section id="gate">
+  <h2><span class="n">04</span> レビュー前の4層品質ゲート（v2.1）</h2>
+  <p class="lead">人間レビューに出す前に、性質の異なる4つの監督面を<b>順に</b>通す。後段は前段を通過した場合のみ実行する（壊れたコードを LLM judge に見せない）。</p>
+  <table>
+    <thead><tr><th>層</th><th>内容</th><th>判定主体</th></tr></thead>
+    <tbody>
+      <tr><td><b>G1</b> 決定論的検証</td><td>build / 型 / lint・format / SAST / secret scan / 依存脆弱性 / スコープ検査（変更ファイル ⊆ 許可リスト）</td><td>script（終了コード）</td></tr>
+      <tr><td><b>G2</b> テスト品質検証</td><td>全テスト通過 / カバレッジ / mutation score / テスト改変検出 / hold-out 受入テスト / トレーサビリティ</td><td>script（終了コード）</td></tr>
+      <tr><td><b>G3</b> 意図・スコープ判定</td><td>正確性・要件未充足・スコープ逸脱<b>のみ</b>を fresh context の judge が報告（スタイル指摘は禁止）</td><td>LLM</td></tr>
+      <tr><td><b>G4</b> 証跡パッケージ</td><td>G1〜G3 の結果を人間レビュー用・顧客納品用に構造化</td><td>script ＋ LLM（要約のみ）</td></tr>
+    </tbody>
+  </table>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card"><h3>なぜテスト通過だけでは足りないか</h3><p>監督面がテストスイート単独だと、エージェントはそれを検証手段ではなく<b>最適化対象</b>として扱う（reward hacking）。SpecBench は、可視テストと hold-out テストの pass 率の差でこれを定量化し、差はテスト網羅度ではなくタスク難度とモデル能力の差で拡大すると報告している。</p></div>
+    <div class="card"><h3>L4 の条件を変更した</h3><p>v2.0 の「L4＝人間は介入しない（自動テストのみ）」を、<b>G1〜G4 全層通過を条件に介入しない</b>へ改めた。テストのみの L4 は最も脆弱な構成である。</p></div>
+    <div class="card"><h3>内側ループと外側ループ</h3><p>Stop hook は8回連続ブロックで自動解除される。Hook は最終防衛線にならないため、同じ判定スクリプト・同じ設定で動く <b>CI ゲート（外側ループ）</b> を併設する。</p></div>
+  </div>
+  <p class="note">証跡パッケージは「証跡（決定論的な生出力）／参考所見（AI の判定・要約）／承認（人間の記録）」の3区分を混ぜずに出力する。参考所見を単独で品質判定の根拠にしない。</p>
 </section>
 
 <!-- 3層ドキュメント -->
 <section id="docs">
-  <h2><span class="n">04</span> 3層ドキュメント戦略</h2>
+  <h2><span class="n">05</span> 3層ドキュメント戦略</h2>
   <p class="lead">「設計書はどうなるのか」という日本 SI 最大の関心に対する回答。コードを Source of Truth とし、コードから復元できない情報だけを人が書く。</p>
   <div class="layers">
     <div class="layer"><div class="lab">第1層 — WHY</div><h3>Spec（仕様）</h3><p style="margin:0;color:var(--muted);font-size:13.5px">なぜ作るか。業務背景・目的・要件。人が書き、合意する。</p></div>
@@ -199,7 +221,7 @@
 
 <!-- 移行 -->
 <section id="migration">
-  <h2><span class="n">05</span> 段階的移行パス</h2>
+  <h2><span class="n">06</span> 段階的移行パス</h2>
   <p class="lead">既存の V字モデル案件を止めずに移行できる3ステージ。自律度（L）と工数削減を段階的に引き上げる。</p>
   <div class="stages">
     <div class="st"><div class="lv">L0</div><b>Stage 0</b><div class="red">従来V字</div><div style="color:var(--muted);font-size:12.5px;margin-top:6px">現状</div></div>
@@ -212,7 +234,7 @@
 
 <!-- 期待効果 -->
 <section id="effects">
-  <h2><span class="n">06</span> 期待効果と検証ステータス</h2>
+  <h2><span class="n">07</span> 期待効果と検証ステータス</h2>
   <p class="lead">J-SIX の数値は実測と推定を切り分けて扱う。<span class="tag t-ok">実測</span> はケーススタディ等で検証済（ただしサンプル数は限定的）、<span class="tag t-warn">推定</span> は著者推定で未実測。</p>
   <table>
     <thead><tr><th>指標</th><th>従来V字</th><th>J-SIX</th><th>改善</th><th>検証ステータス</th></tr></thead>
@@ -220,41 +242,58 @@
       <tr><td>実装工数</td><td>100%</td><td>30–40%</td><td><b>60–70%削減</b></td><td><span class="tag t-warn">推定（未実測）</span></td></tr>
       <tr><td>設計書⇔コード乖離</td><td>常態化</td><td>原理的にゼロ</td><td><b>解消</b></td><td><span class="tag t-ok">一部実測</span></td></tr>
       <tr><td>設計判断の記録率</td><td>10–20%</td><td>80%以上(ADR)</td><td><b>4倍以上</b></td><td><span class="tag t-warn">推定</span></td></tr>
-      <tr><td>テストカバレッジ</td><td>60–70%</td><td>85–95%</td><td><b>15–25pt向上</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
+      <tr><td>テストカバレッジ（必要条件）</td><td>60–70%</td><td>85–95%</td><td><b>15–25pt向上</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
+      <tr><td>mutation score（十分条件側）</td><td>通常は未計測</td><td>90%以上</td><td><b>新規指標</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
       <tr><td>手戻り率</td><td>15–25%</td><td>5–10%</td><td><b>半減以下</b></td><td><span class="tag t-warn">推定</span></td></tr>
     </tbody>
   </table>
-  <p class="note">「一部実測」: IF 設計書（OpenAPI）の逆生成による乖離ゼロを確認。Why を記す Spec/ADR の乖離リスクは残る。「実測例あり」: ケーススタディ #1 でカバレッジ 99% を実測（N=1・小規模）。</p>
+  <p class="note">「一部実測」: IF 設計書（OpenAPI）の逆生成による乖離ゼロを確認。Why を記す Spec/ADR の乖離リスクは残る。「実測例あり」: ケーススタディ #1 でカバレッジ 99% を実測（N=1・小規模）。mutation score はケーススタディ #2 で 91.8%（PBT 追加後 93.4%）を実測。</p>
 </section>
 
 <!-- 実証 -->
 <section id="evidence">
-  <h2><span class="n">07</span> 実証 — ケーススタディ #1</h2>
+  <h2><span class="n">08</span> 実証 — ケーススタディ #1 / #2</h2>
   <p class="lead">題材「申請承認ワークフロー」（FastAPI / Python）で J-SIX を Phase 1→6 まで一周。再現可能な実測値を取得した（<code>examples/approval-workflow/</code>）。</p>
   <div class="grid g4">
-    <div class="card"><div class="k">37</div><p>テスト件数</p></div>
+    <div class="card"><div class="k">45 + 10</div><p>テスト件数（＋hold-out）</p></div>
     <div class="card"><div class="k">99%</div><p>ステートメントカバレッジ</p></div>
-    <div class="card"><div class="k">10/10</div><p>要件トレーサビリティ</p></div>
-    <div class="card"><div class="k">354 / 290</div><p>実装 / テスト LOC</p></div>
+    <div class="card"><div class="k">93.4%</div><p>mutation score</p></div>
+    <div class="card"><div class="k">16/16</div><p>REQ / PROP トレーサビリティ</p></div>
   </div>
+
+  <h3 style="margin-top:22px">ケーススタディ #2 — 「カバレッジ 99%」の mutation score</h3>
+  <p class="lead">カバレッジは「テストが実行した行」を測るが、「テストが誤りを検出できるか」は測らない。同じコードで両方を実測して差を見た。</p>
+  <table>
+    <thead><tr><th>指標</th><th>実測値</th><th>意味</th></tr></thead>
+    <tbody>
+      <tr><td>ステートメントカバレッジ</td><td><b>99%</b></td><td>207 stmt 中 未到達 2</td></tr>
+      <tr><td>mutation score（PBT 前）</td><td><b>91.8%</b></td><td>183 ミュータント中 15 生存</td></tr>
+      <tr><td>生存のうち<b>本物のテストの穴</b></td><td><b>3 件</b></td><td>境界値 1 / 監査ログの操作者・理由 2</td></tr>
+      <tr><td>mutation score（PBT 後）</td><td><b>93.4%</b></td><td>性質テスト 8 件を追加し、狙った 3 件を正確に殺した</td></tr>
+    </tbody>
+  </table>
+  <p class="note">残る 12 件はエラーメッセージ文言と既定引数の変異で、外部から見た振る舞いを変えない。仕様が規定していない詳細をテストで固定すると脆いテストになるため、<b>意図的に生かしている</b>。mutation score 100% は目的ではない。</p>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><h3 style="color:var(--ok)">✅ 言えること</h3><ul class="clean">
       <li>プロセスが小規模題材で実際に一周できる</li>
       <li>テスト網羅・トレーサビリティ・IF 設計書の逆生成は実物として成立</li>
       <li>カバレッジ品質ゲート（95%）を実測で充足</li>
+      <li><b>カバレッジ 99% でも本物のテストの穴が3件残っていた</b>（うち2件は内部統制要件）</li>
+      <li>生存ミュータントは性質テスト（PBT）の出発点として質が高い</li>
     </ul></div>
     <div class="card"><h3 style="color:var(--warn)">⚠ 言えないこと</h3><ul class="clean">
       <li>「工数 60–70% 削減」は本ケースでも N=0 の推定のまま</li>
       <li>実証には「人手のみ」との A/B 工数比較が必要（次の課題）</li>
-      <li>カバレッジ 99% は N=1・小規模で一般化不可</li>
+      <li>カバレッジ 99% / mutation 93.4% は N=1・小規模・外部依存なしで一般化不可</li>
+      <li>mutation の閾値 90% は本題材の実測値。他プロジェクトへは持ち込めない</li>
     </ul></div>
   </div>
-  <p class="src">再現: <code>cd examples/approval-workflow &amp;&amp; pytest -q --cov=app</code> ／ 詳細: <code>docs/case-study-01.md</code></p>
+  <p class="src">再現: <code>cd examples/approval-workflow &amp;&amp; make test &amp;&amp; make mutation &amp;&amp; make gate</code> ／ 詳細: <code>docs/case-study-01.md</code>, <code>docs/case-study-02.md</code></p>
 </section>
 
 <!-- リポジトリ -->
 <section id="repo">
-  <h2><span class="n">08</span> リポジトリ構成</h2>
+  <h2><span class="n">09</span> リポジトリ構成</h2>
   <table>
     <thead><tr><th>パス</th><th>内容</th></tr></thead>
     <tbody>
@@ -271,41 +310,50 @@
 
 <!-- Plugin -->
 <section id="plugin">
-  <h2><span class="n">09</span> Claude Code Plugin（v2.1.0）</h2>
-  <p class="lead">J-SIX の各 Phase を Claude Code のネイティブ機能で実装。Skills 6件・Agents 5件・Hooks に加え、LLM を介さない決定論的チェックを同梱。</p>
+  <h2><span class="n">10</span> Claude Code Plugin（v2.1.0）</h2>
+  <p class="lead">J-SIX の各 Phase を Claude Code のネイティブ機能で実装。Skills 7件・Agents 7件・Hooks に加え、LLM を介さない決定論的チェック 11本を同梱。<b>Plugin は言語別ツールを直接呼ばず</b>、標準フォーマット（JUnit XML / Cobertura・LCOV / SARIF / mutation-testing-elements JSON）のパースと閾値判定だけを行う。</p>
   <div class="grid g2">
-    <div class="card"><span class="pill">Skills（6）</span><ul class="clean">
+    <div class="card"><span class="pill">Skills（7）</span><ul class="clean">
       <li><code>spec-create</code> — 要求/Design Spec の対話的策定（P1–P2）</li>
       <li><code>design-review</code> — Spec・ADR・コード整合性検証（P2）</li>
-      <li><code>tdd-cycle</code> — Red→Green→Refactor 管理（P4）</li>
-      <li><code>quality-metrics</code> — メトリクス計測・品質ゲート（P5）</li>
-      <li><code>doc-reverse-gen</code> — 設計書逆生成（P6）</li>
+      <li><code>tdd-cycle</code> — Hold-out→Red→Green→Refactor→G1〜G4（P4）</li>
+      <li><code>evidence-pack</code> — 証跡パッケージへの要約付加（P4）<b>新</b></li>
+      <li><code>quality-metrics</code> — プロセス健全性の集計（P5）</li>
+      <li><code>doc-reverse-gen</code> — 設計書逆生成・品質納品物（P6）</li>
       <li><code>traceability</code> — 要件→テスト→コード追跡（P1–P6）</li>
     </ul></div>
-    <div class="card"><span class="pill">Agents（5）</span><ul class="clean">
-      <li><code>red-agent</code> — テスト作成のみ（P4）</li>
-      <li><code>green-agent</code> — 最小実装のみ（P4）</li>
+    <div class="card"><span class="pill">Agents（7）</span><ul class="clean">
+      <li><code>holdout-test-writer</code> — hold-out 受入テスト作成 <b>新</b></li>
+      <li><code>red-agent</code> — テスト作成＋PROP から PBT＋RED タグ（P4）</li>
+      <li><code>green-agent</code> — 最小実装のみ。テストに触れない（P4）</li>
       <li><code>refactor-agent</code> — 品質改善のみ（P4）</li>
-      <li><code>qa-reviewer</code> — 品質レビュー（読み取り専用）</li>
+      <li><code>scope-judge</code> — G3 意図・スコープ判定 <b>新</b></li>
+      <li><code>qa-reviewer</code> — 証跡の要約・探索的テスト観点（P5）</li>
       <li><code>doc-generator</code> — 設計書一式の自動生成（P6）</li>
     </ul></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><span class="pill">Hooks</span><ul class="clean">
-      <li><b>prompt型</b>: 規約準拠チェック / テスト結果確認 / ADR 検出 / リトライ判断 / 権限拒否対応</li>
-      <li><b>command型（新）</b>: Stop 時に決定論的品質ゲートを実行（オプトイン）</li>
+      <li><b>command型</b>: PreToolUse で決定論的な format / lint（v2.0 の prompt 型を置換）</li>
+      <li><b>command型</b>: Stop 時に品質ゲート G1→G4 を実行（オプトイン）</li>
+      <li><b>prompt型</b>: G3 の起動 / ADR 検出 / テスト結果確認 / リトライ判断 / 権限拒否対応 — <i>助言用途に限定</i></li>
+      <li><b>subagent スコープ</b>: green-agent の <code>tests/</code> 書込と hold-out 読取を拒否</li>
     </ul></div>
-    <div class="card"><span class="pill">決定論的チェック（新）</span><ul class="clean">
-      <li><code>jsix_traceability_check.py</code> — 要件⇔テストの機械検証</li>
-      <li><code>jsix_coverage_gate.py</code> — カバレッジ閾値判定</li>
-      <li><code>jsix_run_checks.py</code> — <code>.jsix-checks.json</code> 同梱時のみ動く no-op 既定ランナー</li>
+    <div class="card"><span class="pill">決定論的チェック（11本）</span><ul class="clean">
+      <li><code>jsix_run_checks.py</code> — G1→G4 を順に実行。前段失敗で打ち切り</li>
+      <li><code>jsix_scope_check.py</code> / <code>jsix_sarif_gate.py</code> — G1</li>
+      <li><code>jsix_junit_check.py</code> / <code>jsix_coverage_gate.py</code> / <code>jsix_mutation_gate.py</code> — G2</li>
+      <li><code>jsix_test_tamper_check.py</code> — G2: テスト<b>弱体化</b>の検出</li>
+      <li><code>jsix_traceability_check.py</code> — G2: REQ / PROP ⇔ テスト</li>
+      <li><code>jsix_evidence_pack.py</code> — G4: 証跡パッケージ生成</li>
+      <li>既定は<b>レポート駆動</b>（成果物を読むだけ）。CI では <code>--run-commands</code></li>
     </ul></div>
   </div>
 </section>
 
 <!-- 記事 -->
 <section id="articles">
-  <h2><span class="n">10</span> 記事シリーズ（全15本公開済）</h2>
+  <h2><span class="n">11</span> 記事シリーズ（全15本公開済）</h2>
   <div class="grid g2">
     <div class="card"><span class="pill">本編シリーズ（6）</span><ul class="clean">
       <li>#0 J-SIX 概論</li>
@@ -333,7 +381,7 @@
 <footer>
   <div class="wrap">
     <p><b>J-SIX</b> — Japanese SI Transformation ／ 著者: H.Sekita ／ License: CC BY 4.0</p>
-    <p class="src">本ページはリポジトリの内容から生成した全体像サマリー（2026-06-15 時点）。一次情報は <code>docs/J-SIX.md</code> 及び各ドキュメントを参照。期待効果の数値は実測と著者推定が混在し、ステータスを明示している。</p>
+    <p class="src">本ページはリポジトリの内容から生成した全体像サマリー（2026-09-10 時点 / プロセス定義 v2.1）。一次情報は <code>docs/J-SIX.md</code> 及び各ドキュメントを参照。期待効果の数値は実測と著者推定が混在し、ステータスを明示している。</p>
   </div>
 </footer>
 

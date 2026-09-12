@@ -2,7 +2,7 @@
 
 ## — 全ドキュメントの主張に対する根拠の整理 —
 
-**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし）
+**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施）
 
 ---
 
@@ -85,6 +85,26 @@
 | A34 | Martin Fowler: AI 自律実行の限界と subtasking の有効性 | martinfowler.com "How far can we push AI autonomy in code generation?" | https://martinfowler.com/articles/pushing-ai-autonomy.html | 論点3 |
 | A35 | DataCamp: unguided attempts 成功率約33%、セッション放棄率10-20% | DataCamp "Claude Code Best Practices" (2026.03) | https://www.datacamp.com/tutorial/claude-code-best-practices | 論点3 |
 
+### 2.7 品質ゲート・検証（v2.1 で追加）
+
+| # | 主張 | 数値・内容 | 出典 | URL | 使用箇所 |
+|---|---|---|---|---|---|
+| A36 | 決定論的検証器をすべて通してから LLM judge を走らせる（順序固定） | 「judge は標準の検証ループに含まれ、他の検証器がすべて完了した後に走る」 | Spotify Engineering "Honk, Part 3" (2025.12.09) | https://engineering.atspotify.com/2025/12/feedback-loops-background-coding-agents-part-3 | J-SIX 第3章 Phase 4 メカニズム② |
+| A37 | LLM judge の却下率 | 「数千のエージェントセッションのうち、judge は約4分の1を veto する。その際エージェントは半分の割合で自己修正できる」 | 同上 | 同上 | J-SIX 第3章 Phase 4（本文では「約1/4」と表記） |
+| A38 | Spotify は後に judge を撤去した | 「LLM as judge は硬直的で妥当な変更まで止めたため、モデルの改善に伴い最終的に撤去され、プロンプト内の検証手順で十分になった」 | InfoQ "QCon London 2026: Rewriting All of Spotify's Code Base" (2026.03.18) | https://www.infoq.com/news/2026/03/spotify-honk-rewrite/ | J-SIX 第3章 Phase 4「G3 は固定装備ではない」 |
+| A39 | reward hacking は可視テストと hold-out テストの pass 率差で測れる | フロンティアエージェントはいずれも可視スイートを飽和させるが hold-out との差は残る。差はタスク長（コード量10倍あたり28pt）で拡大し、**テスト網羅度ではなくタスク難度とモデル能力の差**で駆動される | Weco AI "SpecBench" (2026.05), arXiv:2605.21384 | https://arxiv.org/abs/2605.21384 | J-SIX 第2章 2.3, 第3章 Phase 4 |
+| A40 | 受入条件 → Property → PBT の流れ | Kiro は Gherkin 形式の要件から property を抽出し、「for any」で始まる textual property を実行可能な property-based test に変換する（fast-check を使用） | Kiro "Does your code match your spec?" / Kiro Docs "Correctness" | https://kiro.dev/blog/property-based-testing/ , https://kiro.dev/docs/specs/correctness/ | J-SIX 第3章 Phase 2 |
+| A41 | Stop hook は8回連続ブロックで自動解除される | 「Claude Code overrides the hook and ends the turn after 8 consecutive blocks」 | Anthropic "Best practices for Claude Code" | https://code.claude.com/docs/en/best-practices | J-SIX 第3章 Phase 4 エスカレーション, 第4章 4.4 |
+| A42 | gap を探せと指示されたレビュアーは健全な作業でも何かを報告する | 「A reviewer prompted to find gaps will usually report some, even when the work is sound... Chasing every finding leads to over-engineering」 | 同上 | 同上 | J-SIX 第3章 Phase 4「G3 にスタイル指摘の禁止を明記する理由」 |
+| A43 | AI 導入により検証・レビューの負荷が増える / 30%が AI 生成コードをほぼ信頼していない | 「コードを書く時間は減るが、AI を見張りレビューする時間が増える」「開発者の30%が AI 生成コードにほとんど信頼を置いていない」 | DORA "Balancing AI tensions" (2026.03.10) | https://dora.dev/insights/balancing-ai-tensions/ | J-SIX 第3章 Phase 5 |
+
+> **A37 の表記について**: 一次ソースの原文は "about a quarter" であり、パーセント表記ではない。
+> 本文でも「約1/4」と記し、「25%」のような有効数字を持つ数値としては表記しない。
+
+> **A38 を併記する理由**: A36・A37 は G3（LLM judge）を導入する根拠だが、同じ事例の**後日談**として
+> judge が撤去されたことも記録しておかないと、読者に「judge は恒久的に必要」という誤った印象を与える。
+> J-SIX では G3 を却下率で評価し、不要になれば外す前提で記述している。
+
 ---
 
 ## 3. カテゴリB：推定・著者見解（明示が必要な箇所）
@@ -107,6 +127,12 @@
 | B12 | J-SIX の7Phase 構成 | SDD の4フェーズ + 日本品質要件から著者が設計 | 「著者設計。SDDの原則に日本品質基準を追加」 | J-SIX v1.0 全体 |
 | B13 | エスカレーション条件（テスト3回連続失敗等） | 実務経験に基づく著者の推奨値 | 「著者推奨。プロジェクト特性に応じて調整すべき」 | J-SIX v1.0 Phase 4, 論点3 |
 | B14 | Stage 完了基準の閾値（CC生成コードのバグ密度2倍以内等） | 実務的な判断に基づく著者の推奨値 | 「著者推奨の目安。組織の品質基準に応じて設定すべき」 | 論点4 |
+| B15 | 4層品質ゲート（G1-G4）の層構成 | A36（順序）・A39（hold-out）・A40（PBT）を統合し、日本の SI 向けに G4（証跡）を加えた著者設計 | 「著者設計。順序と各層の根拠は A36/A39/A40」 | J-SIX v2.1 第3章 Phase 4 |
+| B16 | mutation score の閾値 | **未実測**。ハンドオフ時の仮置き値（70）は根拠がないため、Plugin の既定値としては採用しない | 「実測前のため既定値を置かない。ケーススタディ #2 で実測してから決める」 | J-SIX v2.1 エグゼクティブサマリー ※7 |
+| B17 | hold-out テストの規模（UC 1件につき最低1テスト） | A39 は hold-out の必要性を示すが規模には言及がない。運用可能性からの著者推奨 | 「著者推奨。プロジェクト規模に応じて調整すべき」 | J-SIX v2.1 第3章 Phase 4 |
+| B18 | G3 却下2回目で人間へエスカレーション | A37 の「veto されたうち半分は自己修正できる」から、1回の自動修正には合理性があると判断した著者の推奨値 | 「著者推奨。A37 の自己修正率から設定」 | J-SIX v2.1 第3章 Phase 4 |
+| B19 | Stop hook 連続ブロック6回目で人間へ通知 | A41 の8回上限に対し、到達前に判断を仰ぐための著者設定値 | 「著者推奨。A41 の上限に対するマージン」 | J-SIX v2.1 第3章 Phase 4 |
+| B20 | 証跡パッケージの3区分（証跡 / 参考所見 / 承認） | 日本の SI の納品・監査慣行に基づく著者設計。外部の標準に対応するものではない | 「著者設計」 | J-SIX v2.1 第9章 |
 
 ---
 
@@ -215,6 +241,7 @@
 | 主張 | 状況 | 対応案 |
 |---|---|---|
 | 「ACM 2025 の報告でCC生成コードは1.75倍のロジックエラー」 | FlorianBruniaux guide 経由の記述。ACMの具体的な論文タイトルは未特定 | CodeRabbit レポート [8] の1.7倍を一次ソースとして使用。ACM への言及は削除 |
+| 「DORA 2026 が verification tax（検証税）という語で AI 生成コードの検証負荷を定義している」 | **不採用（2026-09-10）**: 二次記事に頻出する表現だが、DORA の公開ページで当該用語を確認できなかった（報告書本体はフォーム経由の配布）。 | 用語「verification tax」は使用せず、DORA の公開ページ [31] で確認できた記述（検証負荷に関する開発者の声、30%が AI 生成コードをほぼ信頼していない）のみを引用する（A43） |
 | ~~Anthropic社内「CC初回成功率33%」~~ | **訂正（2026-04-18）**: 一次ソース [3] の原文は「人間の介入ターン数が33%減少（6.2→4.1）」であり、「初回自律実行成功率33%」ではなかった。二次ソース [16] (DataCamp) で "unguided attempts 成功率約33%" と引用されていたが、原文の文脈と異なる可能性がある | J-SIX v1.0 を「人間の介入頻度33%減少」に修正。連続自律アクション数（約10→約20）を併記 |
 
 ### 7.2 時間経過で陳腐化する可能性がある情報
@@ -239,7 +266,8 @@
 | レビュー予定 | 状況 |
 |---|---|
 | 2026-06-14 | ✅ 実施（変更なし） |
-| 2026-09（次回目安） | 予定 |
+| 2026-09-10 | ✅ 実施（v2.1 改訂と同時。A36-A43 追加、B15-B20 追加、verification tax の不採用を 7.1 に記録） |
+| 2026-12（次回目安） | 予定 |
 
 > 定期実行を自動化する場合は Claude Code の `/schedule`（routine）で四半期ジョブ化できる。
 

@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+
+**v2.1: レビュー前品質ゲートの再設計**
+
+- docs/J-SIX.md 第9章「証跡パッケージ（品質の証明と納品）」— 証跡 / 参考所見 / 承認の3区分、`reports/evidence/<task-id>/` の構成、従来納品物への対応付け
+- docs/J-SIX.md 第4章 4.4「内側ループ（Hook）と外側ループ（CI）の二重化」— Stop hook は8回連続ブロックで自動解除されるため CI ゲートを併設する
+- docs/J-SIX.md Phase 4: 順序固定の4層品質ゲート（G1 決定論的検証 / G2 テスト品質検証 / G3 意図・スコープ判定 / G4 証跡生成）、テスト改変検出の判定表、hold-out 受入テスト、「G3 は固定装備ではない」節
+- docs/J-SIX.md Phase 2: 受入条件 → Property（PROP-nnn）の導出工程 / Phase 3: 変更許可ファイル範囲の事前承認 / Phase 0: CLAUDE.md をコードとして扱う月次ループ
+- docs/J-SIX.md 期待効果に mutation score 行を追加（🟡 未実測。閾値はケーススタディ #2 の実測後に決める）
+- templates/spec/requirement-spec.md: 3.2 要件ID（REQ-nnn）、3.3 受入条件と Property（PROP-nnn）、3.4 hold-out 受入テストの対象
+- templates/spec/design-spec.md: 8. Property の実装方針（PBT ライブラリ・入力生成戦略）、9. 品質ゲートの設定
+- docs/REFERENCES_AUDIT.md: 2.7「品質ゲート・検証」（A36-A43）、カテゴリB に B15-B20
+- index.html: セクション 04「レビュー前の4層品質ゲート」を追加（既存セクションを繰り下げ）
+- README.md: 4層品質ゲートの概要、期待効果に mutation score 行
+- plugin/scripts/: G1/G2 の決定論的チェック 7種を追加 — `jsix_config.py`（設定の正規化と v2.0 後方互換）/ `jsix_result.py`（Check 共通インタフェース）/ `jsix_gitutil.py` / `jsix_junit_check.py`（JUnit XML）/ `jsix_sarif_gate.py`（SARIF の severity 集計）/ `jsix_mutation_gate.py`（mutation-testing-elements JSON と最小契約 JSON）/ `jsix_scope_check.py`（変更ファイル ⊆ 許可リスト）/ `jsix_test_tamper_check.py`（テスト弱体化の検出）
+- plugin/scripts/tests/: 111 件の単体テストとフィクスチャ（JUnit / Cobertura / LCOV / SARIF / mutation / 新旧 config）
+- examples/approval-workflow/: `Makefile`（build/lint/format/sast/test/gate）と `requirements-dev.txt`（ruff / bandit / bandit-sarif-formatter / hypothesis）
+- plugin/agents/scope-judge.md: G3 の判定エージェント。正確性・要件未充足・スコープ逸脱の3分類のみを報告し、スタイル指摘を禁止（「gap を探せと言われたレビュアーは健全な作業でも何かを報告する」問題への対処）。判定は `judge.json` に書き出す
+- plugin/agents/holdout-test-writer.md: hold-out 受入テストの作成エージェント。実装コードを読まず、Spec の受入条件（UC-nnn）と PROP から `tests/acceptance/` を生成する
+- plugin/scripts/jsix_guard_tests.py: green-agent 用の PreToolUse Hook。`tests/` への書き込みと `tests/acceptance/` の読み取りを機械的に拒否する（想定外の入力では止めない fail-open）
+- examples/approval-workflow/tests/acceptance/: hold-out 受入テスト 10件（UC-001〜006 を各1件以上）
+- plugin/scripts/jsix_evidence_pack.py: G4 の証跡パッケージ生成。`evidence.json` ＋ `00_summary.md`〜`07_approval.md` ＋ `env.json` を出力。証跡 / 参考所見 / 承認 の3区分を混ぜず、スクリプトは推定値を一切書かない（LLM 要約欄は空で出力する）。納品物に実行環境の絶対パスを残さない
+- plugin/skills/evidence-pack/SKILL.md: 証跡に LLM 要約（変更概要・リスク箇所・計画からの逸脱）を「参考所見」として付加する手順。数値は証跡から引用し推定しないこと、納品前チェックリストを規定
+- plugin/scripts/jsix_format_hook.py: PreToolUse の決定論的 format / lint。`.jsix-checks.json` の `hook_cmd` に宣言されたコマンドのみ実行（未宣言なら no-op）。言語別ツール名を plugin に持ち込まない
+- .github/workflows/jsix-gate.yml: 外側ループ（CI）。内側ループと同じ判定スクリプト・同じ設定で `--run-commands` 実行し、trivy の SARIF（secret / 依存脆弱性）を G1 に投入、証跡をアーティファクトとして保存する。plugin/scripts の単体テストを先行ジョブとして実行する
+- `.jsix-checks.json` に `optional` オプション: 成果物が無い場合にスキップする（CI でのみ生成する SARIF 等）。**既定は不合格**（検証していないものを検証済みとして扱わないため）
+- docs/case-study-02.md: 「カバレッジ 99%」の mutation score を実測。**91.8%**（183 ミュータント中 15 生存）。生存のうち **3件が本物のテストの穴**（境界値 1件・監査ログの操作者と理由 2件）。性質テスト（PBT）8件を追加して **93.4%** に改善し、狙った3件を正確に殺した
+- examples/approval-workflow/tests/test_properties.py: PROP-001〜006 の property-based test（Hypothesis）
+- examples/approval-workflow/scripts/mutmut_to_json.py: mutmut → 最小契約 JSON のアダプタ。**plugin ではなく利用者側**に置く（特定ツールへの依存を plugin に持ち込まないため）
+- examples/approval-workflow/docs/requirement-spec.md: 3.3 受入条件と Property（PROP-001〜006）、3.4 hold-out 受入テストの対象
+
+**実証・テンプレート実例・決定論的チェック（先行実装分）**
+
 - docs/ROADMAP.md: 次フェーズの改善・追加機能ロードマップ（実証・信頼性 / テンプレート充実 / Plugin 実用拡張）
 - docs/case-study-01.md: ケーススタディ #1（申請承認ワークフローで J-SIX を一周。実測値と推定値を切り分け）— ROADMAP A1
 - examples/approval-workflow/: 動く FastAPI サンプル（37テスト / カバレッジ99%）。記入済みテンプレ実例（CLAUDE.md / Spec×2 / ADR×2 / traceability）を兼ねる — ROADMAP B1/B2/C2
@@ -13,6 +45,51 @@ All notable changes to this project will be documented in this file.
 - index.html: J-SIX の全体像を1枚に集約した自己完結型 HTML（外部依存なし。GitHub Pages のルートとしても機能）
 
 ### Changed
+
+**v2.1: レビュー前品質ゲートの再設計**
+
+- docs/J-SIX.md: Version 2.0 → 2.1。自律度モデル L4 の条件を「自動テスト通過」から「G1〜G4 全層通過」へ変更（reward hacking 対策。根拠は SpecBench [26]）。Phase 5 を「機械が原理的に見られないものを人間が見る工程」として再定義し、集計メトリクス（mutation score / judge 却下率 / ゲート失敗理由分布 / 人間レビュー指摘数）を追加。第4章 4.2 マッピング表に `/goal`・`/verify`・`/code-review`・auto mode 分類器・dynamic workflows・`/batch` を追加。用語集に G1-G4 / PROP / PBT / mutation score / hold-out / reward hacking / 証跡パッケージ等を追加。参考文献 [26]-[31] を追加
+- docs/REFERENCES_AUDIT.md: 監査日に 2026-09-10 を追記（四半期鮮度レビュー第2回）。7.1 に「DORA の verification tax は一次情報で確認できず不採用」を記録
+- docs/ROADMAP.md: A2/A3 を実績反映、A4（ケーススタディ #2）・A5（1.3 能力データ更新）・C4/C5/C6（品質ゲート実装・証跡パック・CI 例）を追加
+- plugin/scripts/jsix_run_checks.py: ゲートを G1→G2→G3→G4 の順に実行する基盤へ。前段のゲートが落ちたら後段は実行しない。既定は**レポート駆動**（宣言された成果物を読むだけ。`cmd` は `--run-commands` 指定時のみ実行）。G3 は判定ファイルを介した2段構成
+- plugin/scripts/jsix_coverage_gate.py: LCOV に対応（Cobertura と自動判別）。`min` 未指定時は計測のみ。低カバレッジのファイル上位5件を証跡に出す
+- plugin/scripts/jsix_traceability_check.py: ID パターンを複数指定可能に（REQ と PROP を同時検証）。JUnit XML のテスト名も走査対象に
+- examples/approval-workflow/: `.jsix-checks.json` を v2.1 の gates 形式へ。ruff format による整形に伴い行数が変化（app 354→368 / tests 290→299。テスト件数・カバレッジ・トレーサビリティは変化なし）
+- docs/case-study-01.md / examples/approval-workflow/README.md: 上記の再計測値を反映し、変化の理由を注記
+- .gitignore: `**/reports/`（ゲートの生成物）を除外
+- plugin/agents/green-agent.md: subagent スコープの `hooks` で `tests/` への書込と hold-out の読取を拒否。テストの期待値が誤っていると考えた場合は修正せず人間へ報告する手順を追加（subagent frontmatter に `permissions` フィールドは無いため `hooks` で実現）
+- plugin/agents/red-agent.md: PROP から property-based test を生成する手順と、完了時に `git tag jsix/red-<タスクID>` を打つ手順を追加（G2 テスト改変検出の基準点）
+- plugin/agents/refactor-agent.md: テストのリファクタリングで越えてはいけない線（アサーション・テスト関数の総数を減らさない / 無効化マーカーを増やさない）を明記
+- plugin/agents/qa-reviewer.md: 役割を「証跡パックの人間向け要約と探索的テスト観点の提示」へ再定義。合否判定は G1-G3 に委譲し、出力は「参考所見」と明記する
+- plugin/skills/tdd-cycle/SKILL.md: Hold-out → Red → Green → Refactor → G1〜G4 の流れへ改訂。RED タグ、G3 の2段構成、`/goal` の併用、エスカレーション条件を追加
+- examples/approval-workflow/.jsix-checks.json: hold-out / G3 / G4 を有効化
+- plugin/skills/quality-metrics/SKILL.md: 役割を「個別タスクの合否判定」から「タスク横断のプロセス健全性の集計」へ。mutation score / G3 judge 却下率と理由分布 / ゲート失敗理由の分布 / 人間レビュー指摘数 を追加。judge を外す判断の材料として却下率を使う運用を明記
+- plugin/skills/doc-reverse-gen/SKILL.md: 種別 `quality` を追加。証跡パッケージから従来の品質・テスト系納品物（テスト結果報告書 / 品質報告書 / セキュリティ診断結果 / トレーサビリティマトリクス / レビュー記録）へ変換する対応表と、3区分を保つ変換ルールを規定
+- plugin/scripts/jsix_junit_check.py: 出力ラベルを引数化し、通常テストと hold-out を区別して表示
+- plugin/hooks/hooks.json: PreToolUse の規約チェックを **prompt 型から command 型（決定論的 lint/format）へ置換**。prompt 型は助言用途に限定。Stop に「G3 未実施なら scope-judge を起動する」prompt hook を追加。StopFailure に Stop hook の8回上限を踏まえた判断基準を追記
+- plugin/README.md: 4層ゲート、設計原則（ツールを呼ばず契約を決める）、scripts 一覧（11本）、`.jsix-checks.json` の新旧形式、内側/外側ループの二重化を反映。Skills 6→7 件 / Agents 5→7 件
+- plugin/.claude-plugin/plugin.json: description を v2.1 の内容へ更新、`keywords` を追加（version は 2.1.0 のまま）
+- docs/J-SIX.md 4.3: Plugin 構成を実装済みの構成（scripts 12本を含む）へ更新
+- docs/walkthrough-phase4-tdd.md: v2.1 の全体像（Hold-out → Red → Green → Refactor → G1〜G4）を冒頭に追記し、Step 6 として品質ゲートの実行例を追加
+- examples/approval-workflow/README.md: `make` ターゲット、品質ゲートの出力例、テスト弱体化がブロックされることの確認手順、Plugin デモ表に holdout-test-writer / scope-judge / evidence-pack を追加
+- index.html / README.md: Plugin セクションを Skills 7 件 / Agents 7 件 / 決定論的チェック 11 本に更新
+- docs/J-SIX.md: mutation score 行の検証ステータスを 🟡 未実測 → **🟢 実測例あり**（ケーススタディ #2 の実測に基づく。閾値 90% も実測由来であり、Plugin の既定値としては引き続き置かない）
+- README.md / index.html: ケーススタディ #2 の実測値を反映。付録の展開予定を完了状態へ
+- examples/approval-workflow/: `make mutation` / `make setup-mutation` を追加。`.jsix-checks.json` に mutation ゲート（`min_score: 90`）を有効化。トレーサビリティを REQ 10 + PROP 6 = 16 件に拡張
+- examples/approval-workflow/docs/traceability.md: PROP ⇔ テスト、hold-out ⇔ ユースケースの対応表を追加
+- docs/ROADMAP.md: A4 / C3 / C4 / C5 / C6 を完了に更新。v2.1 完了後の残タスクを整理
+- .gitignore: mutation testing の生成物（`.hypothesis/`, `mutants/`, `.venv-mut/`）を除外
+
+### Fixed
+
+- plugin/scripts/jsix_run_checks.py: `--gates` オプションを追加。J-SIX.md 4.4 と CI の例は「G3 は CI では必須にしない」と規定していたが、それを実現する手段が無く、CI でゲートを実行すると必ず G3 未実施で止まっていた（設計意図と実装の食い違い）。除外したゲートは「未実行」として結果に残す
+- plugin/scripts/jsix_run_checks.py: G3 未実施の案内に実行環境の絶対パスが出ていたため、プロジェクト基準の相対パスに変更
+- plugin/scripts/jsix_run_checks.py: コマンド失敗時に stderr が出力から落ちていた（findings の `text` キーを render が拾っていなかった）。「失敗した」とだけ出て理由が分からない状態だったため、CI ログから原因を判断できなかった
+- examples/approval-workflow: hold-out 受入テストと性質テストに `ruff format` が未適用だった。内側ループ（レポート駆動）は `format` を実行しないため、CI（外側ループ）で初めて検出された
+- plugin/scripts/jsix_config.py: v2.0 のフラット形式でトレーサビリティの ID パターンが未指定の場合、v2.1 の既定（`REQ-\d+` と `PROP-\d+` の両方）ではなく **v2.0 の既定（`REQ-\d+` のみ）に固定**するようにした。そうしないと、Spec に `PROP-nnn` を書いた既存利用者のゲートが Plugin 更新だけで突然落ちる
+
+**実証・テンプレート実例・決定論的チェック（先行実装分）**
+
 - README.md: 参考資料テーブルに ROADMAP を追加、「実証（動くサンプル）」セクション追加、期待効果に検証ステータス（実測/推定）を明示、「今後の展開」に次フェーズ計画への誘導を追記 — ROADMAP A2
 - templates/README.md: 「テンプレ → 記入済み実例 → 該当 Skill」の導線表を追加 — ROADMAP B3
 - docs/J-SIX.md: 期待効果テーブルに「検証ステータス」列を追加（実測/推定の切り分け）— ROADMAP A2 / 付録B（展開予定）の鮮度更新、ROADMAP への誘導を追記

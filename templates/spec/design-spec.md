@@ -134,6 +134,32 @@
 
 ---
 
+## 8. Property（PROP）の実装方針
+
+要求 Spec の `PROP-nnn` を property-based testing でどう検証するかを定める。
+
+| 項目 | 内容 |
+|---|---|
+| PBT ライブラリ | [TODO: Hypothesis (Python) / fast-check (TS) / jqwik (Java) 等] |
+| 入力生成の戦略 | [TODO: どの範囲・分布で値を生成するか。境界値の含め方] |
+| 実行件数 | [TODO: 既定の試行回数。CI では増やすか] |
+| 失敗時の扱い | [TODO: 反例の最小化・シード固定によるリグレッションテスト化] |
+
+| PROP ID | 検証方法 | 実装場所 |
+|---|---|---|
+| PROP-001 | [TODO: PBT / 例ベーステスト / 検証不能（理由）] | [TODO: tests/…] |
+
+## 9. 品質ゲートの設定
+
+Phase 4 の G1〜G4 で使う成果物のパスと閾値を定める（Plugin の `.jsix-checks.json` に対応）。
+
+| ゲート | チェック | 成果物の形式・パス | 閾値 |
+|---|---|---|---|
+| G1 | build / lint / SAST / スコープ検査 | [TODO: SARIF のパス] | [TODO: max_severity] |
+| G2 | テスト / カバレッジ / mutation / トレーサビリティ | [TODO: JUnit XML, Cobertura or LCOV, mutation JSON] | [TODO: カバレッジ最低値。mutation は実測後に設定] |
+| G3 | 意図・スコープ判定 | — | 却下2回目で人間へ |
+| G4 | 証跡パッケージ | `reports/evidence/` | — |
+
 ## 承認
 
 | 役割 | 氏名 | 日付 | 承認 |

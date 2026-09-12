@@ -2,6 +2,7 @@
 
 ドメインルールは test_workflow.py で網羅。ここでは HTTP 結線とステータスコード変換を検証する。
 """
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -45,7 +46,10 @@ def test_create_invalid_returns_409(client):
 
 def test_happy_path_submit_and_approve(client):
     rid = _create(client).json()["id"]
-    assert client.post(f"/requests/{rid}/submit", json={"actor": "alice"}).status_code == 200
+    assert (
+        client.post(f"/requests/{rid}/submit", json={"actor": "alice"}).status_code
+        == 200
+    )
     res = client.post(f"/requests/{rid}/approve", json={"actor": "bob"})
     assert res.status_code == 200
     assert res.json()["status"] == "APPROVED"
@@ -73,7 +77,9 @@ def test_list_requests(client):
 def test_reject_endpoint(client):
     rid = _create(client).json()["id"]
     client.post(f"/requests/{rid}/submit", json={"actor": "alice"})
-    res = client.post(f"/requests/{rid}/reject", json={"actor": "bob", "note": "却下理由"})
+    res = client.post(
+        f"/requests/{rid}/reject", json={"actor": "bob", "note": "却下理由"}
+    )
     assert res.status_code == 200
     assert res.json()["status"] == "REJECTED"
 
@@ -81,7 +87,9 @@ def test_reject_endpoint(client):
 def test_remand_endpoint(client):
     rid = _create(client).json()["id"]
     client.post(f"/requests/{rid}/submit", json={"actor": "alice"})
-    res = client.post(f"/requests/{rid}/remand", json={"actor": "bob", "note": "再提出を"})
+    res = client.post(
+        f"/requests/{rid}/remand", json={"actor": "bob", "note": "再提出を"}
+    )
     assert res.status_code == 200
     assert res.json()["status"] == "DRAFT"
 

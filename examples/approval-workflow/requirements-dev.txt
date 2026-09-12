@@ -1,0 +1,9 @@
+# J-SIX 品質ゲート（G1/G2）で成果物を生成するための開発用ツール。
+# plugin 側は標準フォーマットのパースと閾値判定しかしないため、
+# どのツールを使うかはプロジェクト側（＝ここ）が選ぶ。
+pytest==8.4.2
+pytest-cov==7.1.0
+ruff==0.14.5                    # G1: lint / format
+bandit==1.8.6                   # G1: SAST
+bandit-sarif-formatter==1.1.1   # G1: bandit の SARIF 出力
+hypothesis==6.141.1             # G2: PROP から導く property-based testing

@@ -1,9 +1,23 @@
 # J-SIX ワークスルー：Phase 4 TDD 実装の実際
 
-**Author**: H.Sekita | **Date**: 2026-03-29
+**Author**: H.Sekita | **Date**: 2026-03-29（v2.1 対応: 2026-09-10）
 
 > J-SIX の補足資料。Phase 4（TDD 実装）で CC が実際にどう動くかを、
 > 具体的なコマンド・プロンプト・出力例で示す。
+
+> **v2.1 での変更点**: TDD サイクルの前に **Hold-out Phase**（実装を書くエージェントが
+> 読めない受入テストの作成）が入り、Refactor の後に **4層品質ゲート G1〜G4** が入る。
+> 本ワークスルーの Step 1〜5 は v2.1 でもそのまま成立するが、全体の流れは以下になる。
+>
+> ```
+> 🟣 HOLD-OUT → 🔴 RED → 🟢 GREEN → 🔵 REFACTOR → G1 → G2 → G3 → G4
+>                  │                                  ↑
+>               RED タグ ─────────────────────────────┘
+> ```
+>
+> 各ゲートの内容は [J-SIX.md Phase 4](J-SIX.md)、実行手順は
+> [`plugin/skills/tdd-cycle/SKILL.md`](../plugin/skills/tdd-cycle/SKILL.md) を参照。
+> 動く実例は [`examples/approval-workflow/`](../examples/approval-workflow/)（`make gate`）。
 
 ---
 
@@ -212,6 +226,38 @@ CC: パスワードのハッシュ化に bcrypt を使用する設計判断を�
 ```
 
 > **ポイント**: CC が設計判断を検出し、ADR ドラフトを自動提案する。人間は確認・修正するだけ。
+
+---
+
+### Step 6: 品質ゲート G1〜G4（v2.1）
+
+Refactor が終わったら品質ゲートを通す。
+
+```bash
+$ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jsix_run_checks.py"
+  ✅ [G1] sast: error 以上の指摘なし（error 0 / warning 0 / note 0）
+  ✅ [G1] scope: 変更 4ファイルはすべて許可範囲内
+  ✅ [G2] tests: 全 37件 通過
+  ✅ [G2] holdout: 全 10件 通過
+  ✅ [G2] coverage: 99.0% ≥ 閾値 95.0%
+  ✅ [G2] test_tamper: 基準点 jsix/red-TASK-012 以降にテストの弱体化なし
+  ✅ [G2] traceability: 全10件トレース済
+  ❌ [G3] judge: G3 未実施。`scope-judge` サブエージェントに diff・タスク定義・
+          該当 Spec を渡して判定させ、結果を reports/evidence/judge.json に
+          書き出してください
+```
+
+G3 は command 型 Hook から LLM を呼べないため2段構成になっている。scope-judge を
+起動して判定を書き出し、ゲートを再実行する。
+
+```bash
+$ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jsix_run_checks.py"
+  ✅ [G3] judge: PASS（正確性・要件・スコープに問題なし）
+  ✅ [G4] evidence: 証跡パッケージを生成しました → reports/evidence/TASK-012/
+```
+
+**テストを弱めて通そうとした場合**（assert 削除・skip 追加・hold-out 参照）は
+G2 が即座にブロックし、人間に通知される。これは自動修正の対象にしない。
 
 ---
 

@@ -2,6 +2,7 @@
 
 状態遷移と承認順序・権限ルールを集約する。永続化やHTTPには依存しない純粋ロジック。
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -143,14 +144,18 @@ class WorkflowService:
     # --- 内部ヘルパ ---------------------------------------------------------
     def _ensure_active(self, req: ApprovalRequest) -> None:
         if req.status.is_terminal:
-            raise WorkflowError(f"終了済みの申請は操作できません（状態: {req.status.value}）")
+            raise WorkflowError(
+                f"終了済みの申請は操作できません（状態: {req.status.value}）"
+            )
 
     def _ensure_pending(self, req: ApprovalRequest) -> None:
         self._ensure_active(req)
         if req.status != Status.PENDING:
             raise WorkflowError("承認待ちの申請のみ操作できます")
 
-    def _log(self, req: ApprovalRequest, action: Action, actor: str, note: str = "") -> None:
+    def _log(
+        self, req: ApprovalRequest, action: Action, actor: str, note: str = ""
+    ) -> None:
         req.audit_log.append(
             AuditEntry(action=action, actor=actor, at=self._clock(), note=note)
         )

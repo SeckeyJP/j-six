@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0",
+  "thresholds": {"high": 80, "low": 60},
+  "files": {
+    "app/workflow.py": {
+      "language": "python",
+      "source": "...",
+      "mutants": [
+        {"id": "1", "mutatorName": "ConditionalExpression", "status": "Killed", "location": {"start": {"line": 10}}},
+        {"id": "2", "mutatorName": "ArithmeticOperator", "status": "Killed", "location": {"start": {"line": 12}}},
+        {"id": "3", "mutatorName": "EqualityOperator", "status": "Survived", "replacement": "!=", "location": {"start": {"line": 20}}},
+        {"id": "4", "mutatorName": "BooleanLiteral", "status": "Timeout", "location": {"start": {"line": 25}}},
+        {"id": "5", "mutatorName": "StringLiteral", "status": "CompileError", "location": {"start": {"line": 30}}}
+      ]
+    },
+    "app/main.py": {
+      "language": "python",
+      "mutants": [
+        {"id": "6", "mutatorName": "ConditionalExpression", "status": "NoCoverage", "location": {"start": {"line": 5}}}
+      ]
+    }
+  }
+}

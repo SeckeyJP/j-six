@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="pytest" tests="3">
+    <testcase classname="tests.test_workflow" name="test_ok"/>
+    <testcase classname="tests.test_workflow" name="test_broken">
+      <failure message="assert 1 == 2">AssertionError</failure>
+    </testcase>
+    <testcase classname="tests.test_api" name="test_errored">
+      <error message="boom">RuntimeError</error>
+    </testcase>
+  </testsuite>
+</testsuites>

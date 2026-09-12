@@ -3,6 +3,7 @@
 ドメインロジック（workflow.py）の薄いラッパー。WorkflowError を 409 に変換する。
 逆生成設計書（Phase 6）はこの層と workflow.py から IF 設計書を生成する。
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -61,7 +62,10 @@ class RequestView(BaseModel):
             next_approver=req.next_approver,
             audit_log=[
                 AuditEntryView(
-                    action=e.action.value, actor=e.actor, at=e.at.isoformat(), note=e.note
+                    action=e.action.value,
+                    actor=e.actor,
+                    at=e.at.isoformat(),
+                    note=e.note,
                 )
                 for e in req.audit_log
             ],
@@ -112,12 +116,16 @@ def approve(request_id: str, body: ActorBody) -> RequestView:
 
 @app.post("/requests/{request_id}/reject", response_model=RequestView)
 def reject(request_id: str, body: ActorBody) -> RequestView:
-    return RequestView.of(_guard(lambda: service.reject(request_id, body.actor, body.note)))
+    return RequestView.of(
+        _guard(lambda: service.reject(request_id, body.actor, body.note))
+    )
 
 
 @app.post("/requests/{request_id}/remand", response_model=RequestView)
 def remand(request_id: str, body: ActorBody) -> RequestView:
-    return RequestView.of(_guard(lambda: service.remand(request_id, body.actor, body.note)))
+    return RequestView.of(
+        _guard(lambda: service.remand(request_id, body.actor, body.note))
+    )
 
 
 @app.post("/requests/{request_id}/withdraw", response_model=RequestView)
