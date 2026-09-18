@@ -49,6 +49,9 @@
 | 画面 | Jinja2（サーバサイドレンダリング） | 画面設計書の逆生成元がテンプレートとして残る |
 | 帳票 | 印刷用 HTML ＋ CSV | ADR-0003 |
 | 永続化 | なし（インメモリ） | サンプルのため。Repository を切り出して差し替え可能 |
+
+**インメモリ実装の `reset()`**: `BillingService.reset(clock)` はストアを初期化する公開メソッド。
+サンプルの再実行とテストのために置く。永続化実装に差し替えた場合は未サポートとしてよい。
 | 金額計算 | `int`（円単位） | 浮動小数点の誤差を持ち込まない。ADR-0002 |
 
 ---
@@ -92,7 +95,14 @@
 | GET | `/invoices/{invoice_no}/preview` | 請求書プレビュー画面 | SCR-003 |
 | GET | `/invoices/{invoice_no}/report` | 請求書（印刷用 HTML） | RPT-001 |
 | GET | `/invoices.csv` | 請求一覧表（CSV） | RPT-002 |
+| GET | `/invoices.json` | 請求一覧（JSON） | SCR-001 のデータ源 |
+| GET | `/invoices/{invoice_no}.json` | 請求明細（JSON） | SCR-002 のデータ源 |
 | POST | `/invoices/{invoice_no}/confirm` | 請求の確定 | UC-006 |
+
+**JSON エンドポイントを設けた理由**: 画面（SCR）は HTML を返すため、表示内容を機械的に
+検証しようとすると HTML の文言に依存した脆いテストになる。画面が描画するデータそのものを
+JSON でも公開し、**受入テストは JSON を、画面は HTML を**見る構成にする。両者が同じ
+データ源を使うため、片方だけがずれることがない。
 
 ### 3.2 共通仕様
 
