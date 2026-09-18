@@ -1,33 +1,102 @@
 {
   "gates": {
     "g1": {
-      "build":  { "cmd": "make build" },
-      "lint":   { "cmd": "make lint", "hook_cmd": ".venv/bin/python -m ruff check --fix {file}" },
-      "format": { "cmd": "make format", "hook_cmd": ".venv/bin/python -m ruff format {file}" },
-      "sast":   { "cmd": "make sast", "sarif": "reports/sast.sarif", "max_severity": "error" },
-      "secrets": { "sarif": "reports/secrets.sarif", "max_severity": "warning", "optional": true },
-      "deps":    { "sarif": "reports/deps.sarif", "max_severity": "error", "optional": true },
-      "scope":  {
-        "allow": ["app/**", "tests/**", "docs/**", "reports/**", "coverage.xml",
-                  "Makefile", "requirements*.txt", ".jsix-checks.json",
-                  "README.md", "CLAUDE.md", "pyproject.toml", "scripts/**"],
-        "deny":  ["tests/acceptance/**"]
+      "build": {
+        "cmd": "make build"
+      },
+      "lint": {
+        "cmd": "make lint",
+        "hook_cmd": ".venv/bin/python -m ruff check --fix --exclude tests/acceptance {file}"
+      },
+      "format": {
+        "cmd": "make format",
+        "hook_cmd": ".venv/bin/python -m ruff format --exclude tests/acceptance {file}"
+      },
+      "sast": {
+        "cmd": "make sast",
+        "sarif": "reports/sast.sarif",
+        "max_severity": "error"
+      },
+      "secrets": {
+        "sarif": "reports/secrets.sarif",
+        "max_severity": "warning",
+        "optional": true
+      },
+      "deps": {
+        "sarif": "reports/deps.sarif",
+        "max_severity": "error",
+        "optional": true
+      },
+      "scope": {
+        "allow": [
+          "app/**",
+          "tests/**",
+          "docs/**",
+          "reports/**",
+          "coverage.xml",
+          "Makefile",
+          "requirements*.txt",
+          ".jsix-checks.json",
+          "README.md",
+          "CLAUDE.md",
+          "pyproject.toml",
+          "scripts/**"
+        ],
+        "deny": [
+          "tests/acceptance/**"
+        ]
       }
     },
     "g2": {
-      "tests":        { "cmd": "make test", "junit": "reports/junit.xml", "max_skipped": 0 },
-      "holdout":      { "cmd": "make test-acceptance", "junit": "reports/junit-acceptance.xml", "max_skipped": 0 },
-      "coverage":     { "file": "coverage.xml", "min": 95 },
-      "mutation":     { "cmd": "make mutation", "report": "reports/mutation.json", "min_score": 90 },
-      "test_tamper":  { "paths": ["tests/**"], "holdout_dir": "tests/acceptance", "source_paths": ["app/**"] },
+      "tests": {
+        "cmd": "make test",
+        "junit": "reports/junit.xml",
+        "max_skipped": 0
+      },
+      "holdout": {
+        "cmd": "make test-acceptance",
+        "junit": "reports/junit-acceptance.xml",
+        "max_skipped": 0
+      },
+      "coverage": {
+        "file": "coverage.xml",
+        "min": 95
+      },
+      "mutation": {
+        "cmd": "make mutation",
+        "report": "reports/mutation.json",
+        "min_score": 90
+      },
+      "test_tamper": {
+        "paths": [
+          "tests/**"
+        ],
+        "holdout_dir": "tests/acceptance",
+        "source_paths": [
+          "app/**"
+        ]
+      },
       "traceability": {
         "requirements": "docs/requirement-spec.md",
         "tests": "tests",
-        "ids": ["REQ-\\d+", "PROP-\\d+"],
+        "ids": [
+          "REQ-\\d+",
+          "PROP-\\d+"
+        ],
         "junit": "reports/junit.xml"
       }
     },
-    "g3": { "agent": "scope-judge", "verdict": "reports/evidence/judge.json", "max_auto_fix": 1 },
-    "g4": { "out": "reports/evidence/", "formats": ["md", "json"] }
+    "g3": {
+      "agent": "scope-judge",
+      "verdict": "reports/evidence/judge.json",
+      "max_auto_fix": 1
+    },
+    "g4": {
+      "out": "reports/evidence/",
+      "formats": [
+        "md",
+        "json"
+      ]
+    }
   }
 }

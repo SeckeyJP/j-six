@@ -4,7 +4,7 @@
 PY := .venv/bin/python
 REPORTS := reports
 
-.PHONY: setup build lint format sast test test-acceptance coverage mutation gate gate-ci clean
+.PHONY: setup build lint format format-fix sast test test-acceptance coverage mutation gate gate-ci clean
 
 setup:
 	python3 -m venv .venv
@@ -20,8 +20,16 @@ build:
 lint:
 	$(PY) -m ruff check app tests
 
+# 検査は hold-out も含めて行う（整形が崩れていないことは確認する）
 format:
 	$(PY) -m ruff format --check app tests
+
+# **書き換えは hold-out を除外する**。hold-out 受入テストは Hold-out Phase で確定した
+# 監督面であり、以降の工程が触ってはいけない（G1 スコープ検査が deny している）。
+# formatter が届くと「整形だけ」でもスコープ検査に引っかかり、運用上の摩擦になる。
+format-fix:
+	$(PY) -m ruff format app tests --exclude tests/acceptance
+	$(PY) -m ruff check --fix app tests --exclude tests/acceptance
 
 # bandit は指摘があると終了コード 1 を返すが、判定は SARIF を読む plugin 側で行う。
 # ここでは SARIF が生成されたことだけを確認する。

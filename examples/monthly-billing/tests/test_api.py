@@ -143,3 +143,35 @@ class TestJsonData:
 
     def test_detail_json_unknown_is_404(self, closed):
         assert closed.get("/invoices/NOPE.json").status_code == 404
+
+
+class TestConfirmActor:
+    """UC-006 / REQ-010: 操作者がどの形式でも監査ログに記録される。
+
+    G3 judge が「JSON ボディの actor が無視され既定値が記録される」ことを指摘した。
+    hold-out は既定値と同じ値を送っていたため偶然通っていた。
+    """
+
+    def test_actor_from_form(self, closed):
+        closed.post(f"/invoices/{_no(closed)}/confirm", data={"actor": "keiri-form"})
+        assert service.audit_log[-1].actor == "keiri-form"
+
+    def test_actor_from_json(self, closed):
+        closed.post(f"/invoices/{_no(closed)}/confirm", json={"actor": "keiri-json"})
+        assert service.audit_log[-1].actor == "keiri-json"
+
+    def test_actor_defaults_without_body(self, closed):
+        closed.post(f"/invoices/{_no(closed)}/confirm")
+        assert service.audit_log[-1].actor == "keiri01"
+
+    def test_actor_defaults_on_broken_json(self, closed):
+        closed.post(
+            f"/invoices/{_no(closed)}/confirm",
+            content=b"{not json",
+            headers={"content-type": "application/json"},
+        )
+        assert service.audit_log[-1].actor == "keiri01"
+
+    def test_actor_defaults_on_empty_value(self, closed):
+        closed.post(f"/invoices/{_no(closed)}/confirm", json={"actor": ""})
+        assert service.audit_log[-1].actor == "keiri01"

@@ -6,11 +6,11 @@
       },
       "lint": {
         "cmd": "make lint",
-        "hook_cmd": ".venv/bin/python -m ruff check --fix {file}"
+        "hook_cmd": ".venv/bin/python -m ruff check --fix --exclude tests/acceptance {file}"
       },
       "format": {
         "cmd": "make format",
-        "hook_cmd": ".venv/bin/python -m ruff format {file}"
+        "hook_cmd": ".venv/bin/python -m ruff format --exclude tests/acceptance {file}"
       },
       "sast": {
         "cmd": "make sast",

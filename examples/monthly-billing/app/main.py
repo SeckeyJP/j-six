@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -106,12 +106,36 @@ def report_invoice_list_csv(year_month: Optional[str] = None):
 
 
 # --- 操作 ------------------------------------------------------------------
+#: 操作者が指定されなかった場合の既定値
+DEFAULT_ACTOR = "keiri01"
+
+
+async def _read_actor(request: Request) -> str:
+    """リクエストボディから操作者を読む。
+
+    画面（SCR-003）は form post、プログラムからの呼び出しは JSON を送る。
+    片方だけを受け付けると、もう片方は**黙って既定値になり**、監査ログ（REQ-010）に
+    誤った操作者が記録される。どちらの形式でも受け取る。
+    """
+    content_type = request.headers.get("content-type", "")
+    try:
+        if content_type.startswith("application/json"):
+            payload = await request.json()
+        else:
+            payload = await request.form()
+    except Exception:  # ボディ無し・壊れた JSON でも確定操作は続行する
+        return DEFAULT_ACTOR
+
+    actor = payload.get("actor") if hasattr(payload, "get") else None
+    return str(actor) if actor else DEFAULT_ACTOR
+
+
 @app.post("/invoices/{invoice_no}/confirm")
-def confirm_invoice(invoice_no: str, actor: str = Form("keiri01")):
+async def confirm_invoice(invoice_no: str, request: Request):
     """UC-006 請求の確定。"""
     _get(invoice_no)
     try:
-        service.confirm(invoice_no, actor=actor)
+        service.confirm(invoice_no, actor=await _read_actor(request))
     except BillingError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return RedirectResponse(url=f"/invoices/{invoice_no}", status_code=303)
