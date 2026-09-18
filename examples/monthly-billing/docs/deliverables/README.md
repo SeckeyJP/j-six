@@ -2,7 +2,7 @@
 
 IPA「[機能要件の合意形成ガイド](https://www.ipa.go.jp/archive/files/000004517.pdf)」が想定する
 **工程成果物27点**を、本サンプルの実物から起こした記入済み実例。
-空のテンプレートは `templates/deliverables/` を参照（Step 4 で作成）。
+空のテンプレートは [`templates/deliverables/`](../../../../templates/deliverables/) を参照。
 
 ## この単位で作る理由
 

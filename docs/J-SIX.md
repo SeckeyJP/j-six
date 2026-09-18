@@ -595,7 +595,9 @@ plugin/
 SARIF / mutation-testing-elements JSON）の**パースと閾値判定のみ**を行う。
 これにより、特定言語のツール名を Plugin に持ち込まずに済む。
 
-テンプレート（CLAUDE.md / Spec / ADR）はリポジトリルートの `templates/` に配置し、Skills から参照する構成としている。
+テンプレート（CLAUDE.md / Spec / ADR / 工程成果物）はリポジトリルートの `templates/` に配置し、Skills から参照する構成としている。
+`templates/deliverables/` は IPA「機能要件の合意形成ガイド」が想定する工程成果物27点の
+テンプレートであり、うち17点は Phase 6 でコードまたは受入テストから逆生成する。
 
 ### 4.4 内側ループ（Hook）と外側ループ（CI）の二重化
 

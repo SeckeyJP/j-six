@@ -2,7 +2,7 @@
 
 ## — 全ドキュメントの主張に対する根拠の整理 —
 
-**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施）
+**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施） / 2026-09-19（工程成果物テンプレートの追加に伴い、IPA 合意形成ガイドと国税庁 Q&A を A44-A46 として追加）
 
 ---
 
@@ -107,6 +107,20 @@
 
 ---
 
+### 2.8 工程成果物・合意形成（工程成果物テンプレートで追加）
+
+| # | 主張 | 内容 | 出典 | URL | 使用箇所 |
+|---|---|---|---|---|---|
+| A44 | 外部設計工程には業界標準の工程成果物が存在せず、工程成果物と設計書は1対1ではない | 「外部設計工程には、現時点では業界として標準とされる『工程成果物』が存在しません。…設計書の作成単位や構成が、本ガイドで想定している『工程成果物』と一致しないことがあります」（概要編 2.1） | IPA「機能要件の合意形成ガイド ver.1.0」(2010.03.31) | https://www.ipa.go.jp/archive/files/000004517.pdf | `templates/deliverables/README.md`、`examples/monthly-billing/docs/deliverables/README.md` |
+| A45 | 合意成熟度の3段階（仕掛／充実／完成レベル） | 発注者が「言い切った」・開発者が「聞き切った」＝仕掛レベル、図表とレビューで合意内容が充実＝充実レベル、合意内容が管理され双方が確認できた＝完成レベル（3.1.1） | 同上 | 同上 | 同上 |
+| A46 | 適格請求書の消費税額は一の請求につき税率ごとに1回のみ端数処理する | 明細ごとに端数処理して合計する方法は認められない | 国税庁「インボイス制度に関するQ&A」問57 | https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/57.pdf | `examples/monthly-billing/`（REQ-005 / ADR-0001、帳票編集定義） |
+
+> **工程成果物27点の一覧について**: 領域区分（システム振舞い・画面・データモデル・外部インタフェース・
+> バッチ・帳票）と各成果物の名称は A44 のガイドを参照しているが、**テンプレートの様式は独自**である。
+> ガイドの帳票様式を引き写したものではない。
+
+---
+
 ## 3. カテゴリB：推定・著者見解（明示が必要な箇所）
 
 以下の数値・主張は、著者の分析・推定に基づくものであり、記事公開時にはその旨を明記する必要がある。
@@ -196,7 +210,15 @@
 [23] Fujitsu. "Software analysis and visualization service" (2025.02). https://info.archives.global.fujitsu/global/about/resources/news/press-releases/2025/0204-01.html
 [24] Pasqualepillitteri.it. "Superpowers Claude Code Complete Guide" (2026). https://www.pasqualepillitteri.it/en/news/215/superpowers-claude-code-complete-guide
 [25] Pasqualepillitteri.it. "Spec-Driven Development AI Framework Guide" (2026). https://www.pasqualepillitteri.it/en/news/158/framework-ai-spec-driven-development-guide-bmad-gsd-ralph-loop
+
+### 工程成果物・制度
+[32] IPA.「機能要件の合意形成ガイド ver.1.0」(2010.03.31). https://www.ipa.go.jp/archive/files/000004517.pdf
+[33] 国税庁.「インボイス制度に関するQ&A」問57. https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/57.pdf
 ```
+
+> **番号 [26]-[31] が本リストに無い理由**: この番号は `docs/J-SIX.md` の参考文献セクションで
+> v2.1 の出典（SpecBench / Spotify Honk / Kiro / InfoQ / DORA）にすでに使用されている。
+> 本リストは J-SIX.md の番号体系に追随するため、続きの [32] から採番している。
 
 ### 5.2 本文中の修正が必要な箇所
 

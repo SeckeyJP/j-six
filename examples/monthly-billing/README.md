@@ -142,4 +142,4 @@ make gate                     # 品質ゲート G1→G4
 27点中17点が実物から起こせる。**人手更新が必要なのは「なぜ作るか」「どう運用するか」を
 記す7点に限られる**（残り3点はコードと Spec の併用）。
 
-空のテンプレートは `templates/deliverables/` を参照。
+空のテンプレートは [`templates/deliverables/`](../../templates/deliverables/) を参照。
