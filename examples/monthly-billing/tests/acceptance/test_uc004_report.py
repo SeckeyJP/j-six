@@ -25,11 +25,11 @@ def test_uc004_report_has_qualified_invoice_items(imported, client):
     assert res.is_success, res.text
     body = res.text
 
-    assert "T" in body and "登録番号" in body          # (1) 適格請求書発行事業者の登録番号
-    assert "2026-08-31" in body                        # (2) 取引年月日（締め日）
-    assert "事務用品" in body                          # (3) 取引内容
-    assert "10%" in body and "8%" in body              # (4) 税率ごとの区分
-    assert "株式会社アルファ" in body                  # (5) 交付先の名称
+    assert "T" in body and "登録番号" in body  # (1) 適格請求書発行事業者の登録番号
+    assert "2026-08-31" in body  # (2) 取引年月日（締め日）
+    assert "事務用品" in body  # (3) 取引内容
+    assert "10%" in body and "8%" in body  # (4) 税率ごとの区分
+    assert "株式会社アルファ" in body  # (5) 交付先の名称
 
 
 def test_uc004_report_marks_reduced_tax_items(imported, client):

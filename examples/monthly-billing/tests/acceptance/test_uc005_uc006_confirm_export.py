@@ -17,7 +17,9 @@ def test_uc006_confirm_marks_invoice_as_confirmed(imported, client):
     """UC-006 / REQ-007: 請求を確定できる。"""
     invoice = _closed(imported, client)
 
-    res = client.post(f"/invoices/{invoice['invoice_no']}/confirm", json={"actor": "keiri01"})
+    res = client.post(
+        f"/invoices/{invoice['invoice_no']}/confirm", json={"actor": "keiri01"}
+    )
     assert res.is_success, res.text
 
     assert invoice_of(client, "C001")["status"] == "CONFIRMED"
@@ -44,7 +46,9 @@ def test_uc006_confirming_twice_is_rejected(imported, client):
     invoice = _closed(imported, client)
     client.post(f"/invoices/{invoice['invoice_no']}/confirm", json={"actor": "keiri01"})
 
-    res = client.post(f"/invoices/{invoice['invoice_no']}/confirm", json={"actor": "keiri01"})
+    res = client.post(
+        f"/invoices/{invoice['invoice_no']}/confirm", json={"actor": "keiri01"}
+    )
     assert res.status_code == 409
 
 

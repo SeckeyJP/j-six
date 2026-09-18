@@ -1,0 +1,33 @@
+{% extends "_base.html" %}
+{% block title %}請求一覧{% endblock %}
+{% block body %}
+<h1>請求一覧</h1>
+<p>対象年月: {{ year_month or "（すべて）" }}　件数: {{ invoices|length }}</p>
+<p><a href="/invoices.csv?year_month={{ year_month or '' }}">請求一覧表（CSV）</a></p>
+<table>
+  <thead>
+    <tr>
+      <th>請求番号</th><th>取引先コード</th><th>取引先名</th>
+      <th>締め日</th><th>支払期日</th>
+      <th>税抜合計</th><th>消費税</th><th>請求金額</th><th>状態</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for inv in invoices %}
+    <tr>
+      <td><a href="/invoices/{{ inv.invoice_no }}">{{ inv.invoice_no }}</a></td>
+      <td>{{ inv.customer_code }}</td>
+      <td>{{ inv.customer_name }}</td>
+      <td>{{ inv.closing_date }}</td>
+      <td>{{ inv.due_date }}</td>
+      <td class="num">{{ "{:,}".format(inv.subtotal) }}</td>
+      <td class="num">{{ "{:,}".format(inv.tax_total) }}</td>
+      <td class="num">{{ "{:,}".format(inv.total) }}</td>
+      <td class="status-{{ inv.status }}">{{ inv.status }}</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="9">対象の請求がありません。</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

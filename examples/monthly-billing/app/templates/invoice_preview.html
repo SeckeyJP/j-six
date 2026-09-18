@@ -1,0 +1,27 @@
+{% extends "_base.html" %}
+{% block title %}請求書プレビュー {{ inv.invoice_no }}{% endblock %}
+{% block body %}
+<nav><a href="/invoices/{{ inv.invoice_no }}">← 請求明細</a>
+     <a href="/invoices/{{ inv.invoice_no }}/report">印刷用（RPT-001）→</a></nav>
+<h1>請求書プレビュー</h1>
+<p>{{ inv.customer_name }} 御中 ／ 請求番号 {{ inv.invoice_no }} ／
+   ご請求金額 <strong>{{ "{:,}".format(inv.total) }} 円</strong>（税込）</p>
+<table>
+  <thead><tr><th>区分</th><th>対価の額（税抜）</th><th>消費税額</th></tr></thead>
+  <tbody>
+  {% for s in inv.tax_summaries %}
+    <tr><td>{{ s.tax_rate }}%{% if s.is_reduced %}（軽減）{% endif %}</td>
+        <td class="num">{{ "{:,}".format(s.subtotal) }}</td>
+        <td class="num">{{ "{:,}".format(s.tax_amount) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if inv.status == "DRAFT" %}
+<form method="post" action="/invoices/{{ inv.invoice_no }}/confirm">
+  <input type="hidden" name="actor" value="keiri01">
+  <button type="submit">この請求を確定する</button>
+</form>
+{% else %}
+<p class="status-CONFIRMED">確定済み</p>
+{% endif %}
+{% endblock %}

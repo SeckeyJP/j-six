@@ -36,7 +36,10 @@ def billing():
         "C001", "株式会社アルファ", closing_day=31, payment_terms="NEXT_MONTH_END"
     )
     service.register_customer(
-        "C002", "ベータ商事株式会社", closing_day=31, payment_terms="MONTH_AFTER_NEXT_END"
+        "C002",
+        "ベータ商事株式会社",
+        closing_day=31,
+        payment_terms="MONTH_AFTER_NEXT_END",
     )
     service.register_customer(
         "C003", "ガンマ工業株式会社", closing_day=31, payment_terms="NEXT_MONTH_END"
