@@ -520,3 +520,19 @@ class TestGateHistory:
         })
         runner.main(["--dir", str(project)])
         assert (project / "logs" / "gates.jsonl").is_file()
+
+
+def test_history_keeps_failure_detail(tmp_path):
+    """失敗したコマンドの出力（末尾）を履歴に残す。
+
+    要約（「コマンドが失敗しました」）だけでは、断続的な失敗の原因を後から調べられなかった
+    （Hypothesis の DeadlineExceeded による不安定なテストの調査で発覚）。
+    """
+    results = {"g2": {"status": "failed", "checks": {"tests": {
+        "ok": False, "skipped": False, "summary": "tests: コマンドが失敗しました（exit 2）: make test",
+        "findings": [{"text": "x" * 5000 + "DeadlineExceeded: Test took 250ms"}]}}}}
+    runner._record_history(tmp_path, {}, results, False, "ci")
+    rec = json.loads((tmp_path / "reports" / "gate-history.jsonl").read_text(encoding="utf-8"))
+    detail = rec["details"]["g2.tests"]
+    assert detail.endswith("DeadlineExceeded: Test took 250ms")
+    assert len(detail) <= 1000

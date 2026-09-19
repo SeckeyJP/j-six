@@ -398,6 +398,19 @@ def _failed_checks(results: dict) -> list:
     return out
 
 
+def _failure_details(results: dict, limit: int = 1000) -> dict:
+    """失敗したチェックの出力（findings の text）の末尾。断続的な失敗を後から調べるため。"""
+    out = {}
+    for gate, res in results.items():
+        for name, chk in (res.get("checks") or {}).items():
+            if chk.get("ok", True) or chk.get("skipped"):
+                continue
+            texts = [f.get("text") for f in (chk.get("findings") or []) if isinstance(f, dict) and f.get("text")]
+            if texts:
+                out[f"{gate}.{name}"] = "\n".join(texts)[-limit:]
+    return out
+
+
 def _record_history(base: Path, cfg: dict, results: dict, ok: bool, mode: str) -> None:
     """ゲートの失敗を履歴に追記する。成功は、直前の記録が失敗だった場合（回復）だけ残す。
 
@@ -421,6 +434,7 @@ def _record_history(base: Path, cfg: dict, results: dict, ok: bool, mode: str) -
         "summaries": {k: v["summary"] for g in results.values()
                       for k, v in (g.get("checks") or {}).items()
                       if not v.get("ok", True) and not v.get("skipped")},
+        "details": _failure_details(results),
     }
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
