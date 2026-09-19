@@ -222,3 +222,53 @@ def test_summary_explains_missing_g4_row(generated):
     """G4 は本パッケージ自身なので一覧に出ない。読み手が混乱しないよう明記する。"""
     text = (generated / "00_summary.md").read_text(encoding="utf-8")
     assert "G4（証跡パッケージ生成）は本パッケージそのもの" in text
+
+
+class TestRegeneration:
+    """ゲートは Stop のたびに走るので、証跡も繰り返し生成される。"""
+
+    def _gen(self, tmp_path, results=RESULTS):
+        return pack.generate(results, True, tmp_path, tmp_path / "reports" / "evidence",
+                             task_id="TASK-001", config_path=tmp_path / ".jsix-checks.json")
+
+    def _fill_approval(self, target):
+        path = target / "07_approval.md"
+        path.write_text(path.read_text(encoding="utf-8").replace(
+            "| レビュアー | | | ☐ |", "| レビュアー | 山田 | 2026-09-20 | ☑ |"), encoding="utf-8")
+
+    def test_unchanged_results_do_not_rewrite(self, generated):
+        """生成時刻以外が同じなら書き直さない（時刻を引用する設計書が収束しなくなるため）。"""
+        before = {p.name: p.read_text(encoding="utf-8") for p in generated.iterdir()}
+        again = self._gen(generated.parent.parent.parent)
+        after = {p.name: p.read_text(encoding="utf-8") for p in again.iterdir()}
+        assert after == before
+
+    def test_changed_results_are_rewritten(self, generated):
+        import copy
+
+        results = copy.deepcopy(RESULTS)
+        results["g2"]["checks"]["tests"]["summary"] = "tests: 全 38件 通過"
+        target = self._gen(generated.parent.parent.parent, results)
+        assert "38件" in (target / "02_test_results.md").read_text(encoding="utf-8")
+
+    def test_filled_approval_is_never_overwritten(self, generated):
+        """人間が記入した承認欄を、ゲートの再実行で空のテンプレートに戻さない。"""
+        import copy
+
+        self._fill_approval(generated)
+        results = copy.deepcopy(RESULTS)
+        results["g2"]["checks"]["tests"]["summary"] = "tests: 全 38件 通過"
+        target = self._gen(generated.parent.parent.parent, results)
+        assert "山田" in (target / "07_approval.md").read_text(encoding="utf-8")
+
+    def test_approval_for_old_commit_is_archived(self, generated, monkeypatch):
+        """コードが変わったら承認は失効する。記録は消さず別名で残し、再承認を求める。"""
+        self._fill_approval(generated)
+        monkeypatch.setattr(pack.git, "head_sha", lambda base=None: "b" * 40)
+        target = self._gen(generated.parent.parent.parent)
+        current = (target / "07_approval.md").read_text(encoding="utf-8")
+        assert "山田" not in current
+        assert "再承認" in current
+        archived = list(target.glob("07_approval.*.md"))
+        assert len(archived) == 1
+        assert "山田" in archived[0].read_text(encoding="utf-8")
