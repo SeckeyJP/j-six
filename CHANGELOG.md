@@ -21,6 +21,12 @@ All notable changes to this project will be documented in this file.
 - examples/monthly-billing/docs/deliverables/: 工程成果物27点の**記入済み実例**。品質ゲート（mutation testing / G3 judge / hold-out）が検出した事項を設計書側にも根拠として記載している
 - docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [32] IPA ガイド・[33] 国税庁 Q&A を追加（[26]-[31] は J-SIX.md 側で使用済みのため）
 
+**Plugin 実動検証 #1 の改善（ROADMAP C8〜C10）**
+
+- plugin/scripts/jsix_run_checks.py: ゲート失敗の履歴を `reports/gate-history.jsonl` に残す（C9。失敗はすべて、成功は回復時だけ）。quality-metrics Skill の「ゲート失敗理由の分布」の入力にし、Phase 0 の月次ループへ還元できるようにした
+- plugin/scripts/jsix_run_checks.py: `g3.fingerprint_paths` で G3 の判定を紐づける差分の対象パスを指定可能にした（C8。既定はプロジェクト全体）
+- plugin/skills/tdd-cycle, plugin/agents/scope-judge.md: タスク定義を `docs/tasks/<タスクID>.md` に保存して Hold-out より前にコミットし、scope-judge はそれを判定基準にする（C10）。無ければ推測せず REJECT
+
 **Plugin 実動検証 #1（ROADMAP C2）**
 
 - docs/plugin-field-test-01.md: Plugin の Skill 7本を `claude -p --plugin-dir` でヘッドレス実行した記録（合計 406 ターン・$37.22・64.5分）。Plugin の不具合8件の発見と修正、未解決の課題（ROADMAP C7〜C11・C13・C14）、所見
@@ -110,6 +116,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- plugin/scripts/jsix_evidence_pack.py: **証跡の再生成で人間の承認欄（07_approval.md）を空のテンプレートで上書きしていた**。ゲートは Stop のたびに走るため、承認を記入した後にゲートが走ると承認記録が消えた。記入済みの承認欄は上書きせず、対象 commit が変わった場合は `07_approval.<sha>.md` に記録を残して再承認を求める。あわせて、生成時刻以外が前回と同じなら証跡を書き直さない（ROADMAP C7。証跡の時刻を引用する設計書が収束しなかった）
+- plugin/scripts: RED タグを自プロジェクトのディレクトリを変更したコミットのものから探す（ROADMAP C14）。1つのリポジトリに複数プロジェクトがあると、別プロジェクトのタスクのタグを比較元に拾っていた
+- plugin/scripts: 証跡の 03 に生存ミュータントと未到達行を出す（ROADMAP C11）。mutation の最小契約 JSON で任意項目 `survivors` を受け付け、カバレッジはファイル別に未到達の行番号を保持する
 - plugin/scripts/jsix_format_hook.py, plugin/hooks/hooks.json: format / lint Hook が (1) 拡張子を見ずに `ruff format` を実行し、`reports/evidence/judge.json` を Python として整形して（末尾カンマ）**JSON を壊していた**、(2) 編集の**前**（PreToolUse）に既存ファイルを整形していたため、直後の Write / Edit が「読んだ後に変更された」で失敗していた。quality-metrics のヘッドレス実行で発覚。Hook を PostToolUse に移し、対象ファイルを `.jsix-checks.json` の `hook_files`（glob）で宣言させる形にした（宣言が無ければ実行しない。`hook_cmd` 自体が未リリースの v2.1 機能のため互換性の影響なし）。両サンプルの設定に `"hook_files": ["*.py"]` を追加。テスト5件を追加
 - plugin/scripts/jsix_run_checks.py: **品質ゲートがフェーズごとのコミットで空振りしていた**。変更ファイルを未コミットの差分だけで数えていたため、tdd-cycle の手順どおりコミットすると Stop の時点で差分が空になり、G1 スコープ検査は「0 ファイル」で何も検査せず、G3 は「変更なし」でスキップされていた（CI のスコープ検査も同様に 0 ファイルだった）。また `judge.json` がどの差分への判定かを照合しないため、前のタスクの PASS が残っていても通った。tdd-cycle のヘッドレス実行で、子セッション自身が報告して発覚。G3 と変更有無の判定は既定ブランチとの分岐点（または `scope.base`）からの差分で行い、スコープ検査は RED タグ以降の差分で行う（hold-out はタスク前半で正当にコミットされるため、deny は実装フェーズの規則として扱う）。G3 の判定は差分の指紋（`target`）に紐づけ、一致しない判定は「古い」として無効にする（判定ファイルと証跡の出力先は指紋から除外）。scope-judge エージェントに `target` の記録手順を追加。テスト5件を追加
 - plugin/scripts/jsix_run_checks.py: Stop hook として呼ばれたとき（`--stop-hook`）、**失敗内容が変わらないブロックが3回続いたら停止を許可する**ようにした。Spec に REQ を追加した直後など、その工程では満たせない失敗で Stop のたびにブロックし続け、セッションが終わらなかった（spec-create のヘッドレス実行で15回。Claude Code 自身の8回上限も効かなかった）。判定は緩めずゲートは未達のまま残り、CI では止まる。上限は `stop_hook.max_identical_blocks` で変更可。状態はセッションごとに一時領域へ置きプロジェクトを汚さない。テスト8件を追加

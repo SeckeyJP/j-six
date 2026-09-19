@@ -59,12 +59,12 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 | C4 | **4層品質ゲート（G1-G4）の実装**。標準フォーマット（JUnit XML / Cobertura・LCOV / SARIF / mutation-testing-elements JSON）のパースと閾値判定に限定し、言語依存のツール呼び出しを持ち込まない | `plugin/scripts/` ×13, `plugin/agents/` ×7, `plugin/skills/` ×7 | 大 | ✅ 2026-09-10（単体テスト 155 件） |
 | C5 | **証跡パッケージ**（顧客納品対応）。証跡 / 参考所見 / 承認の3区分で出力 | `jsix_evidence_pack.py` + `evidence-pack` Skill | 中 | ✅ 2026-09-10 |
 | C6 | **CI 例（外側ループ）**。Hook が解除されても止まる二重化 | `.github/workflows/jsix-gate.yml` | 小 | ✅ 2026-09-11（実際に実行して緑を確認） |
-| C7 | 証跡パッケージをゲート実行のたびに新しい時刻で再生成しない（内容が同じなら保持）。証跡の時刻を引用する設計書が収束しない | `jsix_evidence_pack.py` | 小 | ☐（実動検証 #1 で発見） |
-| C8 | ドキュメントだけの変更で G3 を再判定させない選択肢（指紋の対象パスを設定可能に） | `jsix_run_checks.py` | 小 | ☐（同上） |
-| C9 | ゲート失敗の履歴を残し、Phase 0 の月次ループ（失敗理由の還元）の入力にする | `jsix_run_checks.py`, `quality-metrics` | 中 | ☐（同上） |
-| C10 | tdd-cycle がタスク定義（受入条件・許可範囲）をファイルに保存し、scope-judge が参照する | `tdd-cycle`, `scope-judge` | 小 | ☐（同上） |
-| C11 | `03_coverage_mutation.md` に生存ミュータントの内訳と未到達行を出す | `jsix_evidence_pack.py` | 小 | ☐（同上） |
-| C14 | RED タグの解決をプロジェクト単位にする。タグはリポジトリ共有のため、モノレポでは別プロジェクトのタスクの `jsix/red-*` を比較元に拾う（`JSIX_TASK_ID` 未指定時） | `jsix_test_tamper_check.py`, `jsix_run_checks.py` | 小 | ☐（同上） |
+| C7 | 証跡パッケージをゲート実行のたびに新しい時刻で再生成しない（内容が同じなら保持）。証跡の時刻を引用する設計書が収束しない | `jsix_evidence_pack.py` | 小 | ✅ 2026-09-19（あわせて、再生成で人間の承認欄 07 を上書きしていた不具合を修正） |
+| C8 | ドキュメントだけの変更で G3 を再判定させない選択肢（指紋の対象パスを設定可能に） | `jsix_run_checks.py` | 小 | ✅ 2026-09-19（`g3.fingerprint_paths`。既定はプロジェクト全体） |
+| C9 | ゲート失敗の履歴を残し、Phase 0 の月次ループ（失敗理由の還元）の入力にする | `jsix_run_checks.py`, `quality-metrics` | 中 | ✅ 2026-09-19（`reports/gate-history.jsonl`） |
+| C10 | tdd-cycle がタスク定義（受入条件・許可範囲）をファイルに保存し、scope-judge が参照する | `tdd-cycle`, `scope-judge` | 小 | ✅ 2026-09-19（`docs/tasks/<タスクID>.md`。無ければ G3 は REJECT） |
+| C11 | `03_coverage_mutation.md` に生存ミュータントの内訳と未到達行を出す | `jsix_evidence_pack.py` | 小 | ✅ 2026-09-19 |
+| C14 | RED タグの解決をプロジェクト単位にする。タグはリポジトリ共有のため、モノレポでは別プロジェクトのタスクの `jsix/red-*` を比較元に拾う（`JSIX_TASK_ID` 未指定時） | `jsix_test_tamper_check.py`, `jsix_run_checks.py` | 小 | ✅ 2026-09-19（自プロジェクトのディレクトリを変更したコミットのタグだけを使う） |
 | C13 | ヘッドレス実行を `claude plugin eval` の評価ケースにし、Plugin 変更時の受入試験にする | `plugin/evals/` | 中 | ☐（同上） |
 
 ---
@@ -84,7 +84,6 @@ A2,A3,B3,C3 は仕上げ
 A1'（人手のみ実装との工数 A/B 比較）← 唯一残る「工数削減」の実証手段
 A5 （第1章 1.3 の能力データ更新）  ← 次回の四半期鮮度レビューで実施
 B1'（Next.js / Spring Boot の記入済み実例）
-C7〜C11（実動検証 #1 で見つかった Plugin の改善）
 C13（Plugin の評価ケース化）
 中規模題材での mutation score 再現（ケーススタディ #2 の次アクション）
 ```
@@ -99,3 +98,4 @@ C13（Plugin の評価ケース化）
 | 2026-09-10 | v2.1（レビュー前品質ゲートの再設計）を反映。A2/A3 の実績を反映、A4/A5・C4/C5/C6 を追加 |
 | 2026-09-10 | v2.1 完了。A4・C3・C4・C5・C6 を実績反映。残タスクは A1'（工数 A/B 比較）、A5（1.3 能力データ更新）、B1'（別スタック実例）、C2（Skill 実行ログ）|
 | 2026-09-19 | B4-B6・B6' を追加し完了（工程成果物テンプレート・組立定義・非機能要求グレード対応） |
+| 2026-09-19 | C2 完了（Plugin 実動検証 #1）。そこで見つかった C7〜C11・C14 を完了。C13（評価ケース化）が残る |
