@@ -76,11 +76,11 @@ V字モデルは「実装コストが高く、変更が困難」な時代に最�
 
 | 指標 | 数値 | 出典 | データ時点 |
 |---|---|---|---|
-| 人間の介入頻度の変化 | 33%減少（6.2→4.1ターン/タスク） | Anthropic 社内調査 [3] | 2025 |
+| 人間の介入頻度の変化 | 33%減少（6.2→4.1ターン/タスク） | Anthropic 社内調査 [3] | 2025.12 |
 | AI生成PRのイシュー率 | 人間の約1.7倍（10.83 vs 6.45件/PR） | CodeRabbit 調査（470PR分析）[8] | 2025.12 |
 | セキュリティイシュー | 人間の最大2.74倍 | 同上 [8] | 2025.12 |
 | コード編集エラー率 | 9%→0%（Sonnet 4→4.5） | Replit 内部ベンチマーク [4] | 2025.09 |
-| CC の連続自律アクション数 | 約10→約20（6ヶ月で2倍） | Anthropic 社内調査 [3] | 2025 |
+| CC の連続自律アクション数 | 約10→約21（6ヶ月で116%増） | Anthropic 社内調査 [3] | 2025.12 |
 
 **含意**: CC は高速だが、人間より多くのイシューを含むコードを生成する傾向がある。適切なガードレール（TDD + Hooks + レビュー）があれば実用水準だが、「任せっきり」は危険。モデル世代の進化により自律実行能力は急速に向上している。
 
@@ -930,7 +930,7 @@ Phase 6 の `doc-reverse-gen` Skill が、証跡パッケージを従来フォ�
 
 - [1] Anthropic. "Best Practices for Claude Code". https://code.claude.com/docs/en/best-practices
 - [2] Anthropic. "How Anthropic teams use Claude Code" (2025.07). https://claude.com/blog/how-anthropic-teams-use-claude-code
-- [3] Anthropic. "How AI is Transforming Work at Anthropic" (2025). https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic
+- [3] Anthropic. "How AI is Transforming Work at Anthropic" (2025.12). https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic
 - [4] Anthropic. "Introducing Claude Sonnet 4.5" (2025.09). https://www.anthropic.com/news/claude-sonnet-4-5
 - [5] Anthropic. "Enabling Claude Code to work more autonomously". https://www.anthropic.com/news/enabling-claude-code-to-work-more-autonomously
 - [6] Anthropic. "Create custom subagents - Claude Code Docs". https://code.claude.com/docs/en/sub-agents
