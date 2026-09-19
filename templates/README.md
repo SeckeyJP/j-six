@@ -18,6 +18,7 @@ templates/
 │   └── template.md         # ADR 基本テンプレート
 └── deliverables/           # 工程成果物テンプレート（IPA 27点）
     ├── README.md           # 索引・由来の内訳・作る順序
+    ├── assembly/           # 顧客様式への束ね方（基本設計書／詳細設計書の組立例）
     ├── behavior/           # システム振舞い（4点）
     ├── screen/             # 画面（6点）
     ├── data/               # データモデル（4点）
@@ -36,7 +37,7 @@ templates/
 6. 設計書の納品が必要な場合は `deliverables/` から該当領域をコピーして使用（Phase 6）
 
 `deliverables/` の27点は**大半がコードから逆生成する**ため、Phase 1-2 で埋めるのは
-人手更新の7点のみ。詳細は [`deliverables/README.md`](deliverables/README.md) を参照。
+人手更新の5点のみ。詳細は [`deliverables/README.md`](deliverables/README.md) を参照。
 
 ## 記入済み実例（テンプレ → 実例 → 該当 Skill）
 

@@ -9,10 +9,12 @@ All notable changes to this project will be documented in this file.
 **工程成果物27点（IPA 機能要件の合意形成ガイド準拠）**
 
 - templates/deliverables/: 工程成果物27点の空テンプレート — システム振舞い4 / 画面6 / データモデル4 / 外部インタフェース4 / バッチ4 / 帳票5。各テンプレートは冒頭に**由来**（コードから逆生成 / 受入テストから逆生成 / コード＋Spec / 人手更新）と逆生成元を持ち、末尾に「記入ガイド（記入後は削除する）」として逆生成の手順・書き落としやすい点・記入済み実例へのリンクを備える
-- templates/deliverables/README.md: 27点の索引、由来の内訳（逆生成17点／人手7点／併用3点）、作る順序（人手で書く成果物が逆生成の前提になる）、27点すべてを作る必要はないこと、顧客様式への束ね方
+- templates/deliverables/README.md: 27点の索引、由来の内訳（逆生成19点／人手5点／併用3点）、作る順序（人手で書く成果物が逆生成の前提になる）、27点すべてを作る必要はないこと、顧客様式への束ね方
+- templates/deliverables/assembly/: 工程成果物を顧客様式の設計書に束ねる組立定義 — `GUIDE.md`（正は工程成果物で設計書はビュー / 由来・ID を束ねた後も保つ / 事前提出と納品の2時期 / 顧客目次への組み替え手順と対応しない章の3分類 / 組立後の検査）、`kihon-sekkei.md`（基本設計書に27点すべてを収める目次、章ごとの事前提出可否と代替物、項目レベルを詳細設計書に回す変種）、`shousai-sekkei.md`（IPA 27点の範囲外である内部設計を J-SIX の方針として定義。実装前には書かず Phase 3 のタスク一覧を代替とする）。いずれも monthly-billing での組立結果を併記
+- docs/J-SIX.md 4.3・6.5 から組立定義への参照を追加
 - examples/monthly-billing/: 第2サンプル「月次請求書発行」。画面・帳票・バッチ・外部IF を持ち、`approval-workflow`（API のみ）では作れない画面6・帳票5・バッチ4 の実例を提供する。Spec / ADR / hold-out 受入テスト / TDD 実装 / 品質ゲート G1〜G4 通過（テスト98件＋hold-out 19件、カバレッジ 98.8%、mutation score 92.32%）
 - examples/monthly-billing/docs/deliverables/: 工程成果物27点の**記入済み実例**。品質ゲート（mutation testing / G3 judge / hold-out）が検出した事項を設計書側にも根拠として記載している
-- docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [26] IPA ガイド・[27] 国税庁 Q&A を追加
+- docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [32] IPA ガイド・[33] 国税庁 Q&A を追加（[26]-[31] は J-SIX.md 側で使用済みのため）
 
 **v2.1: レビュー前品質ゲートの再設計**
 
@@ -89,6 +91,9 @@ All notable changes to this project will be documented in this file.
 - .gitignore: mutation testing の生成物（`.hypothesis/`, `mutants/`, `.venv-mut/`）を除外
 
 ### Fixed
+
+- templates/deliverables/README.md ほか: 由来の内訳が実ファイルと食い違っていた（「逆生成16＋受入テスト1／人手7」と記載していたが、各成果物の冒頭の由来を数えるとコード逆生成18・受入テスト逆生成1・併用3・人手5）。「27点中17点が実物から起こせる」は19点に訂正。monthly-billing README の領域別表も合計が行の和（19）と合っていなかった
+- CHANGELOG.md: IPA ガイド・国税庁 Q&A の参考文献番号を実際の [32][33] に訂正
 
 - plugin/scripts/jsix_run_checks.py: `--gates` オプションを追加。J-SIX.md 4.4 と CI の例は「G3 は CI では必須にしない」と規定していたが、それを実現する手段が無く、CI でゲートを実行すると必ず G3 未実施で止まっていた（設計意図と実装の食い違い）。除外したゲートは「未実行」として結果に残す
 - plugin/scripts/jsix_run_checks.py: G3 未実施の案内に実行環境の絶対パスが出ていたため、プロジェクト基準の相対パスに変更
