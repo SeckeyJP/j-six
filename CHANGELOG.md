@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file.
 - templates/deliverables/README.md: 27点の索引、由来の内訳（逆生成19点／人手5点／併用3点）、作る順序（人手で書く成果物が逆生成の前提になる）、27点すべてを作る必要はないこと、顧客様式への束ね方
 - templates/deliverables/assembly/: 工程成果物を顧客様式の設計書に束ねる組立定義 — `GUIDE.md`（正は工程成果物で設計書はビュー / 由来・ID を束ねた後も保つ / 事前提出と納品の2時期 / 顧客目次への組み替え手順と対応しない章の3分類 / 組立後の検査）、`kihon-sekkei.md`（基本設計書に27点すべてを収める目次、章ごとの事前提出可否と代替物、項目レベルを詳細設計書に回す変種）、`shousai-sekkei.md`（IPA 27点の範囲外である内部設計を J-SIX の方針として定義。実装前には書かず Phase 3 のタスク一覧を代替とする）。いずれも monthly-billing での組立結果を併記
 - docs/J-SIX.md 4.3・6.5 から組立定義への参照を追加
+- docs/J-SIX.md Phase 1「合意成熟度による判定」: IPA 合意形成ガイドの3レベル（仕掛／充実／完成）を Phase 1・2・6 の品質ゲートの到達基準にした。成熟度は合意対象ごとに判定し、Phase 2 では人手の成果物に完成レベル、逆生成する成果物には代替物による充実レベルを求める（逆生成版は Phase 6 に完成レベルになる）
+- templates/spec/requirement-spec.md 3.5: 非機能要件を IPA 非機能要求グレードの**6大項目**（可用性 / 性能・拡張性 / 運用・保守性 / 移行性 / セキュリティ / システム環境・エコロジー）で分類。モデルシステムの選択（3.5.1）、合意した重要項目だけを書く要求レベル表（3.5.2）、グレードの対象外である品質ゲート閾値の別表（3.5.3）を新設。承認欄に合意成熟度のチェックリスト
+- templates/spec/design-spec.md 7: 非機能設計の節を6大項目に揃えた（7.1 可用性〜7.5 システム環境・エコロジー）。承認欄に Phase 2 の合意成熟度チェックリスト
+- .github/workflows/jsix-gate.yml: ゲートジョブを matrix 化し、monthly-billing も CI の対象にした（fail-fast 無効、証跡アーティファクトと SARIF カテゴリをサンプルごとに分離）
+- docs/REFERENCES_AUDIT.md: A47 非機能要求グレードの体系（6大項目・238メトリクス・重要項目92）/ A48 3つのモデルシステム、参考文献 [34]。グレードの使用条件（PDF は改変不可、Excel は著作権表示付きで改変可）を踏まえ、テンプレートには大項目の区分だけを載せた旨を注記
 - examples/monthly-billing/: 第2サンプル「月次請求書発行」。画面・帳票・バッチ・外部IF を持ち、`approval-workflow`（API のみ）では作れない画面6・帳票5・バッチ4 の実例を提供する。Spec / ADR / hold-out 受入テスト / TDD 実装 / 品質ゲート G1〜G4 通過（テスト98件＋hold-out 19件、カバレッジ 98.8%、mutation score 92.32%）
 - examples/monthly-billing/docs/deliverables/: 工程成果物27点の**記入済み実例**。品質ゲート（mutation testing / G3 judge / hold-out）が検出した事項を設計書側にも根拠として記載している
 - docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [32] IPA ガイド・[33] 国税庁 Q&A を追加（[26]-[31] は J-SIX.md 側で使用済みのため）
@@ -55,6 +60,14 @@ All notable changes to this project will be documented in this file.
 - index.html: J-SIX の全体像を1枚に集約した自己完結型 HTML（外部依存なし。GitHub Pages のルートとしても機能）
 
 ### Changed
+
+**工程成果物・設計書**
+
+- plugin/skills/doc-reverse-gen: 種別を工程成果物の領域単位（`behavior` / `screen` / `data` / `external-if` / `batch` / `report` / `deliverables`）と `assemble <組立定義>` に再編。「基本設計書」を直接生成せず、工程成果物を逆生成してから組立定義に従って束ねる。由来ごとにしてよいことを分けた（人手由来の5点は生成せず存在確認のみ、③ は通っている受入テストだけを根拠にする）。v2.0 の種別 `basic` / `detail` / `if` / `db` は読み替えて受け付ける。Excel / Word の出力先を `docs/design-docs/export/` に変更（`docs/deliverables/` との混同を避ける）
+- plugin/agents/doc-generator.md: 工程成果物 → 組立 → 品質系納品物の順に生成。組立定義が無い場合は「顧客と目次を合意していない」ことを報告する
+- plugin/skills/spec-create, design-review: 非機能要求グレード（モデルシステム・6大項目）と合意成熟度のチェック項目を追加
+- templates/deliverables/README.md, examples/monthly-billing/docs/deliverables/README.md: 合意成熟度を成果物ごとの到達基準として書き直した（従来の「Phase 2 ゲート通過＝完成レベル」は組立ガイドの記述と矛盾していた）。記入済み実例は顧客確認を経ていないため完成レベルとは書かない
+- examples/monthly-billing/docs: 要求 Spec 3.5・Design Spec 7 を非機能要求グレード形式へ（モデルシステム: 社会的影響が限定されるシステム）。approval-workflow はケーススタディの計測対象のため据え置き（ROADMAP B6'）
 
 **v2.1: レビュー前品質ゲートの再設計**
 

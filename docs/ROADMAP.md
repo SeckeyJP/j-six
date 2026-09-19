@@ -42,6 +42,10 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 | B2 | Spec / ADR の記入済み実例（A1 題材と連動） | `examples/approval-workflow/docs/`（spec×2, adr×2, traceability） | 中 | ✅ 2026-06-14 |
 | B3 | templates/README に「テンプレ → 実例 → 該当 Skill」の導線表を追加 | `templates/README.md` | 小 | ✅ 2026-06-14 |
 | B1' | 別スタック（Next.js / Spring Boot）の記入済み CLAUDE.md 実例 | `examples/` | 中 | ☐（FastAPI 版を先行） |
+| B4 | **工程成果物テンプレート（IPA 27点）と記入済み実例**。画面・帳票・バッチを持つ第2サンプルを新設し、実例から逆算してテンプレートを作る | `templates/deliverables/`, `examples/monthly-billing/` | 大 | ✅ 2026-09-19 |
+| B5 | 顧客様式への組立定義（基本設計書・詳細設計書）、`doc-reverse-gen` の工程成果物単位への再編 | `templates/deliverables/assembly/`, `plugin/skills/doc-reverse-gen/` | 中 | ✅ 2026-09-19 |
+| B6 | Spec テンプレートの非機能要件を IPA 非機能要求グレードの6大項目へ、合意成熟度を Phase Gate の判定基準へ | `templates/spec/`, `docs/J-SIX.md` | 小 | ✅ 2026-09-19 |
+| B6' | approval-workflow の Spec を非機能要求グレード形式へ移行 | `examples/approval-workflow/docs/` | 小 | ☐（ケーススタディ #1/#2 の計測対象のため据え置き） |
 
 ## C. Plugin 実用拡張
 
@@ -74,6 +78,7 @@ A1'（人手のみ実装との工数 A/B 比較）← 唯一残る「工数削�
 A5 （第1章 1.3 の能力データ更新）  ← 次回の四半期鮮度レビューで実施
 B1'（Next.js / Spring Boot の記入済み実例）
 C2 （各 Skill の実行ログ取得）
+B6'（approval-workflow の Spec を非機能要求グレード形式へ）
 中規模題材での mutation score 再現（ケーススタディ #2 の次アクション）
 ```
 
@@ -86,3 +91,4 @@ C2 （各 Skill の実行ログ取得）
 | 2026-06-14 | 初版作成（v2.0 完了後の次フェーズ計画） |
 | 2026-09-10 | v2.1（レビュー前品質ゲートの再設計）を反映。A2/A3 の実績を反映、A4/A5・C4/C5/C6 を追加 |
 | 2026-09-10 | v2.1 完了。A4・C3・C4・C5・C6 を実績反映。残タスクは A1'（工数 A/B 比較）、A5（1.3 能力データ更新）、B1'（別スタック実例）、C2（Skill 実行ログ）|
+| 2026-09-19 | B4-B6 を追加（工程成果物テンプレート・組立定義・非機能要求グレード対応）。B6' を残タスクに追加 |

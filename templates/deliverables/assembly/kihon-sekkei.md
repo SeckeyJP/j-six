@@ -59,9 +59,9 @@ IPA の工程成果物27点は外部設計工程の成果物として定義さ�
 | 8.3 バッチ処理定義 | ㉑ [バッチ処理定義](../batch/03-batch-definition.md) | コードから逆生成 | × |
 | 8.4 バッチ共通ルール | ㉒ [バッチ処理共通ルール](../batch/04-common-rules.md) | 人手 | ○ |
 | **9. 非機能** | | | |
-| 9.1 非機能要件 | 要求 Spec の非機能要件 | 人手 | ○ |
-| 9.2 セキュリティ | Design Spec のセキュリティ設計 | 人手 | ○ |
-| 9.3 性能・運用 | Design Spec の非機能設計 | 人手 | ○ |
+| 9.1 非機能要件 | 要求 Spec 3.5（非機能要求グレードの6大項目・モデルシステム） | 人手 | ○ |
+| 9.2 非機能設計 | Design Spec 7（可用性 / 性能・拡張性 / 運用・保守性 / 移行性 / システム環境・エコロジー） | 人手 | ○ |
+| 9.3 セキュリティ | Design Spec 6 セキュリティ設計 | 人手 | ○ |
 | **10. 設計判断** | ADR 一覧（`docs/adr/`） | 人手 | ○（Phase 2 時点の ADR） |
 | **11. トレーサビリティ** | トレーサビリティマトリクス（REQ / PROP ⇔ テスト ⇔ 実装） | 逆生成 | 代替: 要求 Spec の REQ / PROP 一覧（テスト・実装列は空） |
 
@@ -114,8 +114,9 @@ Spec・ADR 由来の部分だけが書ける。**顧客が事前に「基本設�
 | 6.1〜6.4 | [データモデル4点](../../../examples/monthly-billing/docs/deliverables/data/) |
 | 7.1〜7.3 | [外部インタフェース](../../../examples/monthly-billing/docs/deliverables/external-if/) ⑯⑰⑱ |
 | 8.1〜8.4 | [バッチ4点](../../../examples/monthly-billing/docs/deliverables/batch/) |
-| 9.1 | 要求 Spec 3.5 非機能要件 |
-| 9.2, 9.3 | Design Spec 6 セキュリティ設計 / 7 非機能設計 |
+| 9.1 | 要求 Spec 3.5（モデルシステム: 社会的影響が限定されるシステム。移行性は「移行しない」と決定、システム環境・エコロジーは理由付きで対象外） |
+| 9.2 | Design Spec 7 非機能設計 |
+| 9.3 | Design Spec 6 セキュリティ設計 |
 | 10 | [ADR-0001〜0003](../../../examples/monthly-billing/docs/adr/)（端数処理の単位・方法、帳票形式） |
 | 11 | [トレーサビリティマトリクス](../../../examples/monthly-billing/docs/traceability.md) |
 

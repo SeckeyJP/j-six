@@ -79,7 +79,7 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 | [templates/claude-md/](templates/claude-md/) | CLAUDE.md テンプレート（base / web-app / api-service）+ ガイド |
 | [templates/spec/](templates/spec/) | Spec テンプレート（要求Spec / Design Spec） |
 | [templates/adr/](templates/adr/) | ADR テンプレート |
-| [templates/deliverables/](templates/deliverables/) | 工程成果物テンプレート27点（IPA 機能要件の合意形成ガイド準拠） |
+| [templates/deliverables/](templates/deliverables/) | 工程成果物テンプレート27点（IPA 機能要件の合意形成ガイド準拠）＋ 基本設計書・詳細設計書への[組立定義](templates/deliverables/assembly/GUIDE.md) |
 
 ### Claude Code Plugin
 
@@ -162,6 +162,7 @@ L0         L1-L2             L2-L3                L3-L4
 | 7 | 4層品質ゲート（G1-G4）の Plugin 実装 | Plugin scripts / Agents / Skills | ✅ 完成 |
 | 8 | 証跡パッケージ（顧客納品対応） | evidence-pack Skill | ✅ 完成 |
 | 9 | [ケーススタディ #2](docs/case-study-02.md)（mutation score の実測） | 記事 + GitHub | ✅ 完成 |
+| 10 | 工程成果物テンプレート（IPA 27点）・組立定義・第2サンプル [monthly-billing](examples/monthly-billing/) | テンプレート + 実例 | ✅ 完成 |
 
 次フェーズ（実証・テンプレート実例・Plugin 実用拡張）の計画は [ROADMAP.md](docs/ROADMAP.md) を参照してください。
 

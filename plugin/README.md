@@ -46,7 +46,7 @@ v2.1 の中心は **レビュー前の4層品質ゲート**です。人間レビ
 | `j-six:design-review` | P2 | 設計レビュー（Spec・ADR・コード整合性検証） |
 | `j-six:tdd-cycle` | P4 | Hold-out → Red → Green → Refactor → G1〜G4 の管理 |
 | `j-six:evidence-pack` | P4 | 証跡パッケージへの要約付加（**v2.1 で新規**） |
-| `j-six:doc-reverse-gen` | P6 | 設計書逆生成（基本/詳細/IF/DB/品質） |
+| `j-six:doc-reverse-gen` | P6 | 工程成果物（IPA 27点）の逆生成 → 組立定義による設計書の組立、品質系納品物 |
 | `j-six:quality-metrics` | P5 | プロセス健全性の集計（mutation score / judge 却下率 等） |
 | `j-six:traceability` | P1-P6 | 要件→テスト→コード→設計書の追跡マトリクス |
 
@@ -230,7 +230,9 @@ claude plugin add ./plugin
 /j-six:spec-create          # Spec 策定
 /j-six:tdd-cycle            # TDD サイクル + 品質ゲート
 /j-six:evidence-pack        # 証跡パッケージに要約を付加
-/j-six:doc-reverse-gen all  # 設計書逆生成（全種別）
+/j-six:doc-reverse-gen all  # 工程成果物の逆生成 → 設計書の組立 → 品質系納品物
+/j-six:doc-reverse-gen screen  # 画面の工程成果物（6点）だけを逆生成
+/j-six:doc-reverse-gen assemble kihon-sekkei  # 基本設計書に組み立てる
 /j-six:doc-reverse-gen quality  # 証跡から品質・テスト系の納品物を生成
 /j-six:quality-metrics      # プロセス健全性の集計
 /j-six:traceability         # トレーサビリティマトリクス生成

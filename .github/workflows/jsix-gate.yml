@@ -9,10 +9,13 @@
 #   3. J-SIX Plugin は .jsix-checks.json が無ければ何もしない（オプトイン）
 # つまり Hook は最終防衛線にならない。解除されても CI で止まる構成にする。
 #
-# 対象はサンプルアプリ（examples/approval-workflow/）だが、ワークフロー自体は
-# **リポジトリ直下**に置く必要がある（GitHub Actions はサブディレクトリの
+# 対象はサンプルアプリ2本（examples/approval-workflow/ と examples/monthly-billing/）で、
+# matrix で同じ手順を回す。2本は .jsix-checks.json と Makefile の構成が同じなので、
+# ゲートの手順を分岐させずに済む。
+#
+# ワークフロー自体は**リポジトリ直下**に置く必要がある（GitHub Actions はサブディレクトリの
 # .github/workflows/ を読まない）。自プロジェクトへ持ち込む際も直下に置き、
-# working-directory と paths を対象に合わせて書き換える。
+# matrix を外して working-directory と paths を対象に合わせて書き換える。
 
 name: J-SIX Quality Gate
 
@@ -20,21 +23,21 @@ on:
   pull_request:
     paths:
       - "examples/approval-workflow/**"
+      - "examples/monthly-billing/**"
       - "plugin/scripts/**"
+      - ".github/workflows/jsix-gate.yml"
   push:
     branches: [main]
     paths:
       - "examples/approval-workflow/**"
+      - "examples/monthly-billing/**"
       - "plugin/scripts/**"
+      - ".github/workflows/jsix-gate.yml"
 
 # SARIF を GitHub の Code scanning に上げるために必要
 permissions:
   contents: read
   security-events: write
-
-defaults:
-  run:
-    working-directory: examples/approval-workflow
 
 jobs:
   # Plugin のチェックスクリプト自体の単体テスト。
@@ -42,9 +45,6 @@ jobs:
   plugin-scripts:
     name: plugin/scripts 単体テスト
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -54,9 +54,17 @@ jobs:
       - run: python -m pytest plugin/scripts/tests -q
 
   gate:
-    name: G1 → G2 → G4
+    name: G1 → G2 → G4（${{ matrix.example }}）
     needs: plugin-scripts
     runs-on: ubuntu-latest
+    strategy:
+      # 片方のサンプルが落ちても、もう片方の結果（と証跡）は最後まで出す
+      fail-fast: false
+      matrix:
+        example: [approval-workflow, monthly-billing]
+    defaults:
+      run:
+        working-directory: examples/${{ matrix.example }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -75,7 +83,6 @@ jobs:
           .venv/bin/python -m pip install -q -r requirements.txt -r requirements-dev.txt mutmut
 
       # --- G1 の成果物のうち、外部ツールが要るものを CI で生成する -------------
-      # plugin は SARIF を読むだけで、どのツールを使うかはプロジェクトが決める。
       - name: レポート出力先を用意
         run: mkdir -p reports
 
@@ -87,20 +94,20 @@ jobs:
         continue-on-error: true
         with:
           scan-type: fs
-          scan-ref: examples/approval-workflow
+          scan-ref: examples/${{ matrix.example }}
           scanners: secret
           format: sarif
-          output: examples/approval-workflow/reports/secrets.sarif
+          output: examples/${{ matrix.example }}/reports/secrets.sarif
 
       - name: 依存脆弱性スキャン（SARIF 生成）
         uses: aquasecurity/trivy-action@v0.36.0
         continue-on-error: true
         with:
           scan-type: fs
-          scan-ref: examples/approval-workflow
+          scan-ref: examples/${{ matrix.example }}
           scanners: vuln
           format: sarif
-          output: examples/approval-workflow/reports/deps.sarif
+          output: examples/${{ matrix.example }}/reports/deps.sarif
 
       # --- ゲート本体 -----------------------------------------------------------
       # --run-commands を付けるのは CI だけ。ローカルの Stop hook は既存の成果物を
@@ -126,8 +133,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: jsix-evidence-${{ github.sha }}
-          path: examples/approval-workflow/reports/
+          name: jsix-evidence-${{ matrix.example }}-${{ github.sha }}
+          path: examples/${{ matrix.example }}/reports/
           retention-days: 90
 
       # Code scanning への登録は private リポジトリでは Advanced Security が要るため、
@@ -137,4 +144,6 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         continue-on-error: true
         with:
-          sarif_file: examples/approval-workflow/reports/
+          sarif_file: examples/${{ matrix.example }}/reports/
+          # matrix の2本が同じ commit に上げるため、カテゴリで区別する
+          category: jsix-${{ matrix.example }}
