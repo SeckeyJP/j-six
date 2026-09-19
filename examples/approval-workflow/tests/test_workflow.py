@@ -8,7 +8,12 @@ from datetime import datetime
 import pytest
 
 from app.models import Action, Status
-from app.workflow import WorkflowError, WorkflowService, required_approval_levels
+from app.workflow import (
+    RequestNotFound,
+    WorkflowError,
+    WorkflowService,
+    required_approval_levels,
+)
 
 
 FIXED_NOW = datetime(2026, 6, 14, 10, 0, 0)
@@ -199,8 +204,6 @@ def test_get_unknown_request_raises(service):
     ADR-0003「ネガティブな影響」: 旧実装は WorkflowError を期待していたが、
     不在とルール違反を区別するため RequestNotFound を期待する形に書き換える。
     """
-    from app.workflow import RequestNotFound
-
     with pytest.raises(RequestNotFound, match="存在しません"):
         service.get("REQ-9999")
 
@@ -212,8 +215,6 @@ def test_request_not_found_is_not_a_workflow_error():
     サブクラスにすると `except WorkflowError` が不在まで捕まえてしまい、
     404 が 409 に化ける事故（ADR-0003 の C-1 再発）を型の上で防げなくなる。
     """
-    from app.workflow import RequestNotFound
-
     assert not issubclass(RequestNotFound, WorkflowError)
     assert issubclass(RequestNotFound, Exception)
 
@@ -252,8 +253,6 @@ def _op_withdraw(service, rid):
 )
 def test_unknown_id_raises_request_not_found_for_every_operation(service, op):
     """REQ-011: get() と 5 つの状態遷移すべてが、未登録 ID で RequestNotFound を送出する。"""
-    from app.workflow import RequestNotFound
-
     with pytest.raises(RequestNotFound):
         op(service, UNKNOWN_ID)
 
