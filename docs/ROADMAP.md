@@ -55,7 +55,7 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 |---|---|---|---|---|
 | C1 | **コマンド型 Hook 追加**（カバレッジ閾値ゲート、要件⇔テストのトレーサビリティ自動チェック）。番外編 Hooks 記事の知見を本体還元 | `plugin/scripts/` ×3 + Stop command Hook（オプトイン） | 中 | ✅ 2026-06-14 |
 | C2 | **end-to-end デモ**（B1/A1 と同一題材で Skills 6 / Agents 5 を実際に動かした証跡） | `examples/approval-workflow/README.md`（Phase別 Skill 対応表） | 大 | ◐ 部分（成果物と対応表は整備済。各 Skill の実行ログ取得は残） |
-| C3 | plugin.json に `keywords` 等メタ補強、インストール手順の検証 | `plugin/.claude-plugin/plugin.json` | 小 | ✅ 2026-09-10 |
+| C3 | plugin.json に `keywords` 等メタ補強、インストール手順の検証 | `plugin/.claude-plugin/plugin.json` | 小 | ✅ 2026-09-10 → **2026-09-19 訂正**: `repository` の形式がマニフェスト仕様に反し、Plugin が読み込まれていなかった。インストール手順の検証は実際には不十分だった。修正し、CI に `claude plugin validate` を追加 |
 | C4 | **4層品質ゲート（G1-G4）の実装**。標準フォーマット（JUnit XML / Cobertura・LCOV / SARIF / mutation-testing-elements JSON）のパースと閾値判定に限定し、言語依存のツール呼び出しを持ち込まない | `plugin/scripts/` ×13, `plugin/agents/` ×7, `plugin/skills/` ×7 | 大 | ✅ 2026-09-10（単体テスト 155 件） |
 | C5 | **証跡パッケージ**（顧客納品対応）。証跡 / 参考所見 / 承認の3区分で出力 | `jsix_evidence_pack.py` + `evidence-pack` Skill | 中 | ✅ 2026-09-10 |
 | C6 | **CI 例（外側ループ）**。Hook が解除されても止まる二重化 | `.github/workflows/jsix-gate.yml` | 小 | ✅ 2026-09-11（実際に実行して緑を確認） |

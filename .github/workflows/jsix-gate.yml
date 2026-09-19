@@ -24,14 +24,14 @@ on:
     paths:
       - "examples/approval-workflow/**"
       - "examples/monthly-billing/**"
-      - "plugin/scripts/**"
+      - "plugin/**"
       - ".github/workflows/jsix-gate.yml"
   push:
     branches: [main]
     paths:
       - "examples/approval-workflow/**"
       - "examples/monthly-billing/**"
-      - "plugin/scripts/**"
+      - "plugin/**"
       - ".github/workflows/jsix-gate.yml"
 
 # SARIF を GitHub の Code scanning に上げるために必要
@@ -40,6 +40,16 @@ permissions:
   security-events: write
 
 jobs:
+  # Plugin のマニフェストが Claude Code の仕様どおりか。
+  # 不正だと Plugin 全体が読み込まれず、Skill / Agent / Hook のどれも動かない。
+  # 実際に plugin.json の repository をオブジェクトで書いていたため読み込まれていなかった。
+  plugin-manifest:
+    name: Plugin マニフェスト検証
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: npx -y @anthropic-ai/claude-code plugin validate plugin
+
   # Plugin のチェックスクリプト自体の単体テスト。
   # ゲートを実行する道具が壊れていないことを先に確かめる。
   plugin-scripts:
