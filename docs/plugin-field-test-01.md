@@ -100,6 +100,7 @@ design-review がそれを Critical として挙げ、spec-create → tdd-cycle 
 | C10 | タスク定義（受入条件・許可範囲）がリポジトリに保存されず、scope-judge がコミットメッセージから推測している | 3・5 |
 | C11 | `03_coverage_mutation.md` に生存ミュータントの内訳と未到達行が出ない | 4 |
 | C12 | 子セッションが親と同じ自動メモリに書き込む（Claude Code の挙動。検証手順として注意が必要） | 6 |
+| C14 | RED タグをリポジトリ全体から探すため、1リポジトリに複数プロジェクトがあると別プロジェクトのタスクのタグを比較元に拾う（monthly-billing が approval-workflow の RED タグで検査された） | PR 前の確認 |
 
 ## 5. 所見
 

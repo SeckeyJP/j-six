@@ -64,6 +64,7 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 | C9 | ゲート失敗の履歴を残し、Phase 0 の月次ループ（失敗理由の還元）の入力にする | `jsix_run_checks.py`, `quality-metrics` | 中 | ☐（同上） |
 | C10 | tdd-cycle がタスク定義（受入条件・許可範囲）をファイルに保存し、scope-judge が参照する | `tdd-cycle`, `scope-judge` | 小 | ☐（同上） |
 | C11 | `03_coverage_mutation.md` に生存ミュータントの内訳と未到達行を出す | `jsix_evidence_pack.py` | 小 | ☐（同上） |
+| C14 | RED タグの解決をプロジェクト単位にする。タグはリポジトリ共有のため、モノレポでは別プロジェクトのタスクの `jsix/red-*` を比較元に拾う（`JSIX_TASK_ID` 未指定時） | `jsix_test_tamper_check.py`, `jsix_run_checks.py` | 小 | ☐（同上） |
 | C13 | ヘッドレス実行を `claude plugin eval` の評価ケースにし、Plugin 変更時の受入試験にする | `plugin/evals/` | 中 | ☐（同上） |
 
 ---

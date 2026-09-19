@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file.
 
 **Plugin 実動検証 #1（ROADMAP C2）**
 
-- docs/plugin-field-test-01.md: Plugin の Skill 7本を `claude -p --plugin-dir` でヘッドレス実行した記録（合計 406 ターン・$37.22・64.5分）。Plugin の不具合8件の発見と修正、未解決の課題（ROADMAP C7〜C11・C13）、所見
+- docs/plugin-field-test-01.md: Plugin の Skill 7本を `claude -p --plugin-dir` でヘッドレス実行した記録（合計 406 ターン・$37.22・64.5分）。Plugin の不具合8件の発見と修正、未解決の課題（ROADMAP C7〜C11・C13・C14）、所見
 - examples/approval-workflow: Skill 実行の成果物。設計レビュー（`docs/reviews/`）、Spec 改訂と ADR-0003、TASK-AW-002（エラーを不在 404 / ルール違反 409 / 入力不正 422 に分類、全状態遷移でコメントを記録）の TDD 実装、品質メトリクス、工程成果物12点（`docs/deliverables/`）、基本／詳細設計書と品質系納品物（`docs/design-docs/`）
 
 **v2.1: レビュー前品質ゲートの再設計**
