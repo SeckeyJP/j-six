@@ -216,14 +216,14 @@
     <div class="layer"><div class="lab">第2層 — WHY NOT</div><h3>ADR（判断記録）</h3><p style="margin:0;color:var(--muted);font-size:13.5px">なぜその選択をしたか。検討した代替案と却下理由。</p></div>
     <div class="layer"><div class="lab">第3層 — WHAT / HOW</div><h3>逆生成設計書</h3><p style="margin:0;color:var(--muted);font-size:13.5px">何をどう実装したか。コードから自動生成（例: OpenAPI）。</p></div>
   </div>
-  <p class="note">第3層はコードから逆生成されるため <b>設計書⇔コードの乖離が原理的にゼロ</b>。一方、Why を記す第1・2層は逆生成できず人手更新のため乖離リスクが残る（→ 実証セクション参照）。</p>
+  <p class="note">第3層のうちコードや受入テストから逆生成する部分は <b>設計書⇔コードの乖離が原理的にゼロ</b>。一方、Why を記す第1・2層と、人手で書く・Spec と併用する工程成果物は乖離リスクが残る（→ 下の内訳、実証セクション参照）。</p>
 
   <h3 style="margin-top:22px">工程成果物27点と設計書への組立</h3>
-  <p class="lead">第3層は「基本設計書」を直接生成しない。IPA「機能要件の合意形成ガイド」の<b>工程成果物27点</b>（システム振舞い・画面・データモデル・外部IF・バッチ・帳票）を単位に作り、<b>組立定義</b>に従って顧客様式の基本設計書・詳細設計書に束ねる。正は工程成果物で、設計書はそのビューである。</p>
+  <p class="lead">第3層は「基本設計書」を直接生成しない。IPA「機能要件の合意形成ガイド」の<b>工程成果物27点</b>（システム振舞い・画面・データモデル・外部IF・バッチ・帳票）を単位に作り、<b>組立定義</b>に従って顧客様式の基本設計書に束ねる。正は工程成果物で、設計書はそのビューである。27点は外部設計の範囲で、詳細設計書は範囲外としてコード・PROP・ADR から逆生成する。</p>
   <div class="grid g3">
     <div class="card"><div class="k">19</div><p>逆生成（コードから18・受入テストから1）</p></div>
-    <div class="card"><div class="k">5</div><p>人手で書く（逆生成の前提になる）</p></div>
-    <div class="card"><div class="k">3</div><p>コード＋Spec の併用</p></div>
+    <div class="card"><div class="k">5</div><p>人手で書く（逆生成の前提になる。乖離リスクが残る）</p></div>
+    <div class="card"><div class="k">3</div><p>コード＋Spec／ADR の併用（乖離リスクが一部残る）</p></div>
   </div>
   <p class="note">27点すべてを作る必要はない。事前に設計書を求める顧客には、章ごとに「事前提出できるか／納品時に逆生成版へ差し替えるか」を組立定義で決める。Phase 1・2・6 の品質ゲートには、合意形成ガイドの合意成熟度（仕掛／充実／完成）を到達基準として置いた。非機能要件は IPA 非機能要求グレードの6大項目で分類する。</p>
   <p class="src">詳細: <code>templates/deliverables/README.md</code>, <code>templates/deliverables/assembly/GUIDE.md</code> ／ 記入済み実例: <code>examples/monthly-billing/docs/deliverables/</code></p>
@@ -309,7 +309,7 @@
     <div class="card"><div class="k">91.9%</div><p>mutation score</p></div>
     <div class="card"><div class="k">16/16</div><p>REQ / PROP トレーサビリティ</p></div>
   </div>
-  <p class="note">2026-09-19 時点。mutation score の初回計測は 87.9% で閾値 90% に届かず、生存ミュータントから本物のテストの穴を8種見つけて補った。一方、列数がヘッダと合わない CSV 行で日次取込全体が止まる不具合は、カバレッジ 98.8%・mutation 92% 台でも検出できず、PR 前のコードレビューで見つかった（テストデータが常に正しい列数だったため）。</p>
+  <p class="note">2026-09-19 時点。mutation score の初回計測は 87.9% で閾値 90% に届かず、生存ミュータントを分類して本物のテストの穴を見つけ、テストを補った。一方、列数がヘッダと合わない CSV 行で日次取込全体が止まる不具合は、カバレッジ 98.8%・mutation 92% 台でも検出できず、PR 前のコードレビューで見つかった（テストデータが常に正しい列数だったため）。</p>
   <p class="src">再現: <code>cd examples/monthly-billing &amp;&amp; make setup &amp;&amp; make test &amp;&amp; make gate</code> ／ 詳細: <code>examples/monthly-billing/README.md</code></p>
 </section>
 
@@ -375,7 +375,7 @@
       <li>既定は<b>レポート駆動</b>（成果物を読むだけ）。CI では <code>--run-commands</code></li>
     </ul></div>
   </div>
-  <p class="note">実動検証: Skill 7本を <code>claude -p --plugin-dir</code> でヘッドレス実行し、単体テストでは見つからない Plugin の不具合8件（マニフェスト不正で Plugin 全体が読み込まれない、Stop hook がブロックし続ける等）を修正した（<code>docs/plugin-field-test-01.md</code>）。再発の検知には <code>claude plugin eval</code> の評価ケースを使う（<code>plugin/evals/</code>）。</p>
+  <p class="note">実動検証: Skill 7本を <code>claude -p --plugin-dir</code> でヘッドレス実行し、Plugin の不具合8件（大半は単体テストでは検出できない種類）（マニフェスト不正で Plugin 全体が読み込まれない、Stop hook がブロックし続ける等）を修正した（<code>docs/plugin-field-test-01.md</code>）。再発の検知には <code>claude plugin eval</code> の評価ケースを使う（<code>plugin/evals/</code>）。</p>
 </section>
 
 <!-- 記事 -->

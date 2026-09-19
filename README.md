@@ -72,7 +72,7 @@ J-SIX（Japanese SI Transformation）は、日本のSI業界で広く採用さ�
 | [ケーススタディ #2](docs/case-study-02.md) | **「カバレッジ 99%」の mutation score を実測**。生存ミュータントから性質テスト（PBT）を導く |
 | [examples/approval-workflow/](examples/approval-workflow/) | 上記の動くサンプル（FastAPI。ケーススタディ #2 時点で 45テスト + hold-out 10件 / カバレッジ99% / mutation 93.4%。実動検証 #1 の追加実装後は 81テスト + hold-out 72件 / 99.0% / 92.4%）。テンプレ記入済み実例も兼ねる |
 | [examples/monthly-billing/](examples/monthly-billing/) | 第2サンプル「月次請求書発行」（画面・帳票・バッチ・外部IF。101テスト + hold-out 19件 / カバレッジ98.8% / mutation 91.9%）。工程成果物27点の記入済み実例を兼ねる |
-| [Plugin 実動検証 #1](docs/plugin-field-test-01.md) | Plugin の Skill 7本をヘッドレス実行。単体テストでは見つからない不具合8件を発見・修正 |
+| [Plugin 実動検証 #1](docs/plugin-field-test-01.md) | Plugin の Skill 7本をヘッドレス実行。不具合8件を発見・修正（大半は単体テストでは検出できない種類） |
 
 ### テンプレート
 
