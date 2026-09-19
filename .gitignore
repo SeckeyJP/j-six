@@ -14,3 +14,6 @@ MEMORY.md
 **/.hypothesis/
 **/mutants/
 **/.venv-mut/
+
+# claude plugin eval の実行結果（既定の出力先）
+plugin/evals/results/

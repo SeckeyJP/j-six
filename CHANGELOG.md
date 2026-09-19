@@ -21,6 +21,11 @@ All notable changes to this project will be documented in this file.
 - examples/monthly-billing/docs/deliverables/: 工程成果物27点の**記入済み実例**。品質ゲート（mutation testing / G3 judge / hold-out）が検出した事項を設計書側にも根拠として記載している
 - docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [32] IPA ガイド・[33] 国税庁 Q&A を追加（[26]-[31] は J-SIX.md 側で使用済みのため）
 
+**Plugin の評価ケース（ROADMAP C13）**
+
+- plugin/evals/: `claude plugin eval` の評価ケース2本（spec-create / doc-reverse-gen）。Plugin を実際に読み込ませて Skill を動かし、同梱テンプレートの参照・出力のファイル名と内容を無料の決定論的な採点（ツール呼び出し・ファイルの有無・正規表現）で確かめる。実動検証 #1 の不具合（Plugin が読み込まれない、テンプレートを読めない）の再発を検知する。各3回で6回とも満点、合計 $3.79。LLM 判定は、条件を満たした Spec を3票とも不合格にし安定しなかったため使っていない。CI では実行しない
+- plugin/skills/doc-reverse-gen: 同梱テンプレートへのリンク一覧を置き、Glob / Grep で探さず Read で読むよう明記。**テンプレートを読めない場合は、テンプレートなしで逆生成せず止めて報告する**（権限が足りない環境で、独自のファイル名・形式の成果物を黙って書いていた）
+
 **Plugin 実動検証 #1 の改善（ROADMAP C8〜C10）**
 
 - plugin/scripts/jsix_run_checks.py: ゲート失敗の履歴を `reports/gate-history.jsonl` に残す（C9。失敗はすべて、成功は回復時だけ）。quality-metrics Skill の「ゲート失敗理由の分布」の入力にし、Phase 0 の月次ループへ還元できるようにした

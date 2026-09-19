@@ -1,0 +1,55 @@
+schema_version: "1.1"
+name: doc-reverse-gen-data
+description: >-
+  doc-reverse-gen が Skill に同梱した工程成果物テンプレートを読み、コードから
+  データモデルの工程成果物を逆生成できるか。Plugin 実動検証 #1 の不具合
+  （テンプレートをリポジトリルートから読もうとしてインストール先で失敗）の再発を検知する。
+tags: [regression, doc-reverse-gen, field-test-01]
+runs: 3
+expected_outcome: >-
+  同梱テンプレートを読み、docs/deliverables/data/ に ER図・エンティティ一覧・
+  エンティティ定義・CRUD図を、app/models.py の属性どおりに書く。
+
+context:
+  # 対象のコードを生成するスクリプト（このケースのディレクトリからの相対パス）
+  scaffold_script: scaffold.sh
+
+execution:
+  # case.yaml では実行条件を execution の下に書く（最上位に書くと無視され、既定値の
+  # 10ターン・300秒・ツール指定なしで動く。同梱テンプレートの Read が拒否された原因）
+  max_turns: 60
+  timeout_seconds: 1200
+  allowed_tools: [Read, Write, Edit, Glob, Grep, Skill]
+  prompt: |
+    /j-six:doc-reverse-gen data
+
+    このディレクトリの app/ を対象に、データモデルの工程成果物（4点）を逆生成してください。
+    Spec と ADR はありません（その旨を成果物に記録してください）。ヘッドレス実行のため対話はできません。
+
+# プロンプトを /j-six:... で始めると Skill はツール呼び出しを介さず展開されるため、
+# 「Skill ツールが呼ばれたか」では判定できない。同梱テンプレートを Read したかで、
+# Plugin の読み込みとテンプレートの参照先の両方を確かめる。
+graders:
+  - name: read-bundled-template
+    type: tool_used
+    tool: Read
+    input_match: "doc-reverse-gen/templates/deliverables/data/"
+    arm: with-only
+
+  - name: entity-definition-written
+    type: file_exists
+    path: docs/deliverables/data/03-entity-definition.md
+
+  - name: crud-written
+    type: file_exists
+    path: docs/deliverables/data/04-crud-matrix.md
+
+  - name: attributes-from-code
+    type: regex
+    target: {source: file, path: docs/deliverables/data/03-entity-definition.md}
+    pattern: "isbn[\\s\\S]*member_id[\\s\\S]*due_date[\\s\\S]*returned_on"
+
+  - name: origin-recorded
+    type: regex
+    target: {source: file, path: docs/deliverables/data/03-entity-definition.md}
+    pattern: "由来[\\s\\S]{0,40}コードから逆生成"
