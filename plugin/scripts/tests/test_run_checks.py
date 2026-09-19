@@ -450,3 +450,50 @@ class TestScopeBaseline:
         ok, summary = self._scope(project)
         assert not ok
         assert "tests/acceptance/test_uc.py" in summary
+
+
+class TestGateHistory:
+    """ゲート失敗の履歴を残す（ROADMAP C9）。
+
+    証跡と gate.json は最後の1回で上書きされるため、途中の失敗が残らず、
+    Phase 0 の月次ループ（失敗理由を CLAUDE.md / Hook に還元）の入力にならなかった。
+    """
+
+    def _cfg(self, project, min_cov):
+        _write(project / ".jsix-checks.json",
+               {"gates": {"g2": {"coverage": {"file": "coverage.xml", "min": min_cov}}}})
+
+    def _history(self, project):
+        path = project / "reports" / "gate-history.jsonl"
+        if not path.exists():
+            return []
+        return [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+
+    def test_failures_are_recorded(self, project):
+        self._cfg(project, 100)
+        runner.main(["--dir", str(project)])
+        runner.main(["--dir", str(project)])
+        hist = self._history(project)
+        assert [h["ok"] for h in hist] == [False, False]
+        assert hist[0]["failed"] == ["g2.coverage"]
+        assert "at" in hist[0]
+
+    def test_passes_are_recorded_only_on_recovery(self, project):
+        self._cfg(project, 10)
+        runner.main(["--dir", str(project)])
+        runner.main(["--dir", str(project)])
+        assert self._history(project) == []
+        self._cfg(project, 100)
+        runner.main(["--dir", str(project)])
+        self._cfg(project, 10)
+        runner.main(["--dir", str(project)])
+        runner.main(["--dir", str(project)])
+        assert [h["ok"] for h in self._history(project)] == [False, True]
+
+    def test_history_path_is_configurable(self, project):
+        _write(project / ".jsix-checks.json", {
+            "gates": {"g2": {"coverage": {"file": "coverage.xml", "min": 100}}},
+            "history": "logs/gates.jsonl",
+        })
+        runner.main(["--dir", str(project)])
+        assert (project / "logs" / "gates.jsonl").is_file()

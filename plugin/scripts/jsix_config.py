@@ -98,6 +98,8 @@ def normalize(raw: dict) -> dict:
     if not isinstance(stop_hook, dict):
         raise ConfigError("stop_hook はオブジェクトである必要があります")
     normalized["stop_hook"] = dict(stop_hook)
+    if raw.get("history"):
+        normalized["history"] = str(raw["history"])
     normalized["_legacy"] = False
     return normalized
 

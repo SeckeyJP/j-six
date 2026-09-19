@@ -57,6 +57,20 @@ EOF
 
 **Phase 0 の月次ループ（CLAUDE.md をコードとして扱う運用）の入力**になる。
 
+**入力はゲート履歴 `reports/gate-history.jsonl`**（`.jsix-checks.json` の `history` で変更可）。
+証跡パッケージと `gate.json` は最後の1回で上書きされるため、途中の失敗はそこに残らない。
+履歴には失敗した実行がすべて（成功は失敗からの回復時だけ）1行ずつ記録される。
+
+```python
+import json, collections
+hist = [json.loads(l) for l in open("reports/gate-history.jsonl", encoding="utf-8") if l.strip()]
+failures = collections.Counter(c for h in hist if not h["ok"] for c in h["failed"])
+# 例: Counter({"g2.traceability": 15, "g1.lint": 3})
+# 同じ失敗が Stop hook（mode = "stop-hook"）で連続しているものは、工程上いま満たせない失敗の可能性がある
+```
+
+履歴が無い場合は「未計測」と書き、失敗 0 件と書かないこと（失敗が無かったのか、記録が無いのか区別できない）。
+
 | 頻出する失敗 | 還元先 |
 |---|---|
 | G1 lint / format | PostToolUse Hook（書いた時点で直す） |
