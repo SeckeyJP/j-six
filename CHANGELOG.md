@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- README.md / docs/article-plan.md / index.html: 番外編記事「カバレッジ 99% のテストに mutation testing をかけたら、監査ログの穴が見つかった」（j-six-mutation-testing）の公開を反映（番外編 10本・全16本）
+
 ### Fixed
 
 - examples/monthly-billing/README.md: 「mutation testing が見つけたテストの穴」の表が、本文の「本物の穴が8種」に対して6行しかなかった。実装時のコミット（`3b14aaf`）に残っていた内訳から、抜けていた2種（明細への数量の転記、reset 後の採番リセット）を追加。いずれも対応するテストは既にある

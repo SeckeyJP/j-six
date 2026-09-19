@@ -258,7 +258,7 @@ J-SIX.md
 
 ## 6. 番外編（追加公開）
 
-シリーズ6本の公開後、以下の9本を番外編として追加公開した。
+シリーズ6本の公開後、以下の10本を番外編として追加公開した。
 
 | slug | タイトル | テーマ | 公開済 |
 |---|---|---|---|
@@ -271,3 +271,4 @@ J-SIX.md
 | j-six-code-review | CC Code Review 活用ガイド | マルチエージェント PR レビュー | ✅ |
 | j-six-doc-reverse-gen | 設計書逆生成の実装 — Phase 6 | コードから納品物を自動生成 | ✅ |
 | j-six-scheduled-tasks | CC Scheduled Tasks | CC の定期実行で開発を自動化 | ✅ |
+| j-six-mutation-testing | カバレッジ 99% × mutation testing の実測 | ケーススタディ #2 の記事化。生存ミュータント → PBT | ✅ |
