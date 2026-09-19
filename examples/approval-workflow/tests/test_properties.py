@@ -13,6 +13,9 @@ PBT は入力空間を探す。役割が違う。
   - `_log(req, Action.REMAND, actor, )`（差し戻しの note が記録されない）→ PROP-005
 """
 
+from contextlib import contextmanager
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 from hypothesis import assume, given, settings
@@ -265,6 +268,17 @@ def test_prop_008_unknown_id_always_raises_request_not_found(
     assert len(req.audit_log) == before_log_len
 
 
+@contextmanager
+def _isolated_client():
+    """空の WorkflowService を API に差し込んだ TestClient を返し、抜けたら元に戻す。
+
+    グローバルの main.service を差し替えたままにすると、後続のテストが別の
+    service を見ることになり、実行順によって結果が変わる（mutmut は順序を変える）。
+    """
+    with patch.object(main, "service", WorkflowService()):
+        yield TestClient(main.app)
+
+
 EXTRA_KEY = st.text(alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=1, max_size=10)
 EXTRA_VALUE = st.one_of(st.text(max_size=10), st.integers(), st.booleans())
 
@@ -283,28 +297,26 @@ def test_prop_009_transition_body_with_undefined_key_returns_422(
     変わらない。
     """
     assume(extra_key not in ("actor", "note"))
-    main.service = WorkflowService()
-    client = TestClient(main.app)
+    with _isolated_client() as client:
+        create_res = client.post(
+            "/requests",
+            json={
+                "applicant": "alice",
+                "amount": 50_000,
+                "title": "申請",
+                "approvers": ["bob"],
+            },
+        )
+        rid = create_res.json()["id"]
+        client.post(f"/requests/{rid}/submit", json={"actor": "alice"})
+        before = client.get(f"/requests/{rid}").json()
 
-    create_res = client.post(
-        "/requests",
-        json={
-            "applicant": "alice",
-            "amount": 50_000,
-            "title": "申請",
-            "approvers": ["bob"],
-        },
-    )
-    rid = create_res.json()["id"]
-    client.post(f"/requests/{rid}/submit", json={"actor": "alice"})
-    before = client.get(f"/requests/{rid}").json()
+        body = {"actor": "bob", extra_key: extra_value}
+        res = client.post(f"/requests/{rid}/{endpoint}", json=body)
+        assert res.status_code == 422
 
-    body = {"actor": "bob", extra_key: extra_value}
-    res = client.post(f"/requests/{rid}/{endpoint}", json=body)
-    assert res.status_code == 422
-
-    after = client.get(f"/requests/{rid}").json()
-    assert after == before
+        after = client.get(f"/requests/{rid}").json()
+        assert after == before
 
 
 @given(extra_key=EXTRA_KEY, extra_value=EXTRA_VALUE)
@@ -314,20 +326,18 @@ def test_prop_009_create_body_with_undefined_key_returns_422(extra_key, extra_va
     結果は必ず入力不正（422）であり、申請は作られない（監査ログも増えない）。
     """
     assume(extra_key not in ("applicant", "amount", "title", "approvers"))
-    main.service = WorkflowService()
-    client = TestClient(main.app)
+    with _isolated_client() as client:
+        before_count = len(client.get("/requests").json())
 
-    before_count = len(client.get("/requests").json())
+        body = {
+            "applicant": "alice",
+            "amount": 50_000,
+            "title": "申請",
+            "approvers": ["bob"],
+            extra_key: extra_value,
+        }
+        res = client.post("/requests", json=body)
+        assert res.status_code == 422
 
-    body = {
-        "applicant": "alice",
-        "amount": 50_000,
-        "title": "申請",
-        "approvers": ["bob"],
-        extra_key: extra_value,
-    }
-    res = client.post("/requests", json=body)
-    assert res.status_code == 422
-
-    after_count = len(client.get("/requests").json())
-    assert after_count == before_count
+        after_count = len(client.get("/requests").json())
+        assert after_count == before_count
