@@ -175,3 +175,17 @@ class TestConfirmActor:
     def test_actor_defaults_on_empty_value(self, closed):
         closed.post(f"/invoices/{_no(closed)}/confirm", json={"actor": ""})
         assert service.audit_log[-1].actor == "keiri01"
+
+    def test_multipart_is_rejected_not_defaulted(self, closed):
+        """multipart/form-data は受け付けず 415 にする（ADR-0004）。
+
+        受け付けない形式を黙って既定値の操作者で確定すると、監査ログ（REQ-010）に
+        誤った操作者が残る。確定もしない。
+        """
+        no = _no(closed)
+        res = closed.post(
+            f"/invoices/{no}/confirm",
+            files={"actor": (None, "keiri-multipart")},
+        )
+        assert res.status_code == 415
+        assert service.get_invoice(no).status.value == "DRAFT"

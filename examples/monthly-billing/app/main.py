@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Optional
+from urllib.parse import parse_qs
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
@@ -116,13 +117,23 @@ async def _read_actor(request: Request) -> str:
     画面（SCR-003）は form post、プログラムからの呼び出しは JSON を送る。
     片方だけを受け付けると、もう片方は**黙って既定値になり**、監査ログ（REQ-010）に
     誤った操作者が記録される。どちらの形式でも受け取る。
+
+    form は application/x-www-form-urlencoded のみを標準ライブラリで読む。
+    python-multipart に依存しないため（ADR-0004）、multipart/form-data は 415 で拒否する。
+    既定値で黙って確定させないためである。
     """
     content_type = request.headers.get("content-type", "")
+    if content_type.startswith("multipart/"):
+        raise HTTPException(
+            status_code=415,
+            detail="multipart/form-data は受け付けません（form-urlencoded か JSON で送ってください）",
+        )
     try:
         if content_type.startswith("application/json"):
             payload = await request.json()
         else:
-            payload = await request.form()
+            body = (await request.body()).decode("utf-8")
+            payload = {k: v[0] for k, v in parse_qs(body).items()}
     except Exception:  # ボディ無し・壊れた JSON でも確定操作は続行する
         return DEFAULT_ACTOR
 

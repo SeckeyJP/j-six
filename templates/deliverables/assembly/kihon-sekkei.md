@@ -117,7 +117,7 @@ Spec・ADR 由来の部分だけが書ける。**顧客が事前に「基本設�
 | 9.1 | 要求 Spec 3.5（モデルシステム: 社会的影響が限定されるシステム。移行性は「移行しない」と決定、システム環境・エコロジーは理由付きで対象外） |
 | 9.2 | Design Spec 7 非機能設計 |
 | 9.3 | Design Spec 6 セキュリティ設計 |
-| 10 | [ADR-0001〜0003](../../../examples/monthly-billing/docs/adr/)（端数処理の単位・方法、帳票形式） |
+| 10 | [ADR-0001〜0004](../../../examples/monthly-billing/docs/adr/)（端数処理の単位・方法、帳票形式、form の解析方法） |
 | 11 | [トレーサビリティマトリクス](../../../examples/monthly-billing/docs/traceability.md) |
 
 ### この例で目立つ点
