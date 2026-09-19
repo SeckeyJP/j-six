@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - examples/monthly-billing/README.md: 「mutation testing が見つけたテストの穴」の表が、本文の「本物の穴が8種」に対して6行しかなかった。実装時のコミット（`3b14aaf`）に残っていた内訳から、抜けていた2種（明細への数量の転記、reset 後の採番リセット）を追加。いずれも対応するテストは既にある
 - examples/monthly-billing/tests/test_billing.py: コメントの誤字（「경路」→「経路」）
+- docs/J-SIX.md 付録B: 「導入事例・ROI レポート」が「計画中（ROADMAP A1）」のままだった。A1 は完了済み、ROI の根拠となる A1'（工数の実測比較）は見送りのため、状態を「見送り」に更新
 
 ## [2.1.0] - 2026-09-19
 
