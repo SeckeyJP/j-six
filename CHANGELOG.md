@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-19
+
 ### Added
 
 **工程成果物27点（IPA 機能要件の合意形成ガイド準拠）**
