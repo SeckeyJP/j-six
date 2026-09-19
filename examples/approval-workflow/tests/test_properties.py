@@ -13,9 +13,12 @@ PBT は入力空間を探す。役割が違う。
   - `_log(req, Action.REMAND, actor, )`（差し戻しの note が記録されない）→ PROP-005
 """
 
+import pytest
+from fastapi.testclient import TestClient
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
+from app import main
 from app.models import Status
 from app.workflow import WorkflowError, WorkflowService, required_approval_levels
 
@@ -170,3 +173,161 @@ def test_prop_006_out_of_order_approval_never_advances(applicant, amount):
 
     assert req.current_step == before_step
     assert len(req.audit_log) == before_log
+
+
+# --- PROP-007〜009（要求 Spec 3.3 改訂。REQ-010〜012） ---------------------
+
+TRANSITIONS = ["submit", "approve", "reject", "remand", "withdraw"]
+NOTE = st.text(max_size=20)
+
+
+def _fresh_draft(applicant: str, amount: int):
+    service = WorkflowService()
+    approvers = _approvers_for(amount, applicant)
+    req = service.create_request(applicant, amount, "申請", approvers)
+    return service, req, approvers
+
+
+def _run_transition(service, req, transition, actor, note):
+    kwargs = {} if note is None else {"note": note}
+    method = getattr(service, transition)
+    return method(req.id, actor, **kwargs)
+
+
+@given(
+    applicant=ACTOR,
+    amount=AMOUNT,
+    transition=st.sampled_from(TRANSITIONS),
+    note=st.one_of(st.none(), NOTE),
+)
+@settings(max_examples=40)
+def test_prop_007_transition_note_matches_sent_note(
+    applicant, amount, transition, note
+):
+    """PROP-007 / REQ-010: 任意の状態遷移操作と任意のコメントについて、操作が成功したなら、
+    監査ログ末尾のコメントは送ったコメントと一致する（省略したときは空文字）。
+    """
+    service, req, approvers = _fresh_draft(applicant, amount)
+
+    if transition == "submit":
+        actor = applicant
+    else:
+        service.submit(req.id, applicant)
+        actor = applicant if transition == "withdraw" else approvers[0]
+
+    _run_transition(service, req, transition, actor, note)
+
+    expected_note = note if note is not None else ""
+    assert req.audit_log[-1].note == expected_note
+
+
+UNKNOWN_ID = st.text(
+    alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-", min_size=1, max_size=12
+)
+REFERENCE_OR_TRANSITION = ["get", *TRANSITIONS]
+
+
+@given(
+    applicant=ACTOR,
+    amount=AMOUNT,
+    unknown_id=UNKNOWN_ID,
+    operation=st.sampled_from(REFERENCE_OR_TRANSITION),
+)
+@settings(max_examples=40)
+def test_prop_008_unknown_id_always_raises_request_not_found(
+    applicant, amount, unknown_id, operation
+):
+    """PROP-008 / REQ-011: 任意の未登録 ID と任意の操作（参照・5 遷移）について、
+    結果は必ず RequestNotFound（対象不在）であり、登録済み申請の状態と監査ログは
+    変わらない。
+    """
+    from app.workflow import RequestNotFound
+
+    service = WorkflowService()
+    approvers = _approvers_for(amount, applicant)
+    req = service.create_request(applicant, amount, "申請", approvers)
+    assume(unknown_id != req.id)
+
+    before_status = req.status
+    before_log_len = len(req.audit_log)
+
+    with pytest.raises(RequestNotFound):
+        if operation == "get":
+            service.get(unknown_id)
+        elif operation == "withdraw":
+            service.withdraw(unknown_id, applicant)
+        elif operation == "submit":
+            service.submit(unknown_id, applicant)
+        else:
+            getattr(service, operation)(unknown_id, approvers[0])
+
+    assert req.status == before_status
+    assert len(req.audit_log) == before_log_len
+
+
+EXTRA_KEY = st.text(alphabet="abcdefghijklmnopqrstuvwxyz_", min_size=1, max_size=10)
+EXTRA_VALUE = st.one_of(st.text(max_size=10), st.integers(), st.booleans())
+
+
+@given(
+    endpoint=st.sampled_from(TRANSITIONS),
+    extra_key=EXTRA_KEY,
+    extra_value=EXTRA_VALUE,
+)
+@settings(max_examples=20)
+def test_prop_009_transition_body_with_undefined_key_returns_422(
+    endpoint, extra_key, extra_value
+):
+    """PROP-009 / REQ-012: 任意の状態遷移操作と、定義されていない項目を1つ以上含む
+    任意の入力について、結果は必ず入力不正（422）であり、対象の申請の状態と監査ログは
+    変わらない。
+    """
+    assume(extra_key not in ("actor", "note"))
+    main.service = WorkflowService()
+    client = TestClient(main.app)
+
+    create_res = client.post(
+        "/requests",
+        json={
+            "applicant": "alice",
+            "amount": 50_000,
+            "title": "申請",
+            "approvers": ["bob"],
+        },
+    )
+    rid = create_res.json()["id"]
+    client.post(f"/requests/{rid}/submit", json={"actor": "alice"})
+    before = client.get(f"/requests/{rid}").json()
+
+    body = {"actor": "bob", extra_key: extra_value}
+    res = client.post(f"/requests/{rid}/{endpoint}", json=body)
+    assert res.status_code == 422
+
+    after = client.get(f"/requests/{rid}").json()
+    assert after == before
+
+
+@given(extra_key=EXTRA_KEY, extra_value=EXTRA_VALUE)
+@settings(max_examples=20)
+def test_prop_009_create_body_with_undefined_key_returns_422(extra_key, extra_value):
+    """PROP-009 / REQ-012: 起票の入力に、定義されていない項目を1つ以上含めた場合、
+    結果は必ず入力不正（422）であり、申請は作られない（監査ログも増えない）。
+    """
+    assume(extra_key not in ("applicant", "amount", "title", "approvers"))
+    main.service = WorkflowService()
+    client = TestClient(main.app)
+
+    before_count = len(client.get("/requests").json())
+
+    body = {
+        "applicant": "alice",
+        "amount": 50_000,
+        "title": "申請",
+        "approvers": ["bob"],
+        extra_key: extra_value,
+    }
+    res = client.post("/requests", json=body)
+    assert res.status_code == 422
+
+    after_count = len(client.get("/requests").json())
+    assert after_count == before_count
