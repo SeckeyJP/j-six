@@ -562,8 +562,8 @@ AI の作業を見張りレビューする時間が増える」という開発�
 | P1: 要求合意 | ◎参照 | Spec テンプレート | 並列リサーチ | | | ask_user_question |
 | P2: 技術設計 | ◎参照 | Design Spec | 並列調査 | | ADR チェック | Plan Mode |
 | P3: タスク分解 | ◎参照 | | | | TaskCreated Hook | Native Tasks, `/batch`（大規模分割） |
-| P4: TDD 実装 | ◎参照 | TDD Skill, 証跡パック | Red/Green/Refactor, hold-out, **scope-judge（G3）** | 並列実行 | **Stop（G1/G2 の決定論的ゲート）**, **PreToolUse（format/lint）**, PermissionDenied | git worktree, **`/goal`**, `/code-review`, auto mode, /effort, Remote Control |
-| P5: 品質検証 | ◎参照 | 品質メトリクス | 検証サブエージェント | /ultrareview | StopFailure | **`/verify`**（動くアプリでの確認）, Push Notifications |
+| P4: TDD 実装 | ◎参照 | TDD Skill, 証跡パック | Red/Green/Refactor, hold-out, **scope-judge（G3）** | 並列実行 | **Stop（G1〜G4 の決定論的ゲート）**, **PreToolUse（format/lint）** | git worktree, **`/goal`**, `/code-review`, auto mode, /effort, Remote Control |
+| P5: 品質検証 | ◎参照 | 品質メトリクス | 検証サブエージェント | /ultrareview | | **`/verify`**（動くアプリでの確認）, Push Notifications |
 | P6: ドキュメント | ◎参照 | 設計書逆生成 | | | | LSP（型情報活用） |
 
 **v2.1 で追加した機能と、それが担う役割**:
