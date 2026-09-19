@@ -35,9 +35,11 @@ v2.0 のフラット形式（`{"traceability": ..., "coverage": ...}`）もそ�
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -57,6 +59,9 @@ from jsix_result import Result, failed, passed, skipped  # noqa: E402
 CONFIG_NAME = config.CONFIG_NAME
 EXIT_OK = 0
 EXIT_BLOCK = 2
+
+#: Stop hook で同じ失敗によるブロックを何回まで続けるか（`stop_hook.max_identical_blocks`）
+DEFAULT_MAX_IDENTICAL_BLOCKS = 3
 
 
 class Context:
@@ -316,6 +321,57 @@ def render(results: dict, legacy: bool) -> tuple:
     return lines, has_failure
 
 
+def stop_state_dir() -> Path:
+    """Stop hook のブロック回数を覚えておく場所。プロジェクトを汚さないよう一時領域に置く。"""
+    return Path(tempfile.gettempdir()) / "jsix-stop-hook"
+
+
+def _read_hook_input() -> dict | None:
+    """Stop hook の入力（stdin の JSON）を読む。読めなければ None。"""
+    try:
+        data = json.loads(sys.stdin.read() or "{}")
+    except (ValueError, OSError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _release_repeated_block(hook: dict | None, lines: list, cfg: dict) -> str | None:
+    """同じ失敗でのブロックが上限を超えたら、停止を許可する理由を返す。
+
+    ゲートが工程上まだ満たせない状態（Spec に REQ を追加した直後で、テストは次の工程で
+    書く等）だと、Stop のたびに同じ失敗でブロックし続けセッションが終わらない。
+    Claude Code 自身の上限（連続8回）に頼らず、失敗内容が変わらないブロックだけを数えて
+    解除する。**判定は緩めない**: ゲートは未達のまま残り、CI（外側ループ）では止まる。
+    """
+    if not hook or not hook.get("session_id"):
+        return None
+    limit = int(cfg.get("stop_hook", {}).get("max_identical_blocks", DEFAULT_MAX_IDENTICAL_BLOCKS))
+    fingerprint = hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+    session = hashlib.sha256(str(hook["session_id"]).encode("utf-8")).hexdigest()[:16]
+    state_path = stop_state_dir() / f"{session}.json"
+
+    count = 1
+    if hook.get("stop_hook_active"):
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            state = {}
+        if state.get("fingerprint") == fingerprint:
+            count = int(state.get("count", 0)) + 1
+
+    try:
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        state_path.write_text(json.dumps({"fingerprint": fingerprint, "count": count}), encoding="utf-8")
+    except OSError:
+        return None  # 状態を残せないなら従来どおり止める
+
+    if count > limit:
+        return (f"J-SIX: 同じ失敗で {limit} 回ブロックしたため、停止を許可します。"
+                "品質ゲートは未達のままです（CI では止まります）。"
+                "工程上いま満たせない失敗であれば、次の工程で解消してください")
+    return None
+
+
 def main(argv: list | None = None) -> int:
     parser = argparse.ArgumentParser(description="J-SIX 品質ゲートのランナー")
     parser.add_argument("--run-commands", action="store_true",
@@ -323,6 +379,8 @@ def main(argv: list | None = None) -> int:
     parser.add_argument("--json", dest="json_out", default=None,
                         help="結果を JSON で書き出すパス")
     parser.add_argument("--dir", default=None, help="対象ディレクトリ（既定: カレント）")
+    parser.add_argument("--stop-hook", action="store_true",
+                        help="Stop hook として実行する（stdin の Hook 入力を読み、同じ失敗の繰り返しブロックを解除する）")
     parser.add_argument("--gates", default=None,
                         help="実行するゲートをカンマ区切りで指定（例: g1,g2,g4）。"
                              "省略時は設定にあるゲートをすべて実行する")
@@ -363,6 +421,11 @@ def main(argv: list | None = None) -> int:
         out.write_text(json.dumps({"ok": ok, "gates": results}, ensure_ascii=False, indent=2), encoding="utf-8")
 
     if not ok:
+        if args.stop_hook:
+            released = _release_repeated_block(_read_hook_input(), lines, cfg)
+            if released:
+                print(released)
+                return EXIT_OK
         print("J-SIX 品質ゲート未達。修正してください。", file=sys.stderr)
         return EXIT_BLOCK
     return EXIT_OK

@@ -67,7 +67,7 @@ v2.1 の中心は **レビュー前の4層品質ゲート**です。人間レビ
 | イベント | 型 | 対象 | 内容 |
 |---|---|---|---|
 | PreToolUse | **command** | Edit/Write/MultiEdit | 決定論的な format / lint（v2.0 の prompt 型を置換） |
-| Stop | **command** | 全体 | 品質ゲート G1→G4（`.jsix-checks.json` 同梱時のみ動く）。G1/G2 通過後に判定ファイルが無ければ「G3 未実施」で止め、scope-judge の起動を案内する。変更ファイルが無いセッションでは G3 を求めない |
+| Stop | **command** | 全体 | 品質ゲート G1→G4（`.jsix-checks.json` 同梱時のみ動く）。G1/G2 通過後に判定ファイルが無ければ「G3 未実施」で止め、scope-judge の起動を案内する。変更ファイルが無いセッションでは G3 を求めない。同じ失敗でのブロックが3回続いたら停止を許可する（判定は未達のまま。CI で止まる。`stop_hook.max_identical_blocks` で変更可） |
 | Stop | prompt | 全体 | ADR を記録すべき技術判断をしたのに ADR を作成・提案していない場合だけ停止を止める |
 
 **prompt 型を command 型に置き換えた理由**（PreToolUse）:
