@@ -285,8 +285,9 @@ def render_coverage_mutation(coverage: dict | None, mutation: dict | None) -> st
         low = coverage.get("findings") or []
         if low:
             body += ["### 網羅率の低いファイル", "",
-                     "| ファイル | 網羅率 | 到達行 / 全行 |", "|---|---|---|"]
-            body += [f"| `{f['file']}` | {f['line_pct']}% | {f['covered']} / {f['total']} |" for f in low]
+                     "| ファイル | 網羅率 | 到達行 / 全行 | 未到達行 |", "|---|---|---|---|"]
+            body += [f"| `{f['file']}` | {f['line_pct']}% | {f['covered']} / {f['total']} "
+                     f"| {_line_ranges(f.get('missing')) or '—'} |" for f in low]
             body.append("")
 
     body += ["## mutation score", "",
@@ -319,10 +320,25 @@ def render_coverage_mutation(coverage: dict | None, mutation: dict | None) -> st
                 "",
                 "| ファイル | 行 | 変異 |", "|---|---|---|",
             ]
-            body += [f"| `{s.get('file')}` | {s.get('line', '—')} | {s.get('mutator', '—')} |"
+            body += [f"| {('`' + s['file'] + '`') if s.get('file') else '—'} "
+                     f"| {s.get('line') or '—'} | {s.get('mutator') or '—'} |"
                      for s in survivors]
             body.append("")
     return "\n".join(body) + "\n"
+
+
+def _line_ranges(lines) -> str:
+    """[72, 73, 74, 90] → "72-74, 90"。"""
+    nums = sorted(set(int(n) for n in (lines or [])))
+    out = []
+    i = 0
+    while i < len(nums):
+        j = i
+        while j + 1 < len(nums) and nums[j + 1] == nums[j] + 1:
+            j += 1
+        out.append(str(nums[i]) if i == j else f"{nums[i]}-{nums[j]}")
+        i = j + 1
+    return ", ".join(out)
 
 
 def render_security(results: dict) -> str:

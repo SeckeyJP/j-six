@@ -65,3 +65,20 @@ def test_scope_changed_rejects_minimal(fixtures):
 def test_unknown_format(fixtures):
     r = mut.check({"report": "sast-clean.sarif"}, fixtures)
     assert not r.ok
+
+
+def test_minimal_contract_survivors_are_reported(tmp_path):
+    """最小契約でも survivors があれば証跡に載せる（ROADMAP C11）。
+
+    mutmut のアダプタは生存ミュータント名を出していたが、読み捨てていた。
+    """
+    import json
+
+    (tmp_path / "m.json").write_text(json.dumps({
+        "score": 90.0, "killed": 9, "survived": 1,
+        "survivors": ["app.x.xǁSvcǁrun__mutmut_3",
+                      {"file": "app/y.py", "line": 12, "mutator": "ConditionalBoundary"}],
+    }), encoding="utf-8")
+    r = mut.check({"report": "m.json"}, tmp_path)
+    assert [s.get("mutator") for s in r.findings] == ["app.x.xǁSvcǁrun__mutmut_3", "ConditionalBoundary"]
+    assert r.findings[1]["file"] == "app/y.py" and r.findings[1]["line"] == 12

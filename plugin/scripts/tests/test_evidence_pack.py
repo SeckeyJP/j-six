@@ -272,3 +272,24 @@ class TestRegeneration:
         archived = list(target.glob("07_approval.*.md"))
         assert len(archived) == 1
         assert "山田" in archived[0].read_text(encoding="utf-8")
+
+
+def test_coverage_section_shows_missing_lines(tmp_path):
+    import copy
+
+    results = copy.deepcopy(RESULTS)
+    results["g2"]["checks"]["coverage"]["findings"][0]["missing"] = [72, 73, 74, 90]
+    target = pack.generate(results, True, tmp_path, tmp_path / "ev", task_id="T")
+    text = (target / "03_coverage_mutation.md").read_text(encoding="utf-8")
+    assert "72-74, 90" in text
+
+
+def test_survivor_without_file_is_rendered(tmp_path):
+    import copy
+
+    results = copy.deepcopy(RESULTS)
+    results["g2"]["checks"]["mutation"]["findings"] = [{"mutator": "app.x.xǁSvcǁrun__mutmut_3"}]
+    target = pack.generate(results, True, tmp_path, tmp_path / "ev", task_id="T")
+    text = (target / "03_coverage_mutation.md").read_text(encoding="utf-8")
+    assert "app.x.xǁSvcǁrun__mutmut_3" in text
+    assert "`None`" not in text

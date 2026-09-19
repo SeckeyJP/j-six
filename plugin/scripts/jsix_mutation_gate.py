@@ -77,12 +77,29 @@ def parse_mutation_report(path: Path) -> dict:
             "killed": doc.get("killed"),
             "survived": doc.get("survived"),
             "per_file": {},
-            "survivors": [],
+            "survivors": _minimal_survivors(doc.get("survivors")),
         }
 
     raise MutationParseError(
         "mutation-testing-elements JSON（files キー）でも最小契約 JSON（score キー）でもありません"
     )
+
+
+def _minimal_survivors(raw) -> list:
+    """最小契約の任意項目 survivors を、elements 形式と同じ形に揃える。
+
+    文字列（ツールが付けたミュータント名）か、file / line / mutator を持つオブジェクトを受け付ける。
+    アダプタが生存ミュータント名を出していても読み捨てていたため、証跡に載らなかった。
+    """
+    out = []
+    for item in raw or []:
+        if isinstance(item, str):
+            out.append({"file": None, "line": None, "mutator": item, "status": "Survived"})
+        elif isinstance(item, dict):
+            out.append({"file": item.get("file"), "line": item.get("line"),
+                        "mutator": item.get("mutator") or item.get("name"),
+                        "status": item.get("status", "Survived")})
+    return out
 
 
 def _parse_elements(doc: dict) -> dict:
