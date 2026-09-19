@@ -76,6 +76,7 @@ git diff                      # 未コミット分
 {
   "verdict": "PASS",
   "attempt": 1,
+  "target": "<品質ゲートの案内に書かれた target の値>",
   "reasons": [],
   "reviewed": {
     "baseline": "jsix/red-TASK-001",
@@ -92,6 +93,7 @@ git diff                      # 未コミット分
 {
   "verdict": "REJECT",
   "attempt": 1,
+  "target": "<品質ゲートの案内に書かれた target の値>",
   "reasons": [
     {
       "category": "scope",
@@ -103,6 +105,11 @@ git diff                      # 未コミット分
   "reviewed": { "baseline": "jsix/red-TASK-001", "head": "<commit SHA>", "task": "TASK-001", "files": [] }
 }
 ```
+
+**`target` の扱い**: 品質ゲートの「G3 未実施」の案内に書かれた `target` の値を**そのまま**
+書き写す。これは判定対象の差分の指紋で、ランナーは現在の差分の指紋と一致しない判定を
+「古い判定」として無効にする（判定後にコードが変わった場合や、別タスクの判定が残っている
+場合を防ぐため）。値を推測・計算しないこと。diff は案内の「比較元」からの差分を読む。
 
 **`attempt` の扱い**: 既存の judge.json があれば、その `attempt` に 1 を足す。
 無ければ 1。ランナーは `attempt` が `max_auto_fix`（既定 1）を超えた却下を

@@ -160,6 +160,56 @@ class TestG3TwoPhase:
         assert judge["skipped"] is True
         assert "変更なし" in judge["summary"]
 
+    @staticmethod
+    def _git(project, *args):
+        env_args = ["-c", "user.name=t", "-c", "user.email=t@example.com"]
+        return subprocess.run(["git", *env_args, *args], cwd=project, check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    def _feature_branch_with_commit(self, project):
+        """main から切ったブランチで、変更をコミット済みにする（tdd-cycle の手順どおり）。"""
+        self._config(project)
+        self._git_commit_all(project)
+        self._git(project, "branch", "-M", "main")
+        self._git(project, "checkout", "-q", "-b", "task")
+        (project / "app.py").write_text("x = 1\n", encoding="utf-8")
+        self._git(project, "add", "-A")
+        self._git(project, "commit", "-q", "-m", "green")
+
+    def test_committed_changes_still_require_g3(self, project):
+        """フェーズごとにコミットしても、ブランチの差分があれば G3 を求める。
+
+        未コミットの差分だけを見ていたため、コミット後の Stop では「変更なし」になり
+        G3 が素通りしていた（tdd-cycle のヘッドレス実行で発覚）。
+        """
+        self._feature_branch_with_commit(project)
+        cfg = runner.config.load(project)
+        ok, results = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        assert not ok
+        assert "G3 未実施" in results["g3"]["checks"]["judge"]["summary"]
+
+    def test_judge_must_match_current_diff(self, project):
+        """前のタスクや、判定後に変わったコードに対する PASS では通さない。"""
+        self._feature_branch_with_commit(project)
+        _write(project / "reports" / "judge.json",
+               {"verdict": "PASS", "reasons": [], "target": "stale"})
+        cfg = runner.config.load(project)
+        ok, results = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        assert not ok
+        assert "古い" in results["g3"]["checks"]["judge"]["summary"]
+
+    def test_judge_matching_target_passes(self, project):
+        self._feature_branch_with_commit(project)
+        cfg = runner.config.load(project)
+        ctx = runner.Context(project, run_commands=False)
+        _, results = runner.run_gates(cfg, ctx)
+        target = results["g3"]["checks"]["judge"]["metrics"]["target"]
+        assert target and target in results["g3"]["checks"]["judge"]["summary"]
+        _write(project / "reports" / "judge.json",
+               {"verdict": "PASS", "reasons": [], "target": target})
+        ok, _ = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        assert ok
+
     def test_changes_still_require_g3(self, project):
         """変更があれば従来どおり G3 未実施で止める。"""
         self._config(project)
@@ -347,3 +397,56 @@ def test_judge_message_uses_relative_path(project):
     summary = results["g3"]["checks"]["judge"]["summary"]
     assert "reports/evidence/judge.json" in summary
     assert str(project) not in summary
+
+
+class TestScopeBaseline:
+    """スコープの deny（hold-out を実装側が触らない）は、RED タグ以降の変更で判定する。
+
+    hold-out テストは同じタスクの前半で正当にコミットされる。ブランチ全体の差分で
+    見ると、その追加まで違反になってしまう。
+    """
+
+    @staticmethod
+    def _git(project, *args):
+        env_args = ["-c", "user.name=t", "-c", "user.email=t@example.com"]
+        subprocess.run(["git", *env_args, *args], cwd=project, check=True, capture_output=True)
+
+    def _task(self, project):
+        _write(project / ".jsix-checks.json", {"gates": {"g1": {"scope": {
+            "allow": ["app/**", "tests/**", "docs/**", "reports/**", "coverage.xml", ".jsix-checks.json"],
+            "deny": ["tests/acceptance/**"],
+        }}}})
+        self._git(project, "init", "-q")
+        self._git(project, "add", "-A")
+        self._git(project, "commit", "-q", "-m", "init")
+        self._git(project, "branch", "-M", "main")
+        self._git(project, "checkout", "-q", "-b", "task")
+        (project / "tests" / "acceptance").mkdir()
+        (project / "tests" / "acceptance" / "test_uc.py").write_text("def test_uc(): pass\n", encoding="utf-8")
+        self._git(project, "add", "-A")
+        self._git(project, "commit", "-q", "-m", "hold-out")
+        self._git(project, "tag", "jsix/red-T1")
+
+    def _scope(self, project):
+        cfg = runner.config.load(project)
+        ok, results = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        return ok, results["g1"]["checks"]["scope"]["summary"]
+
+    def test_holdout_added_before_red_is_allowed(self, project):
+        self._task(project)
+        (project / "app").mkdir()
+        (project / "app" / "x.py").write_text("x = 1\n", encoding="utf-8")
+        self._git(project, "add", "-A")
+        self._git(project, "commit", "-q", "-m", "green")
+        ok, summary = self._scope(project)
+        assert ok, summary
+
+    def test_committed_holdout_edit_after_red_is_denied(self, project):
+        """RED 以降に hold-out を変えたら、コミット済みでも検出する。"""
+        self._task(project)
+        (project / "tests" / "acceptance" / "test_uc.py").write_text("def test_uc(): assert True\n", encoding="utf-8")
+        self._git(project, "add", "-A")
+        self._git(project, "commit", "-q", "-m", "tamper")
+        ok, summary = self._scope(project)
+        assert not ok
+        assert "tests/acceptance/test_uc.py" in summary

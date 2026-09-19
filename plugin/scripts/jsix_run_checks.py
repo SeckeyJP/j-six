@@ -71,19 +71,38 @@ class Context:
         self.base = base
         self.run_commands = run_commands
         self._changed = None
+        #: 変更ファイルの比較元。設定の scope.base、無ければ既定ブランチとの分岐点
+        self.scope_base: str | None = None
+        self._base_ref: str | None = None
+        self._base_resolved = False
+        #: 設定のゲート定義（G3 が G4 の出力先を知るために使う）
+        self.config_gates: dict = {}
         #: G4 は G1〜G3 の結果を入力に取るため、実行中の結果を参照できるようにする
         self.results: dict = {}
         self.config_path: Path | None = None
 
     @property
+    def base_ref(self) -> str | None:
+        """タスクの起点。コミット済みの変更も検査対象に含めるために使う。"""
+        if not self._base_resolved:
+            self._base_resolved = True
+            if git.is_repo(self.base):
+                self._base_ref = self.scope_base or git.default_base(self.base)
+        return self._base_ref
+
+    @property
     def changed_files(self) -> list | None:
-        """変更ファイル（設定ファイルのあるディレクトリからの相対パス）。"""
+        """変更ファイル（設定ファイルのあるディレクトリからの相対パス）。
+
+        タスクの起点（base_ref）からの差分＋未コミットの変更。フェーズごとにコミット
+        しても、スコープ検査と G3 が空振りしないようにするため。
+        """
         if self._changed is None:
             if not git.is_repo(self.base):
                 self._changed = []
             else:
                 try:
-                    self._changed = git.changed_files_relative(self.base)
+                    self._changed = git.changed_files_relative(self.base, self.base_ref)
                 except git.GitError:
                     self._changed = []
         return self._changed
@@ -146,6 +165,25 @@ def _mutation_check(name: str, cfg: dict, ctx: Context) -> Result:
     return mutation_gate.check(cfg, ctx.base, ctx.changed_files)
 
 
+def _scope_check(cfg: dict, ctx: Context) -> Result:
+    """G1 スコープ検査。比較元は RED タグ（実装フェーズの変更だけを見る）。
+
+    deny（例: hold-out を実装側が触らない）は実装フェーズの規則である。hold-out テストは
+    同じタスクの前半で正当にコミットされるため、ブランチ全体の差分で見ると誤検出になる。
+    優先順: 設定の scope.base → RED タグ（$JSIX_TASK_ID → 最新の jsix/red-*）→ 未コミットの変更のみ。
+    """
+    if not git.is_repo(ctx.base):
+        return scope_check.check(cfg, ctx.base, [])
+    ref = cfg.get("base") or tamper_check.resolve_baseline({}, ctx.base)
+    try:
+        changed = git.changed_files_relative(ctx.base, ref)
+    except git.GitError:
+        changed = []
+    result = scope_check.check(cfg, ctx.base, changed)
+    result.metrics["compared_from"] = ref or "未コミットの変更のみ"
+    return result
+
+
 def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     """G3: scope-judge の判定ファイルを読む。
 
@@ -161,19 +199,35 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     verdict_rel = cfg.get("verdict", "reports/evidence/judge.json")
     verdict_path = ctx.base / verdict_rel
     agent = cfg.get("agent", "scope-judge")
+    # 判定がどの差分に対するものかを照合する。git 管理外では照合しない
+    evidence_out = (ctx.config_gates.get("g4") or {}).get("out", "reports/evidence/")
+    target = (git.diff_fingerprint(ctx.base_ref, ctx.base, exclude=[verdict_rel, evidence_out])
+              if git.is_repo(ctx.base) else None)
+    target_hint = f', "target": "{target}"' if target else ""
+    base_hint = f"（比較元 {ctx.base_ref[:12]}）" if ctx.base_ref else ""
+
+    instructions = (
+        f"`{agent}` サブエージェントに diff{base_hint}・タスク定義・該当 Spec を渡して判定させ、"
+        f"結果を {verdict_rel} に書き出してください"
+        ' 形式: {"verdict": "PASS"|"REJECT", "reasons": [{"category": "correctness"|"requirement"|"scope", "detail": "..."}], "attempt": 1'
+        + target_hint + "}"
+    )
+    meta = {"verdict_path": verdict_rel, "agent": agent, "target": target, "base_ref": ctx.base_ref}
 
     if not verdict_path.is_file():
-        return failed(
-            f"judge: G3 未実施。`{agent}` サブエージェントに diff・タスク定義・該当 Spec を渡して判定させ、"
-            f"結果を {verdict_rel} に書き出してください"
-            ' 形式: {"verdict": "PASS"|"REJECT", "reasons": [{"category": "correctness"|"requirement"|"scope", "detail": "..."}], "attempt": 1}',
-            {"verdict_path": verdict_rel, "agent": agent},
-        )
+        return failed(f"judge: G3 未実施。{instructions}", meta)
 
     try:
         doc = json.loads(verdict_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return failed(f"judge: {verdict_path} の解析に失敗: {exc}")
+
+    if target and doc.get("target") != target:
+        return failed(
+            "judge: G3 の判定が古い（判定後に差分が変わった、または別タスクの判定が残っている）。"
+            f"再判定してください。{instructions}",
+            meta,
+        )
 
     verdict = str(doc.get("verdict", "")).upper()
     reasons = doc.get("reasons") or []
@@ -185,6 +239,7 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
         "attempt": attempt,
         "max_auto_fix": max_auto_fix,
         "reason_categories": sorted({str(r.get("category", "unknown")) for r in reasons}),
+        "target": target,
     }
 
     if verdict == "PASS":
@@ -221,7 +276,7 @@ CHECKS = {
     "sast": _sarif_check,
     "secrets": _sarif_check,
     "deps": _sarif_check,
-    "scope": lambda name, cfg, ctx: scope_check.check(cfg, ctx.base, ctx.changed_files),
+    "scope": lambda name, cfg, ctx: _scope_check(cfg, ctx),
     "tests": _tests_check,
     "holdout": _tests_check,
     "coverage": lambda name, cfg, ctx: coverage_gate.check(cfg, ctx.base),
@@ -244,6 +299,10 @@ def run_gates(cfg: dict, ctx: Context, only: set | None = None) -> tuple:
     """
     results: dict = {}
     aborted_after = None
+    ctx.config_gates = cfg.get("gates", {})
+    scope_cfg = cfg.get("gates", {}).get("g1", {}).get("scope") or {}
+    if scope_cfg.get("base") and ctx.scope_base is None:
+        ctx.scope_base = scope_cfg["base"]
 
     for gate in config.GATE_ORDER:
         gate_cfg = cfg.get("gates", {}).get(gate)
