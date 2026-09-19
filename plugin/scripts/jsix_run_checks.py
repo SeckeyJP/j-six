@@ -208,7 +208,8 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     # 判定がどの差分に対するものかを照合する。git 管理外では照合しない
     evidence_out = (ctx.config_gates.get("g4") or {}).get("out", "reports/evidence/")
     history = ctx.history_path or DEFAULT_HISTORY
-    target = (git.diff_fingerprint(ctx.base_ref, ctx.base, exclude=[verdict_rel, evidence_out, history])
+    target = (git.diff_fingerprint(ctx.base_ref, ctx.base, exclude=[verdict_rel, evidence_out, history],
+                                   include=cfg.get("fingerprint_paths"))
               if git.is_repo(ctx.base) else None)
     target_hint = f', "target": "{target}"' if target else ""
     base_hint = f"（比較元 {ctx.base_ref[:12]}）" if ctx.base_ref else ""

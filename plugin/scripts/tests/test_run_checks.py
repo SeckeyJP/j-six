@@ -210,6 +210,29 @@ class TestG3TwoPhase:
         ok, _ = runner.run_gates(cfg, runner.Context(project, run_commands=False))
         assert ok
 
+    def test_fingerprint_paths_limit_what_invalidates_judge(self, project):
+        """g3.fingerprint_paths を指定すると、それ以外の変更では判定が古くならない（ROADMAP C8）。
+
+        ドキュメントだけの変更でも scope-judge の再実行が必要になり、コストがかかっていた。
+        """
+        self._feature_branch_with_commit(project)
+        cfg_path = project / ".jsix-checks.json"
+        doc = json.loads(cfg_path.read_text(encoding="utf-8"))
+        doc["gates"]["g3"]["fingerprint_paths"] = ["app.py"]
+        cfg_path.write_text(json.dumps(doc), encoding="utf-8")
+        self._git(project, "commit", "-qam", "limit")
+
+        def target():
+            cfg = runner.config.load(project)
+            _, res = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+            return res["g3"]["checks"]["judge"]["metrics"]["target"]
+
+        before = target()
+        (project / "docs" / "note.md").write_text("メモ\n", encoding="utf-8")
+        assert target() == before
+        (project / "app.py").write_text("x = 2\n", encoding="utf-8")
+        assert target() != before
+
     def test_changes_still_require_g3(self, project):
         """変更があれば従来どおり G3 未実施で止める。"""
         self._config(project)

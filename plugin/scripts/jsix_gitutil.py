@@ -193,7 +193,8 @@ def default_base(cwd: Path | None = None) -> str | None:
     return None
 
 
-def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = None) -> str | None:
+def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = None,
+                     include: list | None = None) -> str | None:
     """base から作業ツリーまでの差分（base_dir 配下、未追跡ファイルを含む）の指紋。
 
     G3 の判定がどの差分に対するものかを照合するために使う。判定後にコードが
@@ -201,6 +202,7 @@ def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = No
 
     exclude（base_dir 相対）には判定ファイルと証跡の出力先を渡す。これらはゲート自身が
     書くため、含めると判定を書いた瞬間に指紋が変わってしまう。
+    include（base_dir 相対）を渡すと、そのパスの変更だけを指紋に含める。
     """
     import hashlib
 
@@ -208,7 +210,8 @@ def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = No
     if root is None:
         return None
     rel = Path(base_dir).resolve().relative_to(root.resolve()).as_posix() or "."
-    pathspec = [rel] + [
+    targets = [posixpath.normpath(posixpath.join(rel, i)) for i in include] if include else [rel]
+    pathspec = targets + [
         f":(exclude){posixpath.normpath(posixpath.join(rel, e))}" for e in (exclude or [])
     ]
     h = hashlib.sha256()
