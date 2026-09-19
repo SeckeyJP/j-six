@@ -888,7 +888,7 @@ Phase 6 の `doc-reverse-gen` Skill が、証跡パッケージを従来フォ�
 | 4 | TDD × CC サブエージェント実践 | 記事 | ✅ 公開済 |
 | 5 | 設計書逆生成 Skill の実装 | GitHub（Skill コード） | ✅ 完成 |
 | 6 | j-six Plugin | GitHub（Plugin） | ✅ 完成 |
-| 7 | 導入事例・ROI レポート | 記事 | 計画中（ROADMAP A1） |
+| 7 | 導入事例・ROI レポート | 記事 | 見送り。導入事例はケーススタディ #1 で完了（ROADMAP A1）。ROI の根拠となる工数の実測比較（ROADMAP A1'）を見送ったため、工数削減率は推定のまま |
 | 8 | 4層品質ゲート（G1-G4）の Plugin 実装 | GitHub（Plugin scripts / Agents / Skills） | ✅ 完成 |
 | 9 | 証跡パッケージ（顧客納品対応） | GitHub（evidence-pack Skill） | ✅ 完成 |
 | 10 | mutation testing × PBT の実測（ケーススタディ #2） | 記事 + GitHub | ✅ 完成 |
