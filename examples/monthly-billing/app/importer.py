@@ -51,6 +51,12 @@ def import_sales(service: BillingService, csv_text: str) -> ImportResult:
 
     result = ImportResult()
     for row_no, row in enumerate(reader, start=2):
+        # DictReader は不足列を None で埋め、余分な値を None キーに入れる。
+        # どちらも変換まで進めると TypeError で取込全体が止まる／黙って取り込まれるため、
+        # 列数の不一致はここでエラー行にする。
+        if None in row or any(row[column] is None for column in COLUMNS):
+            result.errors.append(f"{row_no}行目: 列数がヘッダと一致しません")
+            continue
         try:
             added = service.add_sale(
                 record_id=row["record_id"],

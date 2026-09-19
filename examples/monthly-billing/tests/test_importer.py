@@ -77,3 +77,31 @@ def test_import_result_defaults_errors_to_list():
     from app.importer import ImportResult
 
     assert ImportResult().errors == []
+
+
+def test_uc001_short_row_becomes_error_row(svc):
+    """列が足りない行も1行のエラーとして扱い、前後の行は取り込む。
+
+    csv.DictReader は不足した列を None で埋めるため、変換で TypeError になり
+    取込全体が止まっていた（コードレビューで検出）。
+    """
+    result = import_sales(
+        svc,
+        _csv(
+            "S1,C001,2026-08-03,事務用品,3,333,10",
+            "S2,C001,2026-08-04,配送料,1,100",
+            "S3,C001,2026-08-05,梱包材,2,50,10",
+        ),
+    )
+    assert result.imported == 2
+    assert len(result.errors) == 1
+    assert "3行目" in result.errors[0]
+    assert "列数" in result.errors[0]
+
+
+def test_uc001_long_row_becomes_error_row(svc):
+    """列が多すぎる行は、どの値がどの列か確定できないためエラー行にする。"""
+    result = import_sales(svc, _csv("S1,C001,2026-08-03,事務用品,3,333,10,余分"))
+    assert result.imported == 0
+    assert len(result.errors) == 1
+    assert "列数" in result.errors[0]

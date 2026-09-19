@@ -105,6 +105,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- examples/monthly-billing/app/importer.py: 列数がヘッダと合わない CSV 行の扱い。不足列は `csv.DictReader` が None で埋めるため変換時に `TypeError` となり、**1行の不備で日次取込全体が止まっていた**（「1行の不備で取込全体を止めない」という仕様に反する）。過多の行は黙って取り込まれていた。どちらもエラー行として記録して継続するよう修正し、回帰テスト2件を追加。テストデータが常に正しい列数だったため、カバレッジ 98.8% / mutation 92.3% でも検出できず、PR 前のコードレビューで見つかった。外部 IF 処理説明と外部 IF 一覧（記入済み実例）、外部 IF 処理説明テンプレートの「書き落としやすい点」にも反映
 - templates/deliverables/README.md ほか: 由来の内訳が実ファイルと食い違っていた（「逆生成16＋受入テスト1／人手7」と記載していたが、各成果物の冒頭の由来を数えるとコード逆生成18・受入テスト逆生成1・併用3・人手5）。「27点中17点が実物から起こせる」は19点に訂正。monthly-billing README の領域別表も合計が行の和（19）と合っていなかった
 - CHANGELOG.md: IPA ガイド・国税庁 Q&A の参考文献番号を実際の [32][33] に訂正
 
