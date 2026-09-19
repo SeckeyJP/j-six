@@ -2,7 +2,7 @@
 
 ## — 全ドキュメントの主張に対する根拠の整理 —
 
-**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施） / 2026-09-19（工程成果物テンプレートの追加に伴い、IPA 合意形成ガイドと国税庁 Q&A を A44-A46 として追加。非機能要件の分類に伴い IPA 非機能要求グレードを A47-A48 として追加）
+**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施） / 2026-09-19（工程成果物テンプレートの追加に伴い、IPA 合意形成ガイドと国税庁 Q&A を A44-A46 として追加。非機能要件の分類に伴い IPA 非機能要求グレードを A47-A48 として追加） / 2026-09-20（[3] の一次情報を再確認し、公開日と連続自律アクション数を訂正。参考文献一覧の [4] の日付を訂正）
 
 ---
 
@@ -24,13 +24,13 @@
 
 | # | 主張 | 数値 | 出典 | URL | 使用箇所 |
 |---|---|---|---|---|---|
-| A1 | CC 自律実行時の人間介入頻度の減少 | 33%減少（6.2→4.1ターン/タスク） | Anthropic "How AI is Transforming Work at Anthropic"（2025） | https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic | J-SIX v1.0 第1章, 論点3 |
+| A1 | CC 自律実行時の人間介入頻度の減少 | 33%減少（6.2→4.1ターン/タスク） | Anthropic "How AI is Transforming Work at Anthropic"（2025.12） | https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic | J-SIX v1.0 第1章, 論点3 |
 | A2 | AI生成PRのイシュー率（人間比） | 約1.7倍 | CodeRabbit "State of AI vs Human Code Generation Report"（2025.12） | https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report | J-SIX v1.0 第1章, 論点3 |
 | A3 | ロジック/正確性エラー（人間比） | 1.75倍 | 同上（ACM 2025 との記載もあり、FlorianBruniaux guide 経由） | 同上 | 論点1a, 論点3 |
 | A4 | セキュリティイシュー（人間比） | 最大2.74倍 | 同上 | 同上 | J-SIX v1.0 第1章, 論点3 |
 | A5 | エラーハンドリングの抜け（人間比） | 約2倍 | 同上 | 同上 | 論点3 |
 | A6 | Sonnet 4.5 コード編集エラー率 | 9%→0%（Replit 内部ベンチマーク、Sonnet 4→4.5） | Anthropic 公式発表 "Introducing Claude Sonnet 4.5"（2025.09） | https://www.anthropic.com/news/claude-sonnet-4-5 | J-SIX v1.0 第1章, 論点3 |
-| A7 | Anthropic社内タスク複雑度の推移 | 平均 3.2→3.8（5段階） | Anthropic "How AI is Transforming Work at Anthropic"（2025） | https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic | 論点3 |
+| A7 | Anthropic社内タスク複雑度の推移 | 平均 3.2→3.8（5段階） | Anthropic "How AI is Transforming Work at Anthropic"（2025.12） | https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic | 論点3 |
 | A8 | コンテキスト70%で精度低下 | 70%超で精度低下、85%で幻覚増加 | FlorianBruniaux "claude-code-ultimate-guide" | https://github.com/FlorianBruniaux/claude-code-ultimate-guide | 論点3 |
 | A9 | CC $2.5B ARR（2026.02時点） | $2.5B 年間ランレート | devFlokers "How to Use Claude in March 2026" | https://www.devflokers.com/blog/how-to-use-claude-march-2026-enterprise-guide | 参考情報 |
 | A10 | Anthropic 評価額 $380B | $380B（2026.02 Series G） | 同上 | 同上 | 参考情報 |
@@ -186,8 +186,8 @@
 ### Anthropic 公式
 [1] Anthropic. "Best Practices for Claude Code". https://code.claude.com/docs/en/best-practices
 [2] Anthropic. "How Anthropic teams use Claude Code" (2025.07). https://claude.com/blog/how-anthropic-teams-use-claude-code
-[3] Anthropic. "How AI is Transforming Work at Anthropic" (2025). https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic
-[4] Anthropic. "Introducing Claude Sonnet 4.5" (2026.02). https://www.anthropic.com/news/claude-sonnet-4-5
+[3] Anthropic. "How AI is Transforming Work at Anthropic" (2025.12). https://www.anthropic.com/research/how-ai-is-transforming-work-at-anthropic
+[4] Anthropic. "Introducing Claude Sonnet 4.5" (2025.09). https://www.anthropic.com/news/claude-sonnet-4-5
 [5] Anthropic. "Enabling Claude Code to work more autonomously". https://www.anthropic.com/news/enabling-claude-code-to-work-more-autonomously
 [6] Anthropic. "Create custom subagents". https://code.claude.com/docs/en/sub-agents
 [7] Anthropic. "How Claude Code works". https://code.claude.com/docs/en/how-claude-code-works
@@ -275,6 +275,7 @@
 | 「ACM 2025 の報告でCC生成コードは1.75倍のロジックエラー」 | FlorianBruniaux guide 経由の記述。ACMの具体的な論文タイトルは未特定 | CodeRabbit レポート [8] の1.7倍を一次ソースとして使用。ACM への言及は削除 |
 | 「DORA 2026 が verification tax（検証税）という語で AI 生成コードの検証負荷を定義している」 | **不採用（2026-09-10）**: 二次記事に頻出する表現だが、DORA の公開ページで当該用語を確認できなかった（報告書本体はフォーム経由の配布）。 | 用語「verification tax」は使用せず、DORA の公開ページ [31] で確認できた記述（検証負荷に関する開発者の声、30%が AI 生成コードをほぼ信頼していない）のみを引用する（A43） |
 | ~~Anthropic社内「CC初回成功率33%」~~ | **訂正（2026-04-18）**: 一次ソース [3] の原文は「人間の介入ターン数が33%減少（6.2→4.1）」であり、「初回自律実行成功率33%」ではなかった。二次ソース [16] (DataCamp) で "unguided attempts 成功率約33%" と引用されていたが、原文の文脈と異なる可能性がある | J-SIX v1.0 を「人間の介入頻度33%減少」に修正。連続自律アクション数（約10→約20）を併記 |
+| 「CC の連続自律アクション数 約10→約20（6ヶ月で2倍）」 | **訂正（2026-09-20）**: 一次ソース [3]（2025-12-02 公開）の原文は「連続ツール呼び出しの最大数が116%増加（約10→約21）」。あわせて [3] の公開日を「2025」から「2025.12」に、参考文献一覧の [4] の日付を 2026.02 → 2025.09 に訂正（J-SIX.md の [4] は v2.0 で訂正済みだったが、本レポートの一覧に残っていた） | J-SIX.md 第1章 1.3 を訂正。記事側（j-six-articles）に残っていた「初回自律実行成功率33%」の記述も同日に訂正した |
 
 ### 7.2 時間経過で陳腐化する可能性がある情報
 
