@@ -66,11 +66,11 @@ v2.1 の中心は **レビュー前の4層品質ゲート**です。人間レビ
 
 | イベント | 型 | 対象 | 内容 |
 |---|---|---|---|
-| PreToolUse | **command** | Edit/Write/MultiEdit | 決定論的な format / lint（v2.0 の prompt 型を置換） |
+| PostToolUse | **command** | Edit/Write/MultiEdit | 編集したファイルに決定論的な format / lint（v2.0 の prompt 型を置換）。対象は `hook_files` で宣言したファイルのみ |
 | Stop | **command** | 全体 | 品質ゲート G1→G4（`.jsix-checks.json` 同梱時のみ動く）。G1/G2 通過後に判定ファイルが無ければ「G3 未実施」で止め、scope-judge の起動を案内する。変更ファイルが無いセッションでは G3 を求めない。同じ失敗でのブロックが3回続いたら停止を許可する（判定は未達のまま。CI で止まる。`stop_hook.max_identical_blocks` で変更可） |
 | Stop | prompt | 全体 | ADR を記録すべき技術判断をしたのに ADR を作成・提案していない場合だけ停止を止める |
 
-**prompt 型を command 型に置き換えた理由**（PreToolUse）:
+**prompt 型を command 型に置き換えた理由**（format / lint Hook）:
 規約準拠は lint / format が決定論的に判定できます。LLM に判定させると同じコードで
 結果がぶれ、編集のたびに LLM 呼び出しが発生します。prompt 型は**助言用途**
 （ADR の提案など、判定基準が言語化しにくいもの）に限定しています。
@@ -103,7 +103,7 @@ Hook（PostToolUse のテスト結果確認、StopFailure、PermissionDenied）�
 | `jsix_test_tamper_check.py` | G2 | RED タグ以降のテスト**弱体化**を検出 | 0/1 |
 | `jsix_traceability_check.py` | G2 | REQ / PROP ⇔ テストの対応を検証 | 0/1 |
 | `jsix_evidence_pack.py` | G4 | 証跡パッケージの生成 | 0 |
-| `jsix_format_hook.py` | — | PreToolUse の決定論的 format / lint | 0 |
+| `jsix_format_hook.py` | — | PostToolUse の決定論的 format / lint（`hook_files` に一致するファイルのみ） | 0 |
 | `jsix_guard_tests.py` | — | green-agent の監督面保護（PreToolUse） | 0 |
 | `jsix_config.py` / `jsix_result.py` / `jsix_gitutil.py` | — | 設定の正規化・共通インタフェース・git ヘルパ | — |
 
@@ -162,8 +162,8 @@ CI の例: [`.github/workflows/jsix-gate.yml`](../.github/workflows/jsix-gate.ym
   "gates": {
     "g1": {
       "build":  { "cmd": "make build" },
-      "lint":   { "cmd": "make lint", "hook_cmd": ".venv/bin/python -m ruff check --fix {file}" },
-      "format": { "cmd": "make format", "hook_cmd": ".venv/bin/python -m ruff format {file}" },
+      "lint":   { "cmd": "make lint", "hook_cmd": ".venv/bin/python -m ruff check --fix {file}", "hook_files": ["*.py"] },
+      "format": { "cmd": "make format", "hook_cmd": ".venv/bin/python -m ruff format {file}", "hook_files": ["*.py"] },
       "sast":   { "cmd": "make sast", "sarif": "reports/sast.sarif", "max_severity": "error" },
       "secrets":{ "sarif": "reports/secrets.sarif", "max_severity": "warning", "optional": true },
       "scope":  { "allow": ["src/approval/**", "tests/**"], "deny": ["tests/acceptance/**"] }
@@ -188,7 +188,8 @@ CI の例: [`.github/workflows/jsix-gate.yml`](../.github/workflows/jsix-gate.ym
 | キー | 意味 |
 |---|---|
 | `cmd` | `--run-commands` 指定時（CI）に実行するコマンド |
-| `hook_cmd` | PreToolUse Hook で実行するコマンド。`{file}` が編集対象に置換される |
+| `hook_cmd` | 編集後（PostToolUse）に実行するコマンド。`{file}` が編集対象に置換される |
+| `hook_files` | `hook_cmd` をかけるファイルの glob（例 `["*.py"]`）。**無ければ実行しない**。ファイル名、`/` を含む場合は設定ファイルからの相対パスと照合する。拡張子を見ずに実行すると `.json` などを壊す |
 | `optional` | 成果物が無い場合にスキップする（CI でのみ生成する SARIF 等）。**既定は不合格** |
 | `max_skipped` | 許容するテストのスキップ数。`0` にするとスキップ追加を検出できる |
 | `min` / `min_score` / `max_severity` | 閾値。**未指定なら計測・集計のみ**（判定しない） |

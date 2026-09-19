@@ -59,7 +59,7 @@ EOF
 
 | 頻出する失敗 | 還元先 |
 |---|---|
-| G1 lint / format | PreToolUse Hook（書いた時点で直す） |
+| G1 lint / format | PostToolUse Hook（書いた時点で直す） |
 | G1 scope | Phase 3 のタスク分解（許可範囲の定義） |
 | G2 test_tamper | エスカレーション運用の見直し |
 | G2 traceability | Spec の ID 付与ルール、red-agent への指示 |
@@ -156,7 +156,7 @@ EOF
 
 | ゲート | チェック | 失敗回数 | 還元先 |
 |---|---|---|---|
-| G1 | lint | N | PreToolUse Hook 化を検討 |
+| G1 | lint | N | PostToolUse Hook 化を検討 |
 
 ### 個別タスクの指標（証跡から引用）
 

@@ -212,7 +212,7 @@ CLAUDE.md は Phase 0 で書いて終わる文書ではない。**品質ゲー�
 | 観測されたもの | 還元先 | 理由 |
 |---|---|---|
 | 同じ規約違反が繰り返される | CLAUDE.md の該当行を強調、または **Hook 化** | 助言（CLAUDE.md）は守られないことがあるが、Hook は決定論的に効く |
-| ゲート G1 の同じチェックが何度も落ちる | PreToolUse の format/lint Hook | 落ちてから直すのではなく、書いた時点で直す |
+| ゲート G1 の同じチェックが何度も落ちる | 編集後（PostToolUse）の format/lint Hook | 落ちてから直すのではなく、書いた時点で直す |
 | 人間レビューで同種の指摘が続く | Skill（手順の明文化） | 都度の指示ではなく再利用可能な手順にする |
 | 特定の判断で毎回エスカレーションが起きる | CLAUDE.md の判断基準を追記 | 判断基準が言語化されていないサイン |
 
@@ -449,7 +449,7 @@ judge を撤去**している（判定が硬直的で妥当な変更まで止め
 変わらないブロックが3回続いたら停止を許可する**（`.jsix-checks.json` の
 `stop_hook.max_identical_blocks` で変更可）。判定は緩めず、ゲートは未達のまま残り、CI では止まる。
 
-**CC 機能**: Subagents（TDD 分離 / scope-judge）, Agent Teams（並列実行）, git worktree, Hooks（Stop / PreToolUse）, チェックポイント, `/goal`（G1〜G3 通過を goal 条件に設定）, `/code-review`
+**CC 機能**: Subagents（TDD 分離 / scope-judge）, Agent Teams（並列実行）, git worktree, Hooks（Stop / PostToolUse）, チェックポイント, `/goal`（G1〜G3 通過を goal 条件に設定）, `/code-review`
 
 ---
 
@@ -569,7 +569,7 @@ AI の作業を見張りレビューする時間が増える」という開発�
 | P1: 要求合意 | ◎参照 | Spec テンプレート | 並列リサーチ | | | ask_user_question |
 | P2: 技術設計 | ◎参照 | Design Spec | 並列調査 | | ADR チェック | Plan Mode |
 | P3: タスク分解 | ◎参照 | | | | TaskCreated Hook | Native Tasks, `/batch`（大規模分割） |
-| P4: TDD 実装 | ◎参照 | TDD Skill, 証跡パック | Red/Green/Refactor, hold-out, **scope-judge（G3）** | 並列実行 | **Stop（G1〜G4 の決定論的ゲート）**, **PreToolUse（format/lint）** | git worktree, **`/goal`**, `/code-review`, auto mode, /effort, Remote Control |
+| P4: TDD 実装 | ◎参照 | TDD Skill, 証跡パック | Red/Green/Refactor, hold-out, **scope-judge（G3）** | 並列実行 | **Stop（G1〜G4 の決定論的ゲート）**, **PostToolUse（format/lint）** | git worktree, **`/goal`**, `/code-review`, auto mode, /effort, Remote Control |
 | P5: 品質検証 | ◎参照 | 品質メトリクス | 検証サブエージェント | /ultrareview | | **`/verify`**（動くアプリでの確認）, Push Notifications |
 | P6: ドキュメント | ◎参照 | 設計書逆生成 | | | | LSP（型情報活用） |
 
@@ -618,7 +618,7 @@ plugin/
 │   ├── jsix_test_tamper_check.py# G2: テスト弱体化の検出
 │   ├── jsix_traceability_check.py # G2: REQ / PROP ⇔ テスト
 │   ├── jsix_evidence_pack.py    # G4: 証跡パッケージ生成
-│   ├── jsix_format_hook.py      # PreToolUse: 決定論的 format / lint
+│   ├── jsix_format_hook.py      # PostToolUse: 決定論的 format / lint
 │   ├── jsix_guard_tests.py      # PreToolUse: green-agent の監督面保護
 │   └── tests/                   # スクリプト自体の単体テスト
 ├── hooks/

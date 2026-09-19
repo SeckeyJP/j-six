@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
