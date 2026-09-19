@@ -60,15 +60,26 @@ v2.0 の種別は引き続き受け付け、次のように読み替える。読
 ## 雛形と記入済み実例
 
 次のファイルを雛形・手本として読む。テンプレートは本 Skill に同梱している
-（`${CLAUDE_SKILL_DIR}` は本 Skill のディレクトリ）。
+（`${CLAUDE_SKILL_DIR}/templates/deliverables/`）。
 
-| 用途 | パス |
+**Glob や Grep で同梱ディレクトリを探さず、下のリンクのファイルを Read で直接読むこと。**
+**テンプレートを読めない場合は、テンプレートなしで逆生成せず、作業を止めてその旨を報告する。**
+テンプレートを読まずに書くと、ファイル名・節構成・由来の表示が J-SIX の工程成果物と
+一致しない成果物になる（ヘッドレス実行で権限が足りず、独自の形式で書いた例がある）。
+
+| 領域 | 同梱テンプレート（Read で読む） |
 |---|---|
-| 工程成果物の空テンプレート | `${CLAUDE_SKILL_DIR}/templates/deliverables/<領域>/*.md` |
-| 27点の索引・由来・作る順序 | `${CLAUDE_SKILL_DIR}/templates/deliverables/README.md` |
-| 組立の原則と手順 | `${CLAUDE_SKILL_DIR}/templates/deliverables/assembly/GUIDE.md` |
-| 組立定義の例 | `${CLAUDE_SKILL_DIR}/templates/deliverables/assembly/kihon-sekkei.md`, `shousai-sekkei.md` |
-| 記入済み実例 | https://github.com/SeckeyJP/j-six/tree/main/examples/monthly-billing/docs/deliverables （Plugin には同梱していない） |
+| 索引 | [README.md](templates/deliverables/README.md) — 27点の索引・由来・作る順序 |
+| システム振舞い（`behavior/`） | [01-system-function-list.md](templates/deliverables/behavior/01-system-function-list.md) / [02-business-flow.md](templates/deliverables/behavior/02-business-flow.md) / [03-business-description.md](templates/deliverables/behavior/03-business-description.md) / [04-common-rules.md](templates/deliverables/behavior/04-common-rules.md) |
+| 画面（`screen/`） | [01-screen-list.md](templates/deliverables/screen/01-screen-list.md) / [02-screen-transition.md](templates/deliverables/screen/02-screen-transition.md) / [03-screen-layout.md](templates/deliverables/screen/03-screen-layout.md) / [04-screen-io-items.md](templates/deliverables/screen/04-screen-io-items.md) / [05-screen-actions.md](templates/deliverables/screen/05-screen-actions.md) / [06-common-rules.md](templates/deliverables/screen/06-common-rules.md) |
+| データモデル（`data/`） | [01-er-diagram.md](templates/deliverables/data/01-er-diagram.md) / [02-entity-list.md](templates/deliverables/data/02-entity-list.md) / [03-entity-definition.md](templates/deliverables/data/03-entity-definition.md) / [04-crud-matrix.md](templates/deliverables/data/04-crud-matrix.md) |
+| 外部インタフェース（`external-if/`） | [01-system-relation.md](templates/deliverables/external-if/01-system-relation.md) / [02-interface-list.md](templates/deliverables/external-if/02-interface-list.md) / [03-interface-items.md](templates/deliverables/external-if/03-interface-items.md) / [04-interface-process.md](templates/deliverables/external-if/04-interface-process.md) |
+| バッチ（`batch/`） | [01-batch-list.md](templates/deliverables/batch/01-batch-list.md) / [02-batch-flow.md](templates/deliverables/batch/02-batch-flow.md) / [03-batch-definition.md](templates/deliverables/batch/03-batch-definition.md) / [04-common-rules.md](templates/deliverables/batch/04-common-rules.md) |
+| 帳票（`report/`） | [01-report-list.md](templates/deliverables/report/01-report-list.md) / [02-report-overview.md](templates/deliverables/report/02-report-overview.md) / [03-report-layout.md](templates/deliverables/report/03-report-layout.md) / [04-report-items.md](templates/deliverables/report/04-report-items.md) / [05-report-edit-rules.md](templates/deliverables/report/05-report-edit-rules.md) |
+| 組立（`assembly/`） | [GUIDE.md](templates/deliverables/assembly/GUIDE.md) / [kihon-sekkei.md](templates/deliverables/assembly/kihon-sekkei.md) / [shousai-sekkei.md](templates/deliverables/assembly/shousai-sekkei.md) |
+
+記入済み実例は https://github.com/SeckeyJP/j-six/tree/main/examples/monthly-billing/docs/deliverables
+（Plugin には同梱していない）。成果物のファイル名はテンプレートと同じにする（例: `data/03-entity-definition.md`）。
 
 各テンプレート末尾の「記入ガイド」に、その成果物の**逆生成の手順と書き落としやすい点**が書いてある。
 逆生成の前に必ず読む。

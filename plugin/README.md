@@ -88,6 +88,12 @@ Hook（PostToolUse のテスト結果確認、StopFailure、PermissionDenied）�
 `green-agent` には subagent スコープの Hook が付いており、`tests/` への書き込みと
 `tests/acceptance/`（hold-out）の読み取りが機械的に拒否されます。
 
+## 評価ケース
+
+`plugin/evals/` に `claude plugin eval` の評価ケースを置いている。Plugin を実際に読み込ませて
+Skill を動かし、結果を採点する（Plugin を変更したときの受入試験。CI では実行しない）。
+実行方法と費用は [`evals/README.md`](evals/README.md) を参照。
+
 ## 決定論的チェック（command 型 Hook / CI）
 
 `plugin/scripts/` に LLM を介さないチェックスクリプトを同梱しています。
