@@ -28,7 +28,7 @@ v2.1 の中心は **レビュー前の4層品質ゲート**です。人間レビ
 | チェック | 入力フォーマット（言語横断） | 生成ツールの例（利用者が選ぶ） |
 |---|---|---|
 | テスト結果 | JUnit XML | pytest / jest / gradle / go test（変換） |
-| カバレッジ | Cobertura XML / LCOV | coverage.py / istanbul / jacoco |
+| カバレッジ | Cobertura XML / LCOV | coverage.py / istanbul / jacoco（独自の XML 形式のため Cobertura への変換が必要） |
 | SAST・secret・依存脆弱性 | SARIF | semgrep / bandit / gitleaks / trivy / CodeQL |
 | mutation | mutation-testing-elements JSON（Stryker 系 / PIT 系）。未対応ツールは `{"score": <number>}` の最小契約 | stryker / pitest / mutmut（アダプタ） |
 | テスト改変・スコープ | git（言語非依存） | — |

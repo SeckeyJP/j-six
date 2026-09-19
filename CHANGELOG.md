@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- plugin/README.md, plugin/scripts/jsix_coverage_gate.py: JaCoCo を Cobertura XML の生成ツールとして挙げていたが、JaCoCo の XML レポートは独自形式で `line-rate` 属性を持たず、カバレッジゲートはそのままでは読めない（「line-rate 属性がありません」で失敗する）。Cobertura 形式への変換が必要である旨に訂正
+
 ### Changed
 
 - README.md / docs/article-plan.md / index.html: 番外編記事「カバレッジ 99% のテストに mutation testing をかけたら、監査ログの穴が見つかった」（j-six-mutation-testing）の公開を反映（番外編 10本・全16本）
