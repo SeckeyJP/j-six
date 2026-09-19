@@ -14,7 +14,9 @@
 | REQ-007 | 自己承認の禁止 | `test_applicant_cannot_be_approver`, `test_duplicate_approvers_rejected` | `WorkflowService.create_request` |
 | REQ-008 | 承認順序の強制 | `test_out_of_order_approval_rejected`, `test_cannot_approve_draft`, `test_out_of_order_returns_409` | `WorkflowService.approve` / `reject` / `remand` |
 | REQ-009 | 終了済みは操作不可 | `test_cannot_operate_on_terminal_request` | `WorkflowService._ensure_active` / `_ensure_pending` |
-| REQ-010 | 全状態遷移の監査記録 | `test_full_audit_trail`, `test_create_request_sets_draft_and_audit` | `WorkflowService._log`, `models.AuditEntry` |
+| REQ-010 | 全状態遷移の監査記録 | `test_full_audit_trail`, `test_create_request_sets_draft_and_audit`（submit / approve / withdraw のコメント記録は**未トレース**。要求 Spec 1.1 で追加、Phase 4 で作成） | `WorkflowService._log`, `models.AuditEntry` |
+| REQ-011 | 対象不在をルール違反と区別する | **未トレース**（要求 Spec 1.1 で追加。Phase 4 で作成） | — |
+| REQ-012 | 未定義の入力項目は拒否する | **未トレース**（要求 Spec 1.1 で追加。Phase 4 で作成） | — |
 
 ## Property（PROP）⇔ テスト
 
@@ -29,6 +31,9 @@
 | PROP-004 | 監査ログ件数 = 成功した状態遷移の回数 | `test_prop_004_audit_log_counts_every_transition` | REQ-010 |
 | PROP-005 | 監査ログ末尾の actor は操作者本人 | `test_prop_005_audit_log_records_the_actual_actor` | REQ-010 |
 | PROP-006 | 順序どおりの全段承認は必ず APPROVED になる | `test_prop_006_in_order_approval_always_completes`, `test_prop_006_out_of_order_approval_never_advances` | REQ-003, REQ-008 |
+| PROP-007 | 状態遷移で送ったコメントが監査ログ末尾に残る | **未トレース**（Phase 4 で作成） | REQ-010 |
+| PROP-008 | 未登録の ID への参照・操作は必ず「対象不在」 | **未トレース**（Phase 4 で作成） | REQ-011 |
+| PROP-009 | 未定義の項目を含む入力は必ず「入力不正」で、状態も監査ログも変わらない | **未トレース**（Phase 4 で作成） | REQ-012 |
 
 ## hold-out 受入テスト ⇔ ユースケース
 
@@ -43,6 +48,7 @@
 
 ## 充足状況
 
-**トレーサビリティ**: 全 16 件（REQ 10 + PROP 6）にテストが存在し、未トレースはゼロ。
-`make gate` の G2 で機械的に検証している。
+**トレーサビリティ**: 全 21 件（REQ 12 + PROP 9）のうち 16 件にテストが存在する。
+要求 Spec 1.1（2026-09-19）で追加した REQ-011 / REQ-012 / PROP-007〜PROP-009 の 5 件は未トレースで、
+Phase 4 でテストを先に書いて解消する。それまで `make gate` の G2（トレーサビリティ）は不合格になる。
 API 結線は `test_api.py`（create/get/list/submit/approve/reject/remand/withdraw）で検証。
