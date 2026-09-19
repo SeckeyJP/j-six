@@ -132,6 +132,28 @@ def latest_tag(pattern: str, cwd: Path | None = None) -> str | None:
     return out or None
 
 
+def latest_tag_touching(prefix: str, base_dir: Path) -> str | None:
+    """base_dir 配下を変更したコミットに付いた、prefix で始まる最新のタグ名を返す。
+
+    タグはリポジトリ共有のため、1つのリポジトリに複数プロジェクトがあると、
+    最新の jsix/red-* が別プロジェクトのタスクのものになりうる。自プロジェクトの
+    ディレクトリを変更したコミットを新しい順にたどり、最初に見つかったタグを使う。
+    """
+    root = repo_root(base_dir)
+    if root is None:
+        return None
+    try:
+        rel = Path(base_dir).resolve().relative_to(root.resolve()).as_posix() or "."
+        out = _run(["log", "--decorate=short", "--format=%D", "HEAD", "--", rel], root)
+    except (GitError, ValueError):
+        return None
+    for line in out.splitlines():
+        for ref in (r.strip() for r in line.split(",")):
+            if ref.startswith("tag: ") and ref[5:].startswith(prefix):
+                return ref[5:]
+    return None
+
+
 def ls_tree(ref: str, paths: list | None = None, cwd: Path | None = None) -> list:
     """指定 ref に存在するファイルのパス一覧を返す。"""
     args = ["ls-tree", "-r", "--name-only", ref, "--"] + (paths or [])

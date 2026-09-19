@@ -70,7 +70,7 @@ def resolve_task_id(base: Path) -> str:
     task_id = os.environ.get("JSIX_TASK_ID")
     if task_id:
         return task_id
-    tag = git.latest_tag("jsix/red-*", cwd=base)
+    tag = git.latest_tag_touching("jsix/red-", base)
     if tag:
         return tag.split("jsix/red-", 1)[-1]
     return "untagged"
