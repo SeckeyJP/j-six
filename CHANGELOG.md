@@ -67,7 +67,7 @@ All notable changes to this project will be documented in this file.
 - plugin/agents/doc-generator.md: 工程成果物 → 組立 → 品質系納品物の順に生成。組立定義が無い場合は「顧客と目次を合意していない」ことを報告する
 - plugin/skills/spec-create, design-review: 非機能要求グレード（モデルシステム・6大項目）と合意成熟度のチェック項目を追加
 - templates/deliverables/README.md, examples/monthly-billing/docs/deliverables/README.md: 合意成熟度を成果物ごとの到達基準として書き直した（従来の「Phase 2 ゲート通過＝完成レベル」は組立ガイドの記述と矛盾していた）。記入済み実例は顧客確認を経ていないため完成レベルとは書かない
-- examples/monthly-billing/docs: 要求 Spec 3.5・Design Spec 7 を非機能要求グレード形式へ（モデルシステム: 社会的影響が限定されるシステム）。approval-workflow はケーススタディの計測対象のため据え置き（ROADMAP B6'）
+- examples/monthly-billing/docs: 要求 Spec 3.5・Design Spec 7 を非機能要求グレード形式へ（モデルシステム: 社会的影響が限定されるシステム）。approval-workflow も同形式へ（モデルシステム: 社会的影響がほとんど無いシステム）。Design Spec は v2.0 構成のまま、5.3 に6大項目との対応表を追加。Spec 文書のみの変更でケーススタディの計測値は変わらない（ゲート再実行で mutation 93.4% を確認）
 
 **v2.1: レビュー前品質ゲートの再設計**
 
