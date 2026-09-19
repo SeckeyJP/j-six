@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse Hook: 決定論的な format / lint を実行する。
+"""PostToolUse Hook: 編集したファイルに決定論的な format / lint をかける。
 
 v2.0 では PreToolUse に prompt 型 Hook（LLM に規約違反を判定させる）を置いていたが、
 これを command 型に置き換えた。理由は3つある。
@@ -18,12 +18,20 @@ prompt 型 Hook は助言用途（ADR の提案など、判定基準が言語化
 設定例:
     "gates": {
       "g1": {
-        "format": { "cmd": "make format", "hook_cmd": ".venv/bin/python -m ruff format {file}" },
-        "lint":   { "cmd": "make lint",   "hook_cmd": ".venv/bin/python -m ruff check --fix {file}" }
+        "format": { "cmd": "make format", "hook_cmd": ".venv/bin/python -m ruff format {file}", "hook_files": ["*.py"] },
+        "lint":   { "cmd": "make lint",   "hook_cmd": ".venv/bin/python -m ruff check --fix {file}", "hook_files": ["*.py"] }
       }
     }
 
 `{file}` は編集対象のファイルパスに置換される。
+
+**対象ファイルは `hook_files`（glob のリスト）で宣言する。**宣言が無ければ実行しない。
+plugin はどの言語のファイルかを知らないためで、拡張子を見ずに実行していたときは
+`.json` を Python として整形して壊していた（reports/evidence/judge.json）。
+glob はファイル名、または設定ファイルのあるディレクトリからの相対パスと照合する。
+
+**編集の後（PostToolUse）に実行する。**編集の前に整形すると、直後の Edit の置換対象が
+一致しなくなったり、Write が「読んだ後に変更された」で失敗したりする。
 
 Hook はファイルを整形するだけで、**ツールの終了コードでは編集をブロックしない**。
 書式は自動で直せばよく、止める必要がない。止めるべき違反（未使用変数など）は
@@ -31,6 +39,7 @@ G1 の lint が Stop 時に検出する。
 """
 from __future__ import annotations
 
+import fnmatch
 import json
 import subprocess
 import sys
@@ -45,6 +54,7 @@ HOOK_CHECKS = ("format", "lint")
 
 
 def _hook_commands(base: Path) -> list:
+    """(hook_cmd, hook_files) の組を返す。hook_files が無いものは対象外。"""
     try:
         cfg = config.load(base)
     except config.ConfigError:
@@ -52,15 +62,33 @@ def _hook_commands(base: Path) -> list:
     if not cfg:
         return []
     g1 = cfg.get("gates", {}).get("g1") or {}
-    return [g1[name]["hook_cmd"] for name in HOOK_CHECKS
-            if isinstance(g1.get(name), dict) and g1[name].get("hook_cmd")]
+    out = []
+    for name in HOOK_CHECKS:
+        check = g1.get(name)
+        if isinstance(check, dict) and check.get("hook_cmd") and check.get("hook_files"):
+            out.append((check["hook_cmd"], list(check["hook_files"])))
+    return out
+
+
+def _matches(file_path: str, base: Path, patterns: list) -> bool:
+    path = Path(file_path)
+    if not path.is_absolute():
+        path = base / path
+    try:
+        rel = path.resolve().relative_to(base.resolve()).as_posix()
+    except ValueError:
+        return False  # プロジェクトの外のファイルは整形しない
+    return any(fnmatch.fnmatch(path.name, p) if "/" not in p else fnmatch.fnmatch(rel, p)
+               for p in patterns)
 
 
 def run_for_file(file_path: str, base: Path | None = None) -> list:
     """対象ファイルに対して宣言された hook_cmd を順に実行し、実行結果を返す。"""
     base = base or Path.cwd()
     results = []
-    for template in _hook_commands(base):
+    for template, patterns in _hook_commands(base):
+        if not _matches(file_path, base, patterns):
+            continue
         cmd = template.replace("{file}", file_path)
         proc = subprocess.run(cmd, shell=True, cwd=str(base), capture_output=True, text=True)
         results.append({"cmd": cmd, "exit_code": proc.returncode})

@@ -21,6 +21,11 @@ All notable changes to this project will be documented in this file.
 - examples/monthly-billing/docs/deliverables/: 工程成果物27点の**記入済み実例**。品質ゲート（mutation testing / G3 judge / hold-out）が検出した事項を設計書側にも根拠として記載している
 - docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [32] IPA ガイド・[33] 国税庁 Q&A を追加（[26]-[31] は J-SIX.md 側で使用済みのため）
 
+**Plugin 実動検証 #1（ROADMAP C2）**
+
+- docs/plugin-field-test-01.md: Plugin の Skill 7本を `claude -p --plugin-dir` でヘッドレス実行した記録（合計 406 ターン・$37.22・64.5分）。Plugin の不具合8件の発見と修正、未解決の課題（ROADMAP C7〜C11・C13・C14）、所見
+- examples/approval-workflow: Skill 実行の成果物。設計レビュー（`docs/reviews/`）、Spec 改訂と ADR-0003、TASK-AW-002（エラーを不在 404 / ルール違反 409 / 入力不正 422 に分類、全状態遷移でコメントを記録）の TDD 実装、品質メトリクス、工程成果物12点（`docs/deliverables/`）、基本／詳細設計書と品質系納品物（`docs/design-docs/`）
+
 **v2.1: レビュー前品質ゲートの再設計**
 
 - docs/J-SIX.md 第9章「証跡パッケージ（品質の証明と納品）」— 証跡 / 参考所見 / 承認の3区分、`reports/evidence/<task-id>/` の構成、従来納品物への対応付け
@@ -105,6 +110,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- plugin/scripts/jsix_format_hook.py, plugin/hooks/hooks.json: format / lint Hook が (1) 拡張子を見ずに `ruff format` を実行し、`reports/evidence/judge.json` を Python として整形して（末尾カンマ）**JSON を壊していた**、(2) 編集の**前**（PreToolUse）に既存ファイルを整形していたため、直後の Write / Edit が「読んだ後に変更された」で失敗していた。quality-metrics のヘッドレス実行で発覚。Hook を PostToolUse に移し、対象ファイルを `.jsix-checks.json` の `hook_files`（glob）で宣言させる形にした（宣言が無ければ実行しない。`hook_cmd` 自体が未リリースの v2.1 機能のため互換性の影響なし）。両サンプルの設定に `"hook_files": ["*.py"]` を追加。テスト5件を追加
+- plugin/scripts/jsix_run_checks.py: **品質ゲートがフェーズごとのコミットで空振りしていた**。変更ファイルを未コミットの差分だけで数えていたため、tdd-cycle の手順どおりコミットすると Stop の時点で差分が空になり、G1 スコープ検査は「0 ファイル」で何も検査せず、G3 は「変更なし」でスキップされていた（CI のスコープ検査も同様に 0 ファイルだった）。また `judge.json` がどの差分への判定かを照合しないため、前のタスクの PASS が残っていても通った。tdd-cycle のヘッドレス実行で、子セッション自身が報告して発覚。G3 と変更有無の判定は既定ブランチとの分岐点（または `scope.base`）からの差分で行い、スコープ検査は RED タグ以降の差分で行う（hold-out はタスク前半で正当にコミットされるため、deny は実装フェーズの規則として扱う）。G3 の判定は差分の指紋（`target`）に紐づけ、一致しない判定は「古い」として無効にする（判定ファイルと証跡の出力先は指紋から除外）。scope-judge エージェントに `target` の記録手順を追加。テスト5件を追加
+- plugin/scripts/jsix_run_checks.py: Stop hook として呼ばれたとき（`--stop-hook`）、**失敗内容が変わらないブロックが3回続いたら停止を許可する**ようにした。Spec に REQ を追加した直後など、その工程では満たせない失敗で Stop のたびにブロックし続け、セッションが終わらなかった（spec-create のヘッドレス実行で15回。Claude Code 自身の8回上限も効かなかった）。判定は緩めずゲートは未達のまま残り、CI では止まる。上限は `stop_hook.max_identical_blocks` で変更可。状態はセッションごとに一時領域へ置きプロジェクトを汚さない。テスト8件を追加
+- plugin/skills: テンプレートをリポジトリルートの `templates/` から読んでいたため、**インストールされた Plugin では Skill が動かなかった**（マーケットプレイスからのインストールでは Plugin ディレクトリだけがコピーされる）。`spec-create` は `` !`cat templates/spec/...` `` が失敗して起動直後に止まっていた。テンプレートを各 Skill に同梱し `${CLAUDE_SKILL_DIR}/templates/...` で参照する形に変更。正は `templates/` のままで、同梱分は `tools/sync_plugin_templates.py` が生成する（Plugin の外を指す相対リンクは GitHub の URL に書き換える）。CI に `--check` を追加し、CLAUDE.md の更新チェックリストにも追記
 - plugin/hooks/hooks.json: prompt 型 Hook を「〜の場合は…してください。該当しなければ何も出力しない」という**指示文の形**で書いていた。prompt 型 Hook は判定役のモデルが `{ok, reason}` を返す評価器で「何も出力しない」選択肢が無いため、**Stop が毎回ブロックされセッションが止まらなくなっていた**（Skill をヘッドレス実行した design-review で同じやり取りが10回以上繰り返された）。ADR 提案の Hook を「ok を false にする条件」を明示する評価器の形に書き直し（迷う場合と `stop_hook_active` が true の場合は ok）、G3 起動の Hook は command 型ゲートの案内と重複していたため削除。判定すべき条件の無い PostToolUse（テスト結果確認）・StopFailure・PermissionDenied の prompt 型 Hook も削除した
 - plugin/scripts/jsix_run_checks.py: git 管理下で変更ファイルが無いセッションでは G3（scope-judge の判定）を求めないようにした。レビューや調査だけの作業でも毎回 scope-judge の起動を強いていた。テスト2件を追加
 - plugin/.claude-plugin/plugin.json: `repository` をオブジェクト（`{type, url}`）で書いていたため、Claude Code がマニフェストを不正と判定し **Plugin 全体が読み込まれていなかった**（Skill / Agent / Hook のいずれも動かない）。文字列に修正し、`claude plugin validate` の通過と、`--plugin-dir` で Skill 7 / Agent 7 が登録されることを確認。Skill をヘッドレス実行して実行ログを取ろうとした際（ROADMAP C2）に発覚した。CI に `plugin validate` のジョブを追加し、ワークフローの対象パスを `plugin/**` に広げた

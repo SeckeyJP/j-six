@@ -119,14 +119,16 @@ curl -X POST localhost:8000/requests/REQ-0001/approve -d '{"actor":"bob"}'   -H 
 ## J-SIX Plugin デモ（C2）— 各 Skill の適用ポイント
 
 このサンプルは J-SIX Plugin（`plugin/`）の各 Skill / Agent を実際に適用した成果物です。
+2026-09-19 に7本の Skill を Plugin 経由でヘッドレス実行し、TASK-AW-002 を一周させました。
+実行の記録と、そこで見つかった Plugin の不具合は [Plugin 実動検証 #1](../../docs/plugin-field-test-01.md) を参照。
 
 | Phase | Plugin 機能 | このサンプルでの対応物 |
 |---|---|---|
 | P1-P2 | `j-six:spec-create` | `docs/requirement-spec.md`, `docs/design-spec.md` |
-| P2 | `j-six:design-review` | ADR-0001/0002 と Spec の整合確認 |
+| P2 | `j-six:design-review` | `docs/reviews/design-review-2026-09-19.md`（実装が Design Spec のエラー方針に反していることを検出） |
 | P4 | `j-six:tdd-cycle` / holdout-test-writer・red・green・refactor-agent | `tests/acceptance/` に hold-out を書き、`tests/` を先に書いて `app/` を実装（REQ タグでトレース） |
 | P4 | `scope-judge`（G3） | diff・タスク定義・Spec から意図とスコープを判定 → `reports/evidence/judge.json` |
 | P4 | `j-six:evidence-pack`（G4） | `reports/evidence/<タスクID>/` に証跡パッケージを生成 |
-| P5 | `j-six:quality-metrics` | カバレッジ 99% / 品質ゲート 95% を充足 |
-| P6 | `j-six:doc-reverse-gen` / doc-generator | `app/` から IF 設計書（`/docs` Swagger）を生成可能 |
+| P5 | `j-six:quality-metrics` | `docs/quality-metrics-2026-09-19.md`（TASK-AW-002 前後の比較） |
+| P6 | `j-six:doc-reverse-gen` / doc-generator | `docs/deliverables/`（工程成果物12点）、`docs/design-docs/`（基本／詳細設計書・品質系納品物） |
 | P1-P6 | `j-six:traceability` | `docs/traceability.md` |

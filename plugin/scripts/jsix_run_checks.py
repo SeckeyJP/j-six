@@ -35,9 +35,11 @@ v2.0 のフラット形式（`{"traceability": ..., "coverage": ...}`）もそ�
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -58,6 +60,9 @@ CONFIG_NAME = config.CONFIG_NAME
 EXIT_OK = 0
 EXIT_BLOCK = 2
 
+#: Stop hook で同じ失敗によるブロックを何回まで続けるか（`stop_hook.max_identical_blocks`）
+DEFAULT_MAX_IDENTICAL_BLOCKS = 3
+
 
 class Context:
     """1回の実行で共有する情報。"""
@@ -66,19 +71,38 @@ class Context:
         self.base = base
         self.run_commands = run_commands
         self._changed = None
+        #: 変更ファイルの比較元。設定の scope.base、無ければ既定ブランチとの分岐点
+        self.scope_base: str | None = None
+        self._base_ref: str | None = None
+        self._base_resolved = False
+        #: 設定のゲート定義（G3 が G4 の出力先を知るために使う）
+        self.config_gates: dict = {}
         #: G4 は G1〜G3 の結果を入力に取るため、実行中の結果を参照できるようにする
         self.results: dict = {}
         self.config_path: Path | None = None
 
     @property
+    def base_ref(self) -> str | None:
+        """タスクの起点。コミット済みの変更も検査対象に含めるために使う。"""
+        if not self._base_resolved:
+            self._base_resolved = True
+            if git.is_repo(self.base):
+                self._base_ref = self.scope_base or git.default_base(self.base)
+        return self._base_ref
+
+    @property
     def changed_files(self) -> list | None:
-        """変更ファイル（設定ファイルのあるディレクトリからの相対パス）。"""
+        """変更ファイル（設定ファイルのあるディレクトリからの相対パス）。
+
+        タスクの起点（base_ref）からの差分＋未コミットの変更。フェーズごとにコミット
+        しても、スコープ検査と G3 が空振りしないようにするため。
+        """
         if self._changed is None:
             if not git.is_repo(self.base):
                 self._changed = []
             else:
                 try:
-                    self._changed = git.changed_files_relative(self.base)
+                    self._changed = git.changed_files_relative(self.base, self.base_ref)
                 except git.GitError:
                     self._changed = []
         return self._changed
@@ -141,6 +165,25 @@ def _mutation_check(name: str, cfg: dict, ctx: Context) -> Result:
     return mutation_gate.check(cfg, ctx.base, ctx.changed_files)
 
 
+def _scope_check(cfg: dict, ctx: Context) -> Result:
+    """G1 スコープ検査。比較元は RED タグ（実装フェーズの変更だけを見る）。
+
+    deny（例: hold-out を実装側が触らない）は実装フェーズの規則である。hold-out テストは
+    同じタスクの前半で正当にコミットされるため、ブランチ全体の差分で見ると誤検出になる。
+    優先順: 設定の scope.base → RED タグ（$JSIX_TASK_ID → 最新の jsix/red-*）→ 未コミットの変更のみ。
+    """
+    if not git.is_repo(ctx.base):
+        return scope_check.check(cfg, ctx.base, [])
+    ref = cfg.get("base") or tamper_check.resolve_baseline({}, ctx.base)
+    try:
+        changed = git.changed_files_relative(ctx.base, ref)
+    except git.GitError:
+        changed = []
+    result = scope_check.check(cfg, ctx.base, changed)
+    result.metrics["compared_from"] = ref or "未コミットの変更のみ"
+    return result
+
+
 def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     """G3: scope-judge の判定ファイルを読む。
 
@@ -156,19 +199,35 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     verdict_rel = cfg.get("verdict", "reports/evidence/judge.json")
     verdict_path = ctx.base / verdict_rel
     agent = cfg.get("agent", "scope-judge")
+    # 判定がどの差分に対するものかを照合する。git 管理外では照合しない
+    evidence_out = (ctx.config_gates.get("g4") or {}).get("out", "reports/evidence/")
+    target = (git.diff_fingerprint(ctx.base_ref, ctx.base, exclude=[verdict_rel, evidence_out])
+              if git.is_repo(ctx.base) else None)
+    target_hint = f', "target": "{target}"' if target else ""
+    base_hint = f"（比較元 {ctx.base_ref[:12]}）" if ctx.base_ref else ""
+
+    instructions = (
+        f"`{agent}` サブエージェントに diff{base_hint}・タスク定義・該当 Spec を渡して判定させ、"
+        f"結果を {verdict_rel} に書き出してください"
+        ' 形式: {"verdict": "PASS"|"REJECT", "reasons": [{"category": "correctness"|"requirement"|"scope", "detail": "..."}], "attempt": 1'
+        + target_hint + "}"
+    )
+    meta = {"verdict_path": verdict_rel, "agent": agent, "target": target, "base_ref": ctx.base_ref}
 
     if not verdict_path.is_file():
-        return failed(
-            f"judge: G3 未実施。`{agent}` サブエージェントに diff・タスク定義・該当 Spec を渡して判定させ、"
-            f"結果を {verdict_rel} に書き出してください"
-            ' 形式: {"verdict": "PASS"|"REJECT", "reasons": [{"category": "correctness"|"requirement"|"scope", "detail": "..."}], "attempt": 1}',
-            {"verdict_path": verdict_rel, "agent": agent},
-        )
+        return failed(f"judge: G3 未実施。{instructions}", meta)
 
     try:
         doc = json.loads(verdict_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return failed(f"judge: {verdict_path} の解析に失敗: {exc}")
+
+    if target and doc.get("target") != target:
+        return failed(
+            "judge: G3 の判定が古い（判定後に差分が変わった、または別タスクの判定が残っている）。"
+            f"再判定してください。{instructions}",
+            meta,
+        )
 
     verdict = str(doc.get("verdict", "")).upper()
     reasons = doc.get("reasons") or []
@@ -180,6 +239,7 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
         "attempt": attempt,
         "max_auto_fix": max_auto_fix,
         "reason_categories": sorted({str(r.get("category", "unknown")) for r in reasons}),
+        "target": target,
     }
 
     if verdict == "PASS":
@@ -216,7 +276,7 @@ CHECKS = {
     "sast": _sarif_check,
     "secrets": _sarif_check,
     "deps": _sarif_check,
-    "scope": lambda name, cfg, ctx: scope_check.check(cfg, ctx.base, ctx.changed_files),
+    "scope": lambda name, cfg, ctx: _scope_check(cfg, ctx),
     "tests": _tests_check,
     "holdout": _tests_check,
     "coverage": lambda name, cfg, ctx: coverage_gate.check(cfg, ctx.base),
@@ -239,6 +299,10 @@ def run_gates(cfg: dict, ctx: Context, only: set | None = None) -> tuple:
     """
     results: dict = {}
     aborted_after = None
+    ctx.config_gates = cfg.get("gates", {})
+    scope_cfg = cfg.get("gates", {}).get("g1", {}).get("scope") or {}
+    if scope_cfg.get("base") and ctx.scope_base is None:
+        ctx.scope_base = scope_cfg["base"]
 
     for gate in config.GATE_ORDER:
         gate_cfg = cfg.get("gates", {}).get(gate)
@@ -316,6 +380,57 @@ def render(results: dict, legacy: bool) -> tuple:
     return lines, has_failure
 
 
+def stop_state_dir() -> Path:
+    """Stop hook のブロック回数を覚えておく場所。プロジェクトを汚さないよう一時領域に置く。"""
+    return Path(tempfile.gettempdir()) / "jsix-stop-hook"
+
+
+def _read_hook_input() -> dict | None:
+    """Stop hook の入力（stdin の JSON）を読む。読めなければ None。"""
+    try:
+        data = json.loads(sys.stdin.read() or "{}")
+    except (ValueError, OSError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _release_repeated_block(hook: dict | None, lines: list, cfg: dict) -> str | None:
+    """同じ失敗でのブロックが上限を超えたら、停止を許可する理由を返す。
+
+    ゲートが工程上まだ満たせない状態（Spec に REQ を追加した直後で、テストは次の工程で
+    書く等）だと、Stop のたびに同じ失敗でブロックし続けセッションが終わらない。
+    Claude Code 自身の上限（連続8回）に頼らず、失敗内容が変わらないブロックだけを数えて
+    解除する。**判定は緩めない**: ゲートは未達のまま残り、CI（外側ループ）では止まる。
+    """
+    if not hook or not hook.get("session_id"):
+        return None
+    limit = int(cfg.get("stop_hook", {}).get("max_identical_blocks", DEFAULT_MAX_IDENTICAL_BLOCKS))
+    fingerprint = hashlib.sha256("\n".join(lines).encode("utf-8")).hexdigest()
+    session = hashlib.sha256(str(hook["session_id"]).encode("utf-8")).hexdigest()[:16]
+    state_path = stop_state_dir() / f"{session}.json"
+
+    count = 1
+    if hook.get("stop_hook_active"):
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            state = {}
+        if state.get("fingerprint") == fingerprint:
+            count = int(state.get("count", 0)) + 1
+
+    try:
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        state_path.write_text(json.dumps({"fingerprint": fingerprint, "count": count}), encoding="utf-8")
+    except OSError:
+        return None  # 状態を残せないなら従来どおり止める
+
+    if count > limit:
+        return (f"J-SIX: 同じ失敗で {limit} 回ブロックしたため、停止を許可します。"
+                "品質ゲートは未達のままです（CI では止まります）。"
+                "工程上いま満たせない失敗であれば、次の工程で解消してください")
+    return None
+
+
 def main(argv: list | None = None) -> int:
     parser = argparse.ArgumentParser(description="J-SIX 品質ゲートのランナー")
     parser.add_argument("--run-commands", action="store_true",
@@ -323,6 +438,8 @@ def main(argv: list | None = None) -> int:
     parser.add_argument("--json", dest="json_out", default=None,
                         help="結果を JSON で書き出すパス")
     parser.add_argument("--dir", default=None, help="対象ディレクトリ（既定: カレント）")
+    parser.add_argument("--stop-hook", action="store_true",
+                        help="Stop hook として実行する（stdin の Hook 入力を読み、同じ失敗の繰り返しブロックを解除する）")
     parser.add_argument("--gates", default=None,
                         help="実行するゲートをカンマ区切りで指定（例: g1,g2,g4）。"
                              "省略時は設定にあるゲートをすべて実行する")
@@ -363,6 +480,11 @@ def main(argv: list | None = None) -> int:
         out.write_text(json.dumps({"ok": ok, "gates": results}, ensure_ascii=False, indent=2), encoding="utf-8")
 
     if not ok:
+        if args.stop_hook:
+            released = _release_repeated_block(_read_hook_input(), lines, cfg)
+            if released:
+                print(released)
+                return EXIT_OK
         print("J-SIX 品質ゲート未達。修正してください。", file=sys.stderr)
         return EXIT_BLOCK
     return EXIT_OK

@@ -94,6 +94,10 @@ def normalize(raw: dict) -> dict:
         if not isinstance(cfg, dict):
             raise ConfigError(f"gates.{gate} はオブジェクトである必要があります")
         normalized["gates"][gate] = dict(cfg)
+    stop_hook = raw.get("stop_hook", {})
+    if not isinstance(stop_hook, dict):
+        raise ConfigError("stop_hook はオブジェクトである必要があります")
+    normalized["stop_hook"] = dict(stop_hook)
     normalized["_legacy"] = False
     return normalized
 

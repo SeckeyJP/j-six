@@ -8,7 +8,12 @@ from datetime import datetime
 import pytest
 
 from app.models import Action, Status
-from app.workflow import WorkflowError, WorkflowService, required_approval_levels
+from app.workflow import (
+    RequestNotFound,
+    WorkflowError,
+    WorkflowService,
+    required_approval_levels,
+)
 
 
 FIXED_NOW = datetime(2026, 6, 14, 10, 0, 0)
@@ -194,5 +199,120 @@ def test_full_audit_trail(service):
 
 
 def test_get_unknown_request_raises(service):
-    with pytest.raises(WorkflowError, match="存在しません"):
+    """REQ-011: 存在しない ID の取得は RequestNotFound（WorkflowError ではない）。
+
+    ADR-0003「ネガティブな影響」: 旧実装は WorkflowError を期待していたが、
+    不在とルール違反を区別するため RequestNotFound を期待する形に書き換える。
+    """
+    with pytest.raises(RequestNotFound, match="存在しません"):
         service.get("REQ-9999")
+
+
+# --- REQ-011: 対象不在をルール違反と区別する -------------------------------
+def test_request_not_found_is_not_a_workflow_error():
+    """REQ-011 / ADR-0003: RequestNotFound は WorkflowError のサブクラスではない。
+
+    サブクラスにすると `except WorkflowError` が不在まで捕まえてしまい、
+    404 が 409 に化ける事故（ADR-0003 の C-1 再発）を型の上で防げなくなる。
+    """
+    assert not issubclass(RequestNotFound, WorkflowError)
+    assert issubclass(RequestNotFound, Exception)
+
+
+UNKNOWN_ID = "REQ-9999"
+
+
+def _op_get(service, rid):
+    return service.get(rid)
+
+
+def _op_submit(service, rid):
+    return service.submit(rid, "alice")
+
+
+def _op_approve(service, rid):
+    return service.approve(rid, "bob")
+
+
+def _op_reject(service, rid):
+    return service.reject(rid, "bob")
+
+
+def _op_remand(service, rid):
+    return service.remand(rid, "bob")
+
+
+def _op_withdraw(service, rid):
+    return service.withdraw(rid, "alice")
+
+
+@pytest.mark.parametrize(
+    "op",
+    [_op_get, _op_submit, _op_approve, _op_reject, _op_remand, _op_withdraw],
+    ids=["get", "submit", "approve", "reject", "remand", "withdraw"],
+)
+def test_unknown_id_raises_request_not_found_for_every_operation(service, op):
+    """REQ-011: get() と 5 つの状態遷移すべてが、未登録 ID で RequestNotFound を送出する。"""
+    with pytest.raises(RequestNotFound):
+        op(service, UNKNOWN_ID)
+
+
+# --- REQ-010: 全状態遷移が任意の note を受け取り監査ログに記録する ----------
+def test_submit_records_note(service):
+    """REQ-010: submit は任意の note を受け取り、監査ログの当該エントリに記録する。"""
+    req = service.create_request("alice", 50_000, "x", ["bob"])
+    service.submit(req.id, "alice", note="提出コメント")
+    assert req.audit_log[-1].note == "提出コメント"
+
+
+def test_submit_note_defaults_to_empty_string(service):
+    """REQ-010: submit の note は省略時に空文字として記録される。"""
+    req = service.create_request("alice", 50_000, "x", ["bob"])
+    service.submit(req.id, "alice")
+    assert req.audit_log[-1].note == ""
+
+
+def test_approve_records_note(service):
+    """REQ-010: approve は任意の note を受け取り、監査ログの当該エントリに記録する。"""
+    req = service.create_request("alice", 500_000, "x", ["bob", "carol"])
+    service.submit(req.id, "alice")
+    service.approve(req.id, "bob", note="承認コメント")
+    assert req.audit_log[-1].note == "承認コメント"
+
+
+def test_approve_note_defaults_to_empty_string(service):
+    """REQ-010: approve の note は省略時に空文字として記録される。"""
+    req = service.create_request("alice", 50_000, "x", ["bob"])
+    service.submit(req.id, "alice")
+    service.approve(req.id, "bob")
+    assert req.audit_log[-1].note == ""
+
+
+def test_reject_note_defaults_to_empty_string(service):
+    """REQ-010: reject の note は省略時に空文字として記録される。"""
+    req = service.create_request("alice", 50_000, "x", ["bob"])
+    service.submit(req.id, "alice")
+    service.reject(req.id, "bob")
+    assert req.audit_log[-1].note == ""
+
+
+def test_remand_note_defaults_to_empty_string(service):
+    """REQ-010: remand の note は省略時に空文字として記録される。"""
+    req = service.create_request("alice", 500_000, "x", ["bob", "carol"])
+    service.submit(req.id, "alice")
+    service.remand(req.id, "bob")
+    assert req.audit_log[-1].note == ""
+
+
+def test_withdraw_records_note(service):
+    """REQ-010: withdraw は任意の note を受け取り、監査ログの当該エントリに記録する。"""
+    req = service.create_request("alice", 50_000, "x", ["bob"])
+    service.withdraw(req.id, "alice", note="取下げ理由")
+    assert req.audit_log[-1].note == "取下げ理由"
+
+
+def test_withdraw_note_defaults_to_empty_string(service):
+    """REQ-010: withdraw の note は省略時に空文字として記録される。"""
+    req = service.create_request("alice", 50_000, "x", ["bob"])
+    service.withdraw(req.id, "alice")
+    assert req.audit_log[-1].note == ""

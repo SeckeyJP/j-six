@@ -212,7 +212,7 @@ CLAUDE.md は Phase 0 で書いて終わる文書ではない。**品質ゲー�
 | 観測されたもの | 還元先 | 理由 |
 |---|---|---|
 | 同じ規約違反が繰り返される | CLAUDE.md の該当行を強調、または **Hook 化** | 助言（CLAUDE.md）は守られないことがあるが、Hook は決定論的に効く |
-| ゲート G1 の同じチェックが何度も落ちる | PreToolUse の format/lint Hook | 落ちてから直すのではなく、書いた時点で直す |
+| ゲート G1 の同じチェックが何度も落ちる | 編集後（PostToolUse）の format/lint Hook | 落ちてから直すのではなく、書いた時点で直す |
 | 人間レビューで同種の指摘が続く | Skill（手順の明文化） | 都度の指示ではなく再利用可能な手順にする |
 | 特定の判断で毎回エスカレーションが起きる | CLAUDE.md の判断基準を追記 | 判断基準が言語化されていないサイン |
 
@@ -435,14 +435,21 @@ judge を撤去**している（判定が硬直的で妥当な変更まで止め
 | アーキテクチャ変更が必要 | 影響範囲大 | CLAUDE.md で変更禁止ファイル定義 |
 | **テストを弱める変更を試みた**（skip / xfail 追加、assert 削除、SUT のモック化、hold-out の参照） | 監督面そのものを壊す操作であり、自動修正させてはならない | G2 テスト改変検出で即時ブロック＋人間へ通知 |
 | **G3 judge が「スコープ逸脱」で却下** | 頼んでいない変更が入っている | 修正1回までは自動、2回目で人間へ |
-| **Stop hook の連続ブロックが上限に近づいた** | Hook は最終防衛線ではない | 6回目で人間へ通知（下記） |
+| **Stop hook の連続ブロックが上限に近づいた** | Hook は最終防衛線ではない | 同じ失敗が3回続いたら停止を許可し未達のまま残す（CI で止める）。失敗が変化しながら6回に達したら人間へ通知（下記） |
 
-**Stop hook の連続ブロック上限**: CC は Stop hook が **8回連続でブロックすると hook を上書きして
-ターンを終了する** [1]。つまり Hook は「絶対に止まる壁」ではない。J-SIX では6回目で人間に通知し、
-8回目の自動解除に到達する前に判断を仰ぐ。あわせて、Hook が解除されても止まるように
+**Stop hook の連続ブロック上限**: CC は Stop hook が **進捗の無いまま8回連続でブロックすると hook を
+上書きしてターンを終了する** [1]。つまり Hook は「絶対に止まる壁」ではない。J-SIX では6回目で人間に
+通知し、8回目の自動解除に到達する前に判断を仰ぐ。あわせて、Hook が解除されても止まるように
 **外側ループ（CI）** を併設する（第4章 4.4）。
 
-**CC 機能**: Subagents（TDD 分離 / scope-judge）, Agent Teams（並列実行）, git worktree, Hooks（Stop / PreToolUse）, チェックポイント, `/goal`（G1〜G3 通過を goal 条件に設定）, `/code-review`
+**工程上いま満たせない失敗**: Spec に REQ を追加した直後（テストは Phase 4 で書く）のように、ゲートが
+その工程では満たせない失敗を返すことがある。偽のテストで通すのは結果の偽装であり、してはならない。
+一方で Stop のたびに同じ失敗でブロックし続けると、セッションが終わらない（Skill のヘッドレス実行で
+15回繰り返した）。そこで品質ゲートのランナーは、Stop hook として呼ばれたときに限り、**失敗内容が
+変わらないブロックが3回続いたら停止を許可する**（`.jsix-checks.json` の
+`stop_hook.max_identical_blocks` で変更可）。判定は緩めず、ゲートは未達のまま残り、CI では止まる。
+
+**CC 機能**: Subagents（TDD 分離 / scope-judge）, Agent Teams（並列実行）, git worktree, Hooks（Stop / PostToolUse）, チェックポイント, `/goal`（G1〜G3 通過を goal 条件に設定）, `/code-review`
 
 ---
 
@@ -562,7 +569,7 @@ AI の作業を見張りレビューする時間が増える」という開発�
 | P1: 要求合意 | ◎参照 | Spec テンプレート | 並列リサーチ | | | ask_user_question |
 | P2: 技術設計 | ◎参照 | Design Spec | 並列調査 | | ADR チェック | Plan Mode |
 | P3: タスク分解 | ◎参照 | | | | TaskCreated Hook | Native Tasks, `/batch`（大規模分割） |
-| P4: TDD 実装 | ◎参照 | TDD Skill, 証跡パック | Red/Green/Refactor, hold-out, **scope-judge（G3）** | 並列実行 | **Stop（G1〜G4 の決定論的ゲート）**, **PreToolUse（format/lint）** | git worktree, **`/goal`**, `/code-review`, auto mode, /effort, Remote Control |
+| P4: TDD 実装 | ◎参照 | TDD Skill, 証跡パック | Red/Green/Refactor, hold-out, **scope-judge（G3）** | 並列実行 | **Stop（G1〜G4 の決定論的ゲート）**, **PostToolUse（format/lint）** | git worktree, **`/goal`**, `/code-review`, auto mode, /effort, Remote Control |
 | P5: 品質検証 | ◎参照 | 品質メトリクス | 検証サブエージェント | /ultrareview | | **`/verify`**（動くアプリでの確認）, Push Notifications |
 | P6: ドキュメント | ◎参照 | 設計書逆生成 | | | | LSP（型情報活用） |
 
@@ -611,7 +618,7 @@ plugin/
 │   ├── jsix_test_tamper_check.py# G2: テスト弱体化の検出
 │   ├── jsix_traceability_check.py # G2: REQ / PROP ⇔ テスト
 │   ├── jsix_evidence_pack.py    # G4: 証跡パッケージ生成
-│   ├── jsix_format_hook.py      # PreToolUse: 決定論的 format / lint
+│   ├── jsix_format_hook.py      # PostToolUse: 決定論的 format / lint
 │   ├── jsix_guard_tests.py      # PreToolUse: green-agent の監督面保護
 │   └── tests/                   # スクリプト自体の単体テスト
 ├── hooks/
@@ -644,7 +651,7 @@ SARIF / mutation-testing-elements JSON）の**パースと閾値判定のみ**�
 
 **なぜ二重にするのか**: Hook は最終防衛線にならない。理由は3つある。
 
-1. **8回で自動解除される**: Stop hook が連続8回ブロックすると、CC は hook を上書きしてターンを終了する [1]。
+1. **8回で自動解除される**: Stop hook が進捗の無いまま連続8回ブロックすると、CC は hook を上書きしてターンを終了する [1]。
 2. **ローカル設定である**: `.claude/settings.json` や plugin の有効化は各開発者の環境に依存する。
 3. **オプトインである**: J-SIX の Plugin は `.jsix-checks.json` が無いプロジェクトでは何もしない（安全側の既定）。
 
@@ -862,6 +869,7 @@ Phase 6 の `doc-reverse-gen` Skill が、証跡パッケージを従来フォ�
 | 実証 | [ケーススタディ #2](case-study-02.md) | 「カバレッジ 99%」の mutation score を実測（91.8%）。生存ミュータントから PBT を導き 93.4% へ | ✅ |
 | 実例 | 第2サンプル `examples/monthly-billing/` | 画面・帳票・バッチ・外部 IF を持つ月次請求書発行。工程成果物27点の記入済み実例 | ✅ |
 | テンプレート | 工程成果物（`templates/deliverables/`） | IPA 27点の空テンプレートと、基本設計書・詳細設計書への組立定義 | ✅ |
+| 実証 | [Plugin 実動検証 #1](plugin-field-test-01.md) | Skill 7本をヘッドレスで実行し、Plugin の不具合8件を発見・修正 | ✅ |
 | 計画 | [ROADMAP](ROADMAP.md) | 次フェーズの改善・追加機能 | ✅ |
 | 01 | プロセス俯瞰図（初版） | V字+CC貼り付け版（参考） | ✅ |
 | 01a | J-SIX プロセス提案 | Phase 0-6 の初期提案 | ✅ |

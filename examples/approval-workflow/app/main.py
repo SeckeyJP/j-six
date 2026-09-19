@@ -1,6 +1,7 @@
 """申請承認ワークフロー — HTTP API (FastAPI)
 
-ドメインロジック（workflow.py）の薄いラッパー。WorkflowError を 409 に変換する。
+ドメインロジック（workflow.py）の薄いラッパー。RequestNotFound を 404、WorkflowError を
+409 に変換する（ADR-0003）。未定義キーを含むリクエストボディは Pydantic により 422 になる。
 逆生成設計書（Phase 6）はこの層と workflow.py から IF 設計書を生成する。
 """
 
@@ -9,10 +10,10 @@ from __future__ import annotations
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .models import ApprovalRequest
-from .workflow import WorkflowService, WorkflowError
+from .workflow import RequestNotFound, WorkflowService, WorkflowError
 
 app = FastAPI(title="申請承認ワークフロー API", version="1.0.0")
 service = WorkflowService()
@@ -20,6 +21,8 @@ service = WorkflowService()
 
 # --- スキーマ --------------------------------------------------------------
 class CreateRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     applicant: str = Field(..., description="申請者ID")
     amount: int = Field(..., description="申請金額（円）")
     title: str = Field(..., description="申請タイトル")
@@ -27,6 +30,8 @@ class CreateRequestBody(BaseModel):
 
 
 class ActorBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     actor: str = Field(..., description="操作者ID")
     note: str = Field("", description="コメント（任意）")
 
@@ -76,6 +81,8 @@ class RequestView(BaseModel):
 def _guard(fn):
     try:
         return fn()
+    except RequestNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     except WorkflowError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
@@ -98,20 +105,21 @@ def list_requests() -> list[RequestView]:
 
 @app.get("/requests/{request_id}", response_model=RequestView)
 def get_request(request_id: str) -> RequestView:
-    try:
-        return RequestView.of(service.get(request_id))
-    except WorkflowError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return RequestView.of(_guard(lambda: service.get(request_id)))
 
 
 @app.post("/requests/{request_id}/submit", response_model=RequestView)
 def submit(request_id: str, body: ActorBody) -> RequestView:
-    return RequestView.of(_guard(lambda: service.submit(request_id, body.actor)))
+    return RequestView.of(
+        _guard(lambda: service.submit(request_id, body.actor, body.note))
+    )
 
 
 @app.post("/requests/{request_id}/approve", response_model=RequestView)
 def approve(request_id: str, body: ActorBody) -> RequestView:
-    return RequestView.of(_guard(lambda: service.approve(request_id, body.actor)))
+    return RequestView.of(
+        _guard(lambda: service.approve(request_id, body.actor, body.note))
+    )
 
 
 @app.post("/requests/{request_id}/reject", response_model=RequestView)
@@ -130,4 +138,6 @@ def remand(request_id: str, body: ActorBody) -> RequestView:
 
 @app.post("/requests/{request_id}/withdraw", response_model=RequestView)
 def withdraw(request_id: str, body: ActorBody) -> RequestView:
-    return RequestView.of(_guard(lambda: service.withdraw(request_id, body.actor)))
+    return RequestView.of(
+        _guard(lambda: service.withdraw(request_id, body.actor, body.note))
+    )
