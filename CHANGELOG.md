@@ -77,6 +77,10 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+**計画**
+
+- docs/ROADMAP.md: A1'（人手のみ実装との工数 A/B 比較）を見送りに変更。同一題材を人手のみで実装する工数と協力者を確保できないため。実装工数の削減率は 🟡 推定（未実測）のまま据え置き、実測値に基づく表示へは上げない。ケーススタディ #1 の次アクションと index.html の記述もあわせて更新
+
 **工程成果物・設計書**
 
 - plugin/skills/doc-reverse-gen: 種別を工程成果物の領域単位（`behavior` / `screen` / `data` / `external-if` / `batch` / `report` / `deliverables`）と `assemble <組立定義>` に再編。「基本設計書」を直接生成せず、工程成果物を逆生成してから組立定義に従って束ねる。由来ごとにしてよいことを分けた（人手由来の5点は生成せず存在確認のみ、③ は通っている受入テストだけを根拠にする）。v2.0 の種別 `basic` / `detail` / `if` / `db` は読み替えて受け付ける。Excel / Word の出力先を `docs/design-docs/export/` に変更（`docs/deliverables/` との混同を避ける）
