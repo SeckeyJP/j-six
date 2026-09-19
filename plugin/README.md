@@ -46,7 +46,7 @@ v2.1 の中心は **レビュー前の4層品質ゲート**です。人間レビ
 | `j-six:design-review` | P2 | 設計レビュー（Spec・ADR・コード整合性検証） |
 | `j-six:tdd-cycle` | P4 | Hold-out → Red → Green → Refactor → G1〜G4 の管理 |
 | `j-six:evidence-pack` | P4 | 証跡パッケージへの要約付加（**v2.1 で新規**） |
-| `j-six:doc-reverse-gen` | P6 | 設計書逆生成（基本/詳細/IF/DB/品質） |
+| `j-six:doc-reverse-gen` | P6 | 工程成果物（IPA 27点）の逆生成 → 組立定義による設計書の組立、品質系納品物 |
 | `j-six:quality-metrics` | P5 | プロセス健全性の集計（mutation score / judge 却下率 等） |
 | `j-six:traceability` | P1-P6 | 要件→テスト→コード→設計書の追跡マトリクス |
 
@@ -67,17 +67,23 @@ v2.1 の中心は **レビュー前の4層品質ゲート**です。人間レビ
 | イベント | 型 | 対象 | 内容 |
 |---|---|---|---|
 | PreToolUse | **command** | Edit/Write/MultiEdit | 決定論的な format / lint（v2.0 の prompt 型を置換） |
-| PostToolUse | prompt | Bash | テスト実行結果の自動確認 |
-| Stop | **command** | 全体 | 品質ゲート G1→G4（`.jsix-checks.json` 同梱時のみ動く） |
-| Stop | prompt | 全体 | 「G3 未実施」を検出したら scope-judge を起動する |
-| Stop | prompt | 全体 | ADR 記録すべき技術判断の検出 |
-| StopFailure | prompt | 全体 | エラー終了時のリトライ/エスカレーション判断 |
-| PermissionDenied | prompt | 全体 | 権限拒否時の代替アプローチ提案 |
+| Stop | **command** | 全体 | 品質ゲート G1→G4（`.jsix-checks.json` 同梱時のみ動く）。G1/G2 通過後に判定ファイルが無ければ「G3 未実施」で止め、scope-judge の起動を案内する。変更ファイルが無いセッションでは G3 を求めない |
+| Stop | prompt | 全体 | ADR を記録すべき技術判断をしたのに ADR を作成・提案していない場合だけ停止を止める |
 
 **prompt 型を command 型に置き換えた理由**（PreToolUse）:
 規約準拠は lint / format が決定論的に判定できます。LLM に判定させると同じコードで
 結果がぶれ、編集のたびに LLM 呼び出しが発生します。prompt 型は**助言用途**
 （ADR の提案など、判定基準が言語化しにくいもの）に限定しています。
+
+**prompt 型 Hook は「停止してよいか」を判定する評価器として書く**:
+prompt 型 Hook は、判定役のモデルが `{"ok": true|false, "reason": ...}` を返す仕組みです。
+`ok: false` なら reason が Claude に返されて作業が続きます。「〜の場合は…してください。
+該当しなければ何も出力しない」という**指示文の形で書くと、「何も出力しない」という選択肢が
+無いため毎回ブロックされ、セッションが止まらなくなります**。J-SIX v2.1 までの Hook は
+この形で書かれており、Skill をヘッドレスで実行した際に発覚しました。現在の Hook は
+「`ok: false` にする条件」を明示し、それ以外（迷う場合と `stop_hook_active` が true の場合を
+含む）は `ok: true` とする形に揃えています。同じ理由で、判定すべき条件の無い prompt 型
+Hook（PostToolUse のテスト結果確認、StopFailure、PermissionDenied）は削除しました。
 
 `green-agent` には subagent スコープの Hook が付いており、`tests/` への書き込みと
 `tests/acceptance/`（hold-out）の読み取りが機械的に拒否されます。
@@ -230,7 +236,9 @@ claude plugin add ./plugin
 /j-six:spec-create          # Spec 策定
 /j-six:tdd-cycle            # TDD サイクル + 品質ゲート
 /j-six:evidence-pack        # 証跡パッケージに要約を付加
-/j-six:doc-reverse-gen all  # 設計書逆生成（全種別）
+/j-six:doc-reverse-gen all  # 工程成果物の逆生成 → 設計書の組立 → 品質系納品物
+/j-six:doc-reverse-gen screen  # 画面の工程成果物（6点）だけを逆生成
+/j-six:doc-reverse-gen assemble kihon-sekkei  # 基本設計書に組み立てる
 /j-six:doc-reverse-gen quality  # 証跡から品質・テスト系の納品物を生成
 /j-six:quality-metrics      # プロセス健全性の集計
 /j-six:traceability         # トレーサビリティマトリクス生成

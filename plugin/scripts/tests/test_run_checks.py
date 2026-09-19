@@ -138,6 +138,38 @@ class TestG3TwoPhase:
         _write(project / "reports" / "judge.json", {"verdict": "PASS", "reasons": []})
         assert runner.main(["--dir", str(project)]) == runner.EXIT_OK
 
+    @staticmethod
+    def _git_commit_all(project):
+        env_args = ["-c", "user.name=t", "-c", "user.email=t@example.com"]
+        subprocess.run(["git", "init", "-q"], cwd=project, check=True)
+        subprocess.run(["git", "add", "-A"], cwd=project, check=True)
+        subprocess.run(["git", *env_args, "commit", "-q", "-m", "init"], cwd=project, check=True)
+
+    def test_no_changes_skips_g3(self, project):
+        """変更の無いセッション（レビューだけ等）では判定対象が無いので G3 を求めない。
+
+        判定ファイルが無いと毎回 scope-judge の起動を要求し、読み取りだけの作業でも
+        Stop がブロックされていた（Skill のヘッドレス実行で発覚）。
+        """
+        self._config(project)
+        self._git_commit_all(project)
+        cfg = runner.config.load(project)
+        ok, results = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        assert ok
+        judge = results["g3"]["checks"]["judge"]
+        assert judge["skipped"] is True
+        assert "変更なし" in judge["summary"]
+
+    def test_changes_still_require_g3(self, project):
+        """変更があれば従来どおり G3 未実施で止める。"""
+        self._config(project)
+        self._git_commit_all(project)
+        (project / "app.py").write_text("x = 1\n", encoding="utf-8")
+        cfg = runner.config.load(project)
+        ok, results = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        assert not ok
+        assert "G3 未実施" in results["g3"]["checks"]["judge"]["summary"]
+
     def test_reject_first_attempt_allows_auto_fix(self, project):
         self._config(project, max_auto_fix=1)
         _write(project / "reports" / "judge.json", {

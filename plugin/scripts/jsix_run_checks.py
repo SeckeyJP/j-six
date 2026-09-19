@@ -21,8 +21,9 @@
 
 command 型 Hook から LLM サブエージェントは呼べない。そこで G1/G2 通過後、
 `g3.verdict`（既定 `reports/evidence/<task-id>/judge.json`）が無ければ
-「G3 未実施」として exit 2 で止め、Stop の prompt 型 Hook / Skill が scope-judge を
-呼んで判定を書き込む。次回実行時に runner がそれを読んで G3 を判定する。
+「G3 未実施」として exit 2 で止める。stderr の案内を受けた Claude（または Skill）が
+scope-judge を呼んで判定を書き込み、次回実行時に runner がそれを読んで G3 を判定する。
+変更ファイルが無いセッションでは G3 を求めない。
 
 ## 後方互換
 
@@ -143,9 +144,15 @@ def _mutation_check(name: str, cfg: dict, ctx: Context) -> Result:
 def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     """G3: scope-judge の判定ファイルを読む。
 
-    判定ファイルが無い場合は「G3 未実施」として不合格にする。Stop の prompt 型 Hook
-    または tdd-cycle / evidence-pack Skill が scope-judge を呼び、結果を書き込む。
+    判定ファイルが無い場合は「G3 未実施」として不合格にする。この案内（stderr）を受けた
+    Claude、または tdd-cycle / evidence-pack Skill が scope-judge を呼び、結果を書き込む。
+
+    git 管理下で変更ファイルが1つも無い場合は、判定対象の差分が無いので G3 を求めない。
+    レビューや調査だけのセッションで、毎回 scope-judge の起動を強いないためである。
     """
+    if git.is_repo(ctx.base) and ctx.changed_files == []:
+        return skipped("judge: 変更なし（判定対象の差分が無いため G3 は不要）")
+
     verdict_rel = cfg.get("verdict", "reports/evidence/judge.json")
     verdict_path = ctx.base / verdict_rel
     agent = cfg.get("agent", "scope-judge")

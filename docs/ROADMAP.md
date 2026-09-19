@@ -42,6 +42,10 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 | B2 | Spec / ADR の記入済み実例（A1 題材と連動） | `examples/approval-workflow/docs/`（spec×2, adr×2, traceability） | 中 | ✅ 2026-06-14 |
 | B3 | templates/README に「テンプレ → 実例 → 該当 Skill」の導線表を追加 | `templates/README.md` | 小 | ✅ 2026-06-14 |
 | B1' | 別スタック（Next.js / Spring Boot）の記入済み CLAUDE.md 実例 | `examples/` | 中 | ☐（FastAPI 版を先行） |
+| B4 | **工程成果物テンプレート（IPA 27点）と記入済み実例**。画面・帳票・バッチを持つ第2サンプルを新設し、実例から逆算してテンプレートを作る | `templates/deliverables/`, `examples/monthly-billing/` | 大 | ✅ 2026-09-19 |
+| B5 | 顧客様式への組立定義（基本設計書・詳細設計書）、`doc-reverse-gen` の工程成果物単位への再編 | `templates/deliverables/assembly/`, `plugin/skills/doc-reverse-gen/` | 中 | ✅ 2026-09-19 |
+| B6 | Spec テンプレートの非機能要件を IPA 非機能要求グレードの6大項目へ、合意成熟度を Phase Gate の判定基準へ | `templates/spec/`, `docs/J-SIX.md` | 小 | ✅ 2026-09-19 |
+| B6' | approval-workflow の Spec を非機能要求グレード形式へ移行 | `examples/approval-workflow/docs/` | 小 | ✅ 2026-09-19（Spec 文書のみの変更でコード・計測値は不変。ゲート再実行で mutation 93.4% を確認） |
 
 ## C. Plugin 実用拡張
 
@@ -51,7 +55,7 @@ J-SIX は v2.0・全15記事公開で一区切りついた。本ロードマッ�
 |---|---|---|---|---|
 | C1 | **コマンド型 Hook 追加**（カバレッジ閾値ゲート、要件⇔テストのトレーサビリティ自動チェック）。番外編 Hooks 記事の知見を本体還元 | `plugin/scripts/` ×3 + Stop command Hook（オプトイン） | 中 | ✅ 2026-06-14 |
 | C2 | **end-to-end デモ**（B1/A1 と同一題材で Skills 6 / Agents 5 を実際に動かした証跡） | `examples/approval-workflow/README.md`（Phase別 Skill 対応表） | 大 | ◐ 部分（成果物と対応表は整備済。各 Skill の実行ログ取得は残） |
-| C3 | plugin.json に `keywords` 等メタ補強、インストール手順の検証 | `plugin/.claude-plugin/plugin.json` | 小 | ✅ 2026-09-10 |
+| C3 | plugin.json に `keywords` 等メタ補強、インストール手順の検証 | `plugin/.claude-plugin/plugin.json` | 小 | ✅ 2026-09-10 → **2026-09-19 訂正**: `repository` の形式がマニフェスト仕様に反し、Plugin が読み込まれていなかった。インストール手順の検証は実際には不十分だった。修正し、CI に `claude plugin validate` を追加 |
 | C4 | **4層品質ゲート（G1-G4）の実装**。標準フォーマット（JUnit XML / Cobertura・LCOV / SARIF / mutation-testing-elements JSON）のパースと閾値判定に限定し、言語依存のツール呼び出しを持ち込まない | `plugin/scripts/` ×13, `plugin/agents/` ×7, `plugin/skills/` ×7 | 大 | ✅ 2026-09-10（単体テスト 155 件） |
 | C5 | **証跡パッケージ**（顧客納品対応）。証跡 / 参考所見 / 承認の3区分で出力 | `jsix_evidence_pack.py` + `evidence-pack` Skill | 中 | ✅ 2026-09-10 |
 | C6 | **CI 例（外側ループ）**。Hook が解除されても止まる二重化 | `.github/workflows/jsix-gate.yml` | 小 | ✅ 2026-09-11（実際に実行して緑を確認） |
@@ -86,3 +90,4 @@ C2 （各 Skill の実行ログ取得）
 | 2026-06-14 | 初版作成（v2.0 完了後の次フェーズ計画） |
 | 2026-09-10 | v2.1（レビュー前品質ゲートの再設計）を反映。A2/A3 の実績を反映、A4/A5・C4/C5/C6 を追加 |
 | 2026-09-10 | v2.1 完了。A4・C3・C4・C5・C6 を実績反映。残タスクは A1'（工数 A/B 比較）、A5（1.3 能力データ更新）、B1'（別スタック実例）、C2（Skill 実行ログ）|
+| 2026-09-19 | B4-B6・B6' を追加し完了（工程成果物テンプレート・組立定義・非機能要求グレード対応） |

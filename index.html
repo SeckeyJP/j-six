@@ -336,7 +336,7 @@
     <div class="card"><span class="pill">Hooks</span><ul class="clean">
       <li><b>command型</b>: PreToolUse で決定論的な format / lint（v2.0 の prompt 型を置換）</li>
       <li><b>command型</b>: Stop 時に品質ゲート G1→G4 を実行（オプトイン）</li>
-      <li><b>prompt型</b>: G3 の起動 / ADR 検出 / テスト結果確認 / リトライ判断 / 権限拒否対応 — <i>助言用途に限定</i></li>
+      <li><b>prompt型</b>: ADR を記録すべき判断の検出のみ — <i>「停止してよいか」の評価器として記述</i></li>
       <li><b>subagent スコープ</b>: green-agent の <code>tests/</code> 書込と hold-out 読取を拒否</li>
     </ul></div>
     <div class="card"><span class="pill">決定論的チェック（11本）</span><ul class="clean">

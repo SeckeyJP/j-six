@@ -21,9 +21,6 @@
     "name": "H.Sekita"
   },
   "homepage": "https://github.com/SeckeyJP/j-six",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/SeckeyJP/j-six.git"
-  },
+  "repository": "https://github.com/SeckeyJP/j-six",
   "license": "CC-BY-4.0"
 }

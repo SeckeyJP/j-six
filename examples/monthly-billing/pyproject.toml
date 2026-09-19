@@ -1,0 +1,4 @@
+# mutation testing の設定（mutmut 3.x は pyproject.toml の [tool.mutmut] を読む）
+[tool.mutmut]
+paths_to_mutate = ["app/"]
+tests_dir = ["tests/"]

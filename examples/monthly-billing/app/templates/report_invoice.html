@@ -1,0 +1,73 @@
+{% extends "_base.html" %}
+{% block title %}請求書 {{ inv.invoice_no }}{% endblock %}
+{% block body %}
+{# RPT-001 請求書（印刷用 HTML）。適格請求書の記載事項（REQ-006）:
+   (1) 発行者の名称と登録番号 (2) 取引年月日 (3) 取引内容（軽減税率対象である旨）
+   (4) 税率ごとに区分した対価の額と消費税額 (5) 交付を受ける事業者の名称 #}
+<h1 style="text-align:center">請　求　書</h1>
+
+<table style="border:none">
+  <tr style="border:none">
+    <td style="border:none;width:55%">
+      {# (5) 交付を受ける事業者の名称 #}
+      <p style="font-size:18px"><strong>{{ inv.customer_name }}　御中</strong></p>
+      <p>下記のとおりご請求申し上げます。</p>
+      <p style="font-size:20px"><strong>ご請求金額　{{ "{:,}".format(inv.total) }} 円（税込）</strong></p>
+      <p>お支払期日：{{ inv.due_date }}</p>
+    </td>
+    <td style="border:none;text-align:right">
+      {# (1) 発行者の名称と登録番号 #}
+      <p><strong>{{ issuer_name }}</strong></p>
+      <p>登録番号：{{ issuer_registration_no }}</p>
+      {# (2) 取引年月日（締め日） #}
+      <p>請求番号：{{ inv.invoice_no }}</p>
+      <p>取引年月日：{{ inv.closing_date }}</p>
+      <p>対象期間：{{ inv.period_from }} 〜 {{ inv.period_to }}</p>
+    </td>
+  </tr>
+</table>
+
+{# (3) 取引内容 #}
+<h2>取引内容</h2>
+<table>
+  <thead><tr><th>#</th><th>品目</th><th>数量</th><th>単価</th><th>金額</th><th>税率</th></tr></thead>
+  <tbody>
+  {% for line in inv.lines %}
+    <tr>
+      <td class="num">{{ line.line_no }}</td>
+      <td>{{ line.item_name }}{% if line.is_reduced %} ※{% endif %}</td>
+      <td class="num">{{ line.quantity }}</td>
+      <td class="num">{{ "{:,}".format(line.unit_price) }}</td>
+      <td class="num">{{ "{:,}".format(line.amount) }}</td>
+      <td>{{ line.tax_rate }}%</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="reduced">※ は軽減税率（8%）対象品目です。</p>
+
+{# (4) 税率ごとに区分した対価の額と消費税額。端数処理は税率ごとに1回（ADR-0001） #}
+<h2>税率ごとの内訳</h2>
+<table>
+  <thead><tr><th>区分</th><th>対価の額（税抜）</th><th>消費税額</th><th>税込金額</th></tr></thead>
+  <tbody>
+  {% for s in inv.tax_summaries %}
+    <tr>
+      <td>{{ s.tax_rate }}%{% if s.is_reduced %}（軽減）{% endif %} 対象</td>
+      <td class="num">{{ "{:,}".format(s.subtotal) }}</td>
+      <td class="num">{{ "{:,}".format(s.tax_amount) }}</td>
+      <td class="num">{{ "{:,}".format(s.subtotal + s.tax_amount) }}</td>
+    </tr>
+  {% endfor %}
+    <tr>
+      <th>合計</th>
+      <td class="num">{{ "{:,}".format(inv.subtotal) }}</td>
+      <td class="num">{{ "{:,}".format(inv.tax_total) }}</td>
+      <td class="num"><strong>{{ "{:,}".format(inv.total) }}</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size:12px;color:#555">
+  消費税額は税率ごとの対価の額の合計に対して1回のみ端数処理（切捨て）しています。
+</p>
+{% endblock %}

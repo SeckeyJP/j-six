@@ -1,0 +1,47 @@
+{% extends "_base.html" %}
+{% block title %}請求明細 {{ inv.invoice_no }}{% endblock %}
+{% block body %}
+<nav><a href="/invoices?year_month={{ inv.year_month }}">← 請求一覧</a>
+     <a href="/invoices/{{ inv.invoice_no }}/preview">請求書プレビュー →</a></nav>
+<h1>請求明細 {{ inv.invoice_no }}</h1>
+<table>
+  <tr><th>取引先</th><td>{{ inv.customer_name }}（{{ inv.customer_code }}）</td></tr>
+  <tr><th>対象期間</th><td>{{ inv.period_from }} 〜 {{ inv.period_to }}</td></tr>
+  <tr><th>締め日</th><td>{{ inv.closing_date }}</td></tr>
+  <tr><th>支払期日</th><td>{{ inv.due_date }}</td></tr>
+  <tr><th>状態</th><td class="status-{{ inv.status }}">{{ inv.status }}</td></tr>
+</table>
+
+<h2>明細</h2>
+<table>
+  <thead><tr><th>#</th><th>品目</th><th>数量</th><th>単価</th><th>金額</th><th>税率</th></tr></thead>
+  <tbody>
+  {% for line in inv.lines %}
+    <tr>
+      <td class="num">{{ line.line_no }}</td>
+      <td>{{ line.item_name }}</td>
+      <td class="num">{{ line.quantity }}</td>
+      <td class="num">{{ "{:,}".format(line.unit_price) }}</td>
+      <td class="num">{{ "{:,}".format(line.amount) }}</td>
+      <td{% if line.is_reduced %} class="reduced"{% endif %}>{{ line.tax_rate }}%{% if line.is_reduced %} ※{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>税率別内訳</h2>
+<table>
+  <thead><tr><th>税率</th><th>対価の額（税抜）</th><th>消費税額</th></tr></thead>
+  <tbody>
+  {% for s in inv.tax_summaries %}
+    <tr>
+      <td{% if s.is_reduced %} class="reduced"{% endif %}>{{ s.tax_rate }}%{% if s.is_reduced %}（軽減）{% endif %}</td>
+      <td class="num">{{ "{:,}".format(s.subtotal) }}</td>
+      <td class="num">{{ "{:,}".format(s.tax_amount) }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p>税抜合計 {{ "{:,}".format(inv.subtotal) }} 円 ／ 消費税 {{ "{:,}".format(inv.tax_total) }} 円 ／
+   <strong>請求金額 {{ "{:,}".format(inv.total) }} 円</strong></p>
+{% endblock %}
