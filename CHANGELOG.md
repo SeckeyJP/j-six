@@ -21,6 +21,11 @@ All notable changes to this project will be documented in this file.
 - examples/monthly-billing/docs/deliverables/: 工程成果物27点の**記入済み実例**。品質ゲート（mutation testing / G3 judge / hold-out）が検出した事項を設計書側にも根拠として記載している
 - docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [32] IPA ガイド・[33] 国税庁 Q&A を追加（[26]-[31] は J-SIX.md 側で使用済みのため）
 
+**Plugin 実動検証 #1（ROADMAP C2）**
+
+- docs/plugin-field-test-01.md: Plugin の Skill 7本を `claude -p --plugin-dir` でヘッドレス実行した記録（合計 406 ターン・$37.22・64.5分）。Plugin の不具合8件の発見と修正、未解決の課題（ROADMAP C7〜C11・C13）、所見
+- examples/approval-workflow: Skill 実行の成果物。設計レビュー（`docs/reviews/`）、Spec 改訂と ADR-0003、TASK-AW-002（エラーを不在 404 / ルール違反 409 / 入力不正 422 に分類、全状態遷移でコメントを記録）の TDD 実装、品質メトリクス、工程成果物12点（`docs/deliverables/`）、基本／詳細設計書と品質系納品物（`docs/design-docs/`）
+
 **v2.1: レビュー前品質ゲートの再設計**
 
 - docs/J-SIX.md 第9章「証跡パッケージ（品質の証明と納品）」— 証跡 / 参考所見 / 承認の3区分、`reports/evidence/<task-id>/` の構成、従来納品物への対応付け

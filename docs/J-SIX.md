@@ -869,6 +869,7 @@ Phase 6 の `doc-reverse-gen` Skill が、証跡パッケージを従来フォ�
 | 実証 | [ケーススタディ #2](case-study-02.md) | 「カバレッジ 99%」の mutation score を実測（91.8%）。生存ミュータントから PBT を導き 93.4% へ | ✅ |
 | 実例 | 第2サンプル `examples/monthly-billing/` | 画面・帳票・バッチ・外部 IF を持つ月次請求書発行。工程成果物27点の記入済み実例 | ✅ |
 | テンプレート | 工程成果物（`templates/deliverables/`） | IPA 27点の空テンプレートと、基本設計書・詳細設計書への組立定義 | ✅ |
+| 実証 | [Plugin 実動検証 #1](plugin-field-test-01.md) | Skill 7本をヘッドレスで実行し、Plugin の不具合8件を発見・修正 | ✅ |
 | 計画 | [ROADMAP](ROADMAP.md) | 次フェーズの改善・追加機能 | ✅ |
 | 01 | プロセス俯瞰図（初版） | V字+CC貼り付け版（参考） | ✅ |
 | 01a | J-SIX プロセス提案 | Phase 0-6 の初期提案 | ✅ |
