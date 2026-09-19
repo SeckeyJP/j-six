@@ -59,9 +59,10 @@ def parse_cobertura(path: Path) -> dict:
         covered = sum(1 for ln in lines if int(ln.get("hits", "0")) > 0)
         total = len(lines)
         # 同一ファイルが複数 class に分かれることがあるので加算する
-        agg = per_file.setdefault(filename, {"covered": 0, "total": 0})
+        agg = per_file.setdefault(filename, {"covered": 0, "total": 0, "missing": []})
         agg["covered"] += covered
         agg["total"] += total
+        agg["missing"] += [int(ln.get("number")) for ln in lines if int(ln.get("hits", "0")) == 0]
 
     return {
         "format": "cobertura",
@@ -85,7 +86,7 @@ def parse_lcov(path: Path) -> dict:
         line = raw.strip()
         if line.startswith("SF:"):
             current = line[3:]
-            per_file.setdefault(current, {"covered": 0, "total": 0})
+            per_file.setdefault(current, {"covered": 0, "total": 0, "missing": []})
         elif line.startswith("DA:") and current is not None:
             body = line[3:].split(",")
             if len(body) < 2:
@@ -99,6 +100,11 @@ def parse_lcov(path: Path) -> dict:
             if hits > 0:
                 per_file[current]["covered"] += 1
                 covered_lines += 1
+            else:
+                try:
+                    per_file[current]["missing"].append(int(body[0]))
+                except ValueError:
+                    pass
         elif line == "end_of_record":
             current = None
 
@@ -143,6 +149,7 @@ def lowest_files(per_file: dict, limit: int = 5) -> list:
             "line_rate": agg["covered"] / agg["total"],
             "covered": agg["covered"],
             "total": agg["total"],
+            "missing": sorted(set(agg.get("missing") or [])),
         })
     rows.sort(key=lambda r: (r["line_rate"], -r["total"]))
     return rows[:limit]
@@ -169,7 +176,8 @@ def check(cfg: dict, base_dir: Path | None = None) -> Result:
         "files": len(data["per_file"]),
     }
     findings = [
-        {"file": r["file"], "line_pct": round(r["line_rate"] * 100, 1), "covered": r["covered"], "total": r["total"]}
+        {"file": r["file"], "line_pct": round(r["line_rate"] * 100, 1), "covered": r["covered"],
+         "total": r["total"], "missing": r.get("missing", [])}
         for r in lowest_files(data["per_file"])
     ]
 

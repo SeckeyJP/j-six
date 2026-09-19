@@ -43,6 +43,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -69,7 +70,7 @@ def resolve_task_id(base: Path) -> str:
     task_id = os.environ.get("JSIX_TASK_ID")
     if task_id:
         return task_id
-    tag = git.latest_tag("jsix/red-*", cwd=base)
+    tag = git.latest_tag_touching("jsix/red-", base)
     if tag:
         return tag.split("jsix/red-", 1)[-1]
     return "untagged"
@@ -284,8 +285,9 @@ def render_coverage_mutation(coverage: dict | None, mutation: dict | None) -> st
         low = coverage.get("findings") or []
         if low:
             body += ["### 網羅率の低いファイル", "",
-                     "| ファイル | 網羅率 | 到達行 / 全行 |", "|---|---|---|"]
-            body += [f"| `{f['file']}` | {f['line_pct']}% | {f['covered']} / {f['total']} |" for f in low]
+                     "| ファイル | 網羅率 | 到達行 / 全行 | 未到達行 |", "|---|---|---|---|"]
+            body += [f"| `{f['file']}` | {f['line_pct']}% | {f['covered']} / {f['total']} "
+                     f"| {_line_ranges(f.get('missing')) or '—'} |" for f in low]
             body.append("")
 
     body += ["## mutation score", "",
@@ -318,10 +320,25 @@ def render_coverage_mutation(coverage: dict | None, mutation: dict | None) -> st
                 "",
                 "| ファイル | 行 | 変異 |", "|---|---|---|",
             ]
-            body += [f"| `{s.get('file')}` | {s.get('line', '—')} | {s.get('mutator', '—')} |"
+            body += [f"| {('`' + s['file'] + '`') if s.get('file') else '—'} "
+                     f"| {s.get('line') or '—'} | {s.get('mutator') or '—'} |"
                      for s in survivors]
             body.append("")
     return "\n".join(body) + "\n"
+
+
+def _line_ranges(lines) -> str:
+    """[72, 73, 74, 90] → "72-74, 90"。"""
+    nums = sorted(set(int(n) for n in (lines or [])))
+    out = []
+    i = 0
+    while i < len(nums):
+        j = i
+        while j + 1 < len(nums) and nums[j + 1] == nums[j] + 1:
+            j += 1
+        out.append(str(nums[i]) if i == j else f"{nums[i]}-{nums[j]}")
+        i = j + 1
+    return ", ".join(out)
 
 
 def render_security(results: dict) -> str:
@@ -514,14 +531,78 @@ def render_approval(task_id: str, env: dict) -> str:
 # 生成
 # --------------------------------------------------------------------------
 
+def _without_timestamp(evidence: dict) -> dict:
+    env = dict(evidence.get("env") or {})
+    env.pop("generated_at", None)
+    return {**evidence, "env": env}
+
+
+def _unchanged(target: Path, evidence: dict) -> bool:
+    """前回の証跡と、生成時刻以外が同じか。"""
+    try:
+        previous = json.loads((target / "evidence.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return _without_timestamp(previous) == _without_timestamp(evidence)
+
+
+_APPROVAL_COMMIT = re.compile(r"\*\*対象 commit\*\*: `([^`]*)`")
+
+
+def _preserve_approval(target: Path, task_id: str, env: dict) -> str | None:
+    """人間が記入した承認欄を守る。書くべき 07 の内容を返す（None なら既存を残す）。
+
+    承認は人間だけが書く区分であり、ゲートの再実行で消してはならない。
+    - 未記入（テンプレートのまま）なら、新しいテンプレートで置き換える
+    - 記入済みで対象 commit が同じなら、そのまま残す
+    - 記入済みで commit が変わったなら、承認は失効する。記録は別名で残し、
+      再承認を求めるテンプレートを置く
+    """
+    path = target / "07_approval.md"
+    fresh = render_approval(task_id, env)
+    if not path.is_file():
+        return fresh
+    existing = path.read_text(encoding="utf-8")
+    m = _APPROVAL_COMMIT.search(existing)
+    old_commit = m.group(1) if m else None
+    blank_for_old = render_approval(task_id, {"commit_sha": old_commit if old_commit != "不明" else None})
+    if existing in (blank_for_old, fresh) or _strip_reapproval(existing) == blank_for_old:
+        return fresh  # 未記入
+    new_commit = env.get("commit_sha") or "不明"
+    if old_commit == new_commit:
+        return None  # 記入済み・同じ commit
+    archive = target / f"07_approval.{(old_commit or 'unknown')[:12]}.md"
+    archive.write_text(existing, encoding="utf-8")
+    return fresh.replace(
+        "証跡（01〜05）と参考所見（06）を確認した上で記入してください。",
+        f"> **再承認が必要です。**前回の承認（commit `{old_commit}`）の後にコードが変わりました。"
+        f"前回の記録は `{archive.name}` に保存しています。\n\n"
+        "証跡（01〜05）と参考所見（06）を確認した上で記入してください。",
+        1,
+    )
+
+
+def _strip_reapproval(text: str) -> str:
+    """再承認の注記を除いた本文（未記入の再承認テンプレートを未記入と判定するため）。"""
+    return re.sub(r"> \*\*再承認が必要です。\*\*.*?\n\n", "", text, count=1, flags=re.S)
+
+
 def generate(results: dict, overall_ok: bool, base: Path, out_dir: Path,
              task_id: str | None = None, config_path: Path | None = None) -> Path:
-    """証跡パッケージを生成し、出力ディレクトリを返す。"""
+    """証跡パッケージを生成し、出力ディレクトリを返す。
+
+    ゲートは Stop のたびに走るため、生成時刻以外が前回と同じなら書き直さない。
+    書き直すと、証跡の時刻を引用する設計書がいつまでも収束しない。
+    人間が記入した承認欄（07）は上書きしない（_preserve_approval）。
+    """
     task_id = task_id or resolve_task_id(base)
     target = Path(out_dir) / task_id
     target.mkdir(parents=True, exist_ok=True)
 
     env = build_env(base, results, config_path)
+    evidence = {"task_id": task_id, "ok": overall_ok, "env": env, "gates": results}
+    if _unchanged(target, evidence):
+        return target
 
     files = {
         "00_summary.md": render_summary(task_id, results, env, overall_ok),
@@ -534,22 +615,17 @@ def generate(results: dict, overall_ok: bool, base: Path, out_dir: Path,
         "05_scope_and_integrity.md": render_scope_integrity(_check(results, "g1", "scope"),
                                                             _check(results, "g2", "test_tamper")),
         "06_judge_advisory.md": render_judge(_check(results, "g3", "judge")),
-        "07_approval.md": render_approval(task_id, env),
     }
+    approval = _preserve_approval(target, task_id, env)
+    if approval is not None:
+        files["07_approval.md"] = approval
     for name, text in files.items():
         (target / name).write_text(text, encoding="utf-8")
 
     (target / "env.json").write_text(
         json.dumps(env, ensure_ascii=False, indent=2), encoding="utf-8")
     (target / "evidence.json").write_text(
-        json.dumps({
-            "task_id": task_id,
-            "ok": overall_ok,
-            "env": env,
-            "gates": results,
-        }, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+        json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
     return target
 
 

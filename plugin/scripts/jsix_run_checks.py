@@ -40,6 +40,7 @@ import json
 import subprocess
 import sys
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -60,6 +61,9 @@ CONFIG_NAME = config.CONFIG_NAME
 EXIT_OK = 0
 EXIT_BLOCK = 2
 
+#: ゲート失敗の履歴（`history` で変更可）。Phase 0 の月次ループの入力
+DEFAULT_HISTORY = "reports/gate-history.jsonl"
+
 #: Stop hook で同じ失敗によるブロックを何回まで続けるか（`stop_hook.max_identical_blocks`）
 DEFAULT_MAX_IDENTICAL_BLOCKS = 3
 
@@ -77,6 +81,8 @@ class Context:
         self._base_resolved = False
         #: 設定のゲート定義（G3 が G4 の出力先を知るために使う）
         self.config_gates: dict = {}
+        #: ゲート履歴の出力先（G3 の差分の指紋から除外する）
+        self.history_path: str | None = None
         #: G4 は G1〜G3 の結果を入力に取るため、実行中の結果を参照できるようにする
         self.results: dict = {}
         self.config_path: Path | None = None
@@ -201,7 +207,9 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     agent = cfg.get("agent", "scope-judge")
     # 判定がどの差分に対するものかを照合する。git 管理外では照合しない
     evidence_out = (ctx.config_gates.get("g4") or {}).get("out", "reports/evidence/")
-    target = (git.diff_fingerprint(ctx.base_ref, ctx.base, exclude=[verdict_rel, evidence_out])
+    history = ctx.history_path or DEFAULT_HISTORY
+    target = (git.diff_fingerprint(ctx.base_ref, ctx.base, exclude=[verdict_rel, evidence_out, history],
+                                   include=cfg.get("fingerprint_paths"))
               if git.is_repo(ctx.base) else None)
     target_hint = f', "target": "{target}"' if target else ""
     base_hint = f"（比較元 {ctx.base_ref[:12]}）" if ctx.base_ref else ""
@@ -300,6 +308,7 @@ def run_gates(cfg: dict, ctx: Context, only: set | None = None) -> tuple:
     results: dict = {}
     aborted_after = None
     ctx.config_gates = cfg.get("gates", {})
+    ctx.history_path = cfg.get("history")
     scope_cfg = cfg.get("gates", {}).get("g1", {}).get("scope") or {}
     if scope_cfg.get("base") and ctx.scope_base is None:
         ctx.scope_base = scope_cfg["base"]
@@ -378,6 +387,61 @@ def render(results: dict, legacy: bool) -> tuple:
             "（現状のまま動作します。移行例は plugin/README.md 参照）"
         )
     return lines, has_failure
+
+
+def _failed_checks(results: dict) -> list:
+    out = []
+    for gate, res in results.items():
+        for name, chk in (res.get("checks") or {}).items():
+            if not chk.get("ok", True) and not chk.get("skipped"):
+                out.append(f"{gate}.{name}")
+    return out
+
+
+def _failure_details(results: dict, limit: int = 1000) -> dict:
+    """失敗したチェックの出力（findings の text）の末尾。断続的な失敗を後から調べるため。"""
+    out = {}
+    for gate, res in results.items():
+        for name, chk in (res.get("checks") or {}).items():
+            if chk.get("ok", True) or chk.get("skipped"):
+                continue
+            texts = [f.get("text") for f in (chk.get("findings") or []) if isinstance(f, dict) and f.get("text")]
+            if texts:
+                out[f"{gate}.{name}"] = "\n".join(texts)[-limit:]
+    return out
+
+
+def _record_history(base: Path, cfg: dict, results: dict, ok: bool, mode: str) -> None:
+    """ゲートの失敗を履歴に追記する。成功は、直前の記録が失敗だった場合（回復）だけ残す。
+
+    証跡と gate.json は最後の1回で上書きされるため、途中の失敗が残らなかった。
+    Stop のたびに走るので、成功を毎回記録すると履歴が埋まる。
+    """
+    path = base / cfg.get("history", DEFAULT_HISTORY)
+    if ok:
+        try:
+            lines = [ln for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+            last_ok = json.loads(lines[-1]).get("ok", True) if lines else True
+        except (OSError, ValueError):
+            last_ok = True
+        if last_ok:
+            return
+    record = {
+        "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ok": ok,
+        "mode": mode,
+        "failed": _failed_checks(results),
+        "summaries": {k: v["summary"] for g in results.values()
+                      for k, v in (g.get("checks") or {}).items()
+                      if not v.get("ok", True) and not v.get("skipped")},
+        "details": _failure_details(results),
+    }
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError:
+        pass  # 履歴を残せなくてもゲートの判定は変えない
 
 
 def stop_state_dir() -> Path:
@@ -469,6 +533,8 @@ def main(argv: list | None = None) -> int:
     ctx.config_path = Path(cfg["_path"]) if cfg.get("_path") else None
     ok, results = run_gates(cfg, ctx, only)
     lines, has_failure = render(results, cfg.get("_legacy", False))
+    mode = "stop-hook" if args.stop_hook else ("ci" if args.run_commands else "manual")
+    _record_history(base, cfg, results, ok, mode)
 
     stream = sys.stderr if has_failure else sys.stdout
     for line in lines:

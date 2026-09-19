@@ -210,6 +210,29 @@ class TestG3TwoPhase:
         ok, _ = runner.run_gates(cfg, runner.Context(project, run_commands=False))
         assert ok
 
+    def test_fingerprint_paths_limit_what_invalidates_judge(self, project):
+        """g3.fingerprint_paths を指定すると、それ以外の変更では判定が古くならない（ROADMAP C8）。
+
+        ドキュメントだけの変更でも scope-judge の再実行が必要になり、コストがかかっていた。
+        """
+        self._feature_branch_with_commit(project)
+        cfg_path = project / ".jsix-checks.json"
+        doc = json.loads(cfg_path.read_text(encoding="utf-8"))
+        doc["gates"]["g3"]["fingerprint_paths"] = ["app.py"]
+        cfg_path.write_text(json.dumps(doc), encoding="utf-8")
+        self._git(project, "commit", "-qam", "limit")
+
+        def target():
+            cfg = runner.config.load(project)
+            _, res = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+            return res["g3"]["checks"]["judge"]["metrics"]["target"]
+
+        before = target()
+        (project / "docs" / "note.md").write_text("メモ\n", encoding="utf-8")
+        assert target() == before
+        (project / "app.py").write_text("x = 2\n", encoding="utf-8")
+        assert target() != before
+
     def test_changes_still_require_g3(self, project):
         """変更があれば従来どおり G3 未実施で止める。"""
         self._config(project)
@@ -450,3 +473,66 @@ class TestScopeBaseline:
         ok, summary = self._scope(project)
         assert not ok
         assert "tests/acceptance/test_uc.py" in summary
+
+
+class TestGateHistory:
+    """ゲート失敗の履歴を残す（ROADMAP C9）。
+
+    証跡と gate.json は最後の1回で上書きされるため、途中の失敗が残らず、
+    Phase 0 の月次ループ（失敗理由を CLAUDE.md / Hook に還元）の入力にならなかった。
+    """
+
+    def _cfg(self, project, min_cov):
+        _write(project / ".jsix-checks.json",
+               {"gates": {"g2": {"coverage": {"file": "coverage.xml", "min": min_cov}}}})
+
+    def _history(self, project):
+        path = project / "reports" / "gate-history.jsonl"
+        if not path.exists():
+            return []
+        return [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+
+    def test_failures_are_recorded(self, project):
+        self._cfg(project, 100)
+        runner.main(["--dir", str(project)])
+        runner.main(["--dir", str(project)])
+        hist = self._history(project)
+        assert [h["ok"] for h in hist] == [False, False]
+        assert hist[0]["failed"] == ["g2.coverage"]
+        assert "at" in hist[0]
+
+    def test_passes_are_recorded_only_on_recovery(self, project):
+        self._cfg(project, 10)
+        runner.main(["--dir", str(project)])
+        runner.main(["--dir", str(project)])
+        assert self._history(project) == []
+        self._cfg(project, 100)
+        runner.main(["--dir", str(project)])
+        self._cfg(project, 10)
+        runner.main(["--dir", str(project)])
+        runner.main(["--dir", str(project)])
+        assert [h["ok"] for h in self._history(project)] == [False, True]
+
+    def test_history_path_is_configurable(self, project):
+        _write(project / ".jsix-checks.json", {
+            "gates": {"g2": {"coverage": {"file": "coverage.xml", "min": 100}}},
+            "history": "logs/gates.jsonl",
+        })
+        runner.main(["--dir", str(project)])
+        assert (project / "logs" / "gates.jsonl").is_file()
+
+
+def test_history_keeps_failure_detail(tmp_path):
+    """失敗したコマンドの出力（末尾）を履歴に残す。
+
+    要約（「コマンドが失敗しました」）だけでは、断続的な失敗の原因を後から調べられなかった
+    （Hypothesis の DeadlineExceeded による不安定なテストの調査で発覚）。
+    """
+    results = {"g2": {"status": "failed", "checks": {"tests": {
+        "ok": False, "skipped": False, "summary": "tests: コマンドが失敗しました（exit 2）: make test",
+        "findings": [{"text": "x" * 5000 + "DeadlineExceeded: Test took 250ms"}]}}}}
+    runner._record_history(tmp_path, {}, results, False, "ci")
+    rec = json.loads((tmp_path / "reports" / "gate-history.jsonl").read_text(encoding="utf-8"))
+    detail = rec["details"]["g2.tests"]
+    assert detail.endswith("DeadlineExceeded: Test took 250ms")
+    assert len(detail) <= 1000

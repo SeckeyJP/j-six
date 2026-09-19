@@ -163,7 +163,8 @@ def _scan_worktree(patterns: list, base: Path) -> dict:
 def resolve_baseline(cfg: dict, base: Path) -> str | None:
     """基準点となる git ref を決める。
 
-    優先順: 設定の baseline_ref → $JSIX_TASK_ID から組み立て → 最新の jsix/red-* タグ
+    優先順: 設定の baseline_ref → $JSIX_TASK_ID から組み立て → 自プロジェクトの最新の jsix/red-* タグ
+    （リポジトリ共有のタグのうち、base 配下を変更したコミットに付いたもの）
     """
     ref = cfg.get("baseline_ref")
     if ref:
@@ -171,7 +172,7 @@ def resolve_baseline(cfg: dict, base: Path) -> str | None:
     task_id = os.environ.get("JSIX_TASK_ID")
     if task_id:
         return f"jsix/red-{task_id}"
-    return git.latest_tag("jsix/red-*", cwd=base)
+    return git.latest_tag_touching("jsix/red-", base)
 
 
 def check_holdout_reference(cfg: dict, base: Path) -> list:

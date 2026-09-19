@@ -132,6 +132,28 @@ def latest_tag(pattern: str, cwd: Path | None = None) -> str | None:
     return out or None
 
 
+def latest_tag_touching(prefix: str, base_dir: Path) -> str | None:
+    """base_dir 配下を変更したコミットに付いた、prefix で始まる最新のタグ名を返す。
+
+    タグはリポジトリ共有のため、1つのリポジトリに複数プロジェクトがあると、
+    最新の jsix/red-* が別プロジェクトのタスクのものになりうる。自プロジェクトの
+    ディレクトリを変更したコミットを新しい順にたどり、最初に見つかったタグを使う。
+    """
+    root = repo_root(base_dir)
+    if root is None:
+        return None
+    try:
+        rel = Path(base_dir).resolve().relative_to(root.resolve()).as_posix() or "."
+        out = _run(["log", "--decorate=short", "--format=%D", "HEAD", "--", rel], root)
+    except (GitError, ValueError):
+        return None
+    for line in out.splitlines():
+        for ref in (r.strip() for r in line.split(",")):
+            if ref.startswith("tag: ") and ref[5:].startswith(prefix):
+                return ref[5:]
+    return None
+
+
 def ls_tree(ref: str, paths: list | None = None, cwd: Path | None = None) -> list:
     """指定 ref に存在するファイルのパス一覧を返す。"""
     args = ["ls-tree", "-r", "--name-only", ref, "--"] + (paths or [])
@@ -171,7 +193,8 @@ def default_base(cwd: Path | None = None) -> str | None:
     return None
 
 
-def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = None) -> str | None:
+def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = None,
+                     include: list | None = None) -> str | None:
     """base から作業ツリーまでの差分（base_dir 配下、未追跡ファイルを含む）の指紋。
 
     G3 の判定がどの差分に対するものかを照合するために使う。判定後にコードが
@@ -179,6 +202,7 @@ def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = No
 
     exclude（base_dir 相対）には判定ファイルと証跡の出力先を渡す。これらはゲート自身が
     書くため、含めると判定を書いた瞬間に指紋が変わってしまう。
+    include（base_dir 相対）を渡すと、そのパスの変更だけを指紋に含める。
     """
     import hashlib
 
@@ -186,7 +210,8 @@ def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = No
     if root is None:
         return None
     rel = Path(base_dir).resolve().relative_to(root.resolve()).as_posix() or "."
-    pathspec = [rel] + [
+    targets = [posixpath.normpath(posixpath.join(rel, i)) for i in include] if include else [rel]
+    pathspec = targets + [
         f":(exclude){posixpath.normpath(posixpath.join(rel, e))}" for e in (exclude or [])
     ]
     h = hashlib.sha256()

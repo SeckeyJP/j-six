@@ -207,3 +207,50 @@ class TestScanHeuristics:
     ])
     def test_test_function_detection(self, text):
         assert tamper.scan_text(text)["tests"] >= 1
+
+
+class TestRedTagPerProject:
+    """1つのリポジトリに複数プロジェクトがある場合、RED タグは自プロジェクトのものを使う。
+
+    タグはリポジトリ共有のため、最新の jsix/red-* を無条件に使うと、別プロジェクトの
+    タスクのタグを比較元に拾っていた（monthly-billing が approval-workflow の
+    jsix/red-TASK-AW-002 で検査された）。
+    """
+
+    @staticmethod
+    def _git(repo, *args):
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.com", *args],
+                       cwd=str(repo), check=True, capture_output=True)
+
+    def _monorepo(self, tmp_path):
+        for proj in ("a", "b"):
+            (tmp_path / proj / "tests").mkdir(parents=True)
+            (tmp_path / proj / "tests" / "test_x.py").write_text("def test_x(): pass\n", encoding="utf-8")
+        self._git(tmp_path, "init", "-q")
+        self._git(tmp_path, "add", "-A")
+        self._git(tmp_path, "commit", "-q", "-m", "init")
+        for proj, task in (("a", "TA"), ("b", "TB")):
+            (tmp_path / proj / "tests" / "test_y.py").write_text("def test_y(): pass\n", encoding="utf-8")
+            self._git(tmp_path, "add", "-A")
+            self._git(tmp_path, "commit", "-q", "-m", f"red {task}")
+            self._git(tmp_path, "tag", f"jsix/red-{task}")
+        return tmp_path
+
+    def test_uses_own_projects_tag(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("JSIX_TASK_ID", raising=False)
+        repo = self._monorepo(tmp_path)
+        assert tamper.resolve_baseline({}, repo / "a") == "jsix/red-TA"
+        assert tamper.resolve_baseline({}, repo / "b") == "jsix/red-TB"
+
+    def test_no_tag_for_untouched_project(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("JSIX_TASK_ID", raising=False)
+        repo = self._monorepo(tmp_path)
+        (repo / "c").mkdir()
+        assert tamper.resolve_baseline({}, repo / "c") is None
+
+    def test_evidence_task_id_uses_own_projects_tag(self, tmp_path, monkeypatch):
+        import jsix_evidence_pack as pack
+
+        monkeypatch.delenv("JSIX_TASK_ID", raising=False)
+        repo = self._monorepo(tmp_path)
+        assert pack.resolve_task_id(repo / "a") == "TA"

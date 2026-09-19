@@ -288,7 +288,10 @@ EXTRA_VALUE = st.one_of(st.text(max_size=10), st.integers(), st.booleans())
     extra_key=EXTRA_KEY,
     extra_value=EXTRA_VALUE,
 )
-@settings(max_examples=20)
+# HTTP 層（TestClient）を経由するため1件あたりが重く、負荷によって既定の deadline
+# （200ms）を超えて DeadlineExceeded で不安定に落ちていた（正しさとは無関係）。
+# 時間の上限だけを外し、検証内容は変えない。
+@settings(max_examples=20, deadline=None)
 def test_prop_009_transition_body_with_undefined_key_returns_422(
     endpoint, extra_key, extra_value
 ):
@@ -320,7 +323,10 @@ def test_prop_009_transition_body_with_undefined_key_returns_422(
 
 
 @given(extra_key=EXTRA_KEY, extra_value=EXTRA_VALUE)
-@settings(max_examples=20)
+# HTTP 層（TestClient）を経由するため1件あたりが重く、負荷によって既定の deadline
+# （200ms）を超えて DeadlineExceeded で不安定に落ちていた（正しさとは無関係）。
+# 時間の上限だけを外し、検証内容は変えない。
+@settings(max_examples=20, deadline=None)
 def test_prop_009_create_body_with_undefined_key_returns_422(extra_key, extra_value):
     """PROP-009 / REQ-012: 起票の入力に、定義されていない項目を1つ以上含めた場合、
     結果は必ず入力不正（422）であり、申請は作られない（監査ログも増えない）。

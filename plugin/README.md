@@ -195,6 +195,10 @@ CI の例: [`.github/workflows/jsix-gate.yml`](../.github/workflows/jsix-gate.ym
 | `min` / `min_score` / `max_severity` | 閾値。**未指定なら計測・集計のみ**（判定しない） |
 | `scope: "changed"` | mutation を変更ファイルに限定して再計算する |
 | `max_auto_fix` | G3 の却下を自動修正する回数。超えたら人間へエスカレーション（既定 1） |
+| `fingerprint_paths`（g3） | G3 の判定を紐づける差分の対象パス（例 `["app", "tests"]`）。指定するとそれ以外（ドキュメント等）の変更では判定が古くならない。**既定はプロジェクト全体**（安全側。ドキュメントの変更も判定対象になる） |
+| `base`（g1.scope） | スコープ検査の比較元。既定は RED タグ（`$JSIX_TASK_ID` → 自プロジェクトの最新の `jsix/red-*`）、無ければ未コミットの変更のみ |
+| `history`（トップレベル） | ゲート失敗の履歴の出力先（既定 `reports/gate-history.jsonl`）。失敗はすべて、成功は回復時だけ記録。quality-metrics が読む |
+| `stop_hook.max_identical_blocks`（トップレベル） | Stop hook で同じ失敗によるブロックを何回まで続けるか（既定 3）。超えたら停止を許可する。判定は未達のまま残り、CI では止まる |
 
 ### CLI オプション
 
