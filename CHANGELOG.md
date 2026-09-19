@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-19
+
 ### Added
 
 **工程成果物27点（IPA 機能要件の合意形成ガイド準拠）**
@@ -17,7 +19,7 @@ All notable changes to this project will be documented in this file.
 - templates/spec/design-spec.md 7: 非機能設計の節を6大項目に揃えた（7.1 可用性〜7.5 システム環境・エコロジー）。承認欄に Phase 2 の合意成熟度チェックリスト
 - .github/workflows/jsix-gate.yml: ゲートジョブを matrix 化し、monthly-billing も CI の対象にした（fail-fast 無効、証跡アーティファクトと SARIF カテゴリをサンプルごとに分離）
 - docs/REFERENCES_AUDIT.md: A47 非機能要求グレードの体系（6大項目・238メトリクス・重要項目92）/ A48 3つのモデルシステム、参考文献 [34]。グレードの使用条件（PDF は改変不可、Excel は著作権表示付きで改変可）を踏まえ、テンプレートには大項目の区分だけを載せた旨を注記
-- examples/monthly-billing/: 第2サンプル「月次請求書発行」。画面・帳票・バッチ・外部IF を持ち、`approval-workflow`（API のみ）では作れない画面6・帳票5・バッチ4 の実例を提供する。Spec / ADR / hold-out 受入テスト / TDD 実装 / 品質ゲート G1〜G4 通過（テスト98件＋hold-out 19件、カバレッジ 98.8%、mutation score 92.32%）
+- examples/monthly-billing/: 第2サンプル「月次請求書発行」。画面・帳票・バッチ・外部IF を持ち、`approval-workflow`（API のみ）では作れない画面6・帳票5・バッチ4 の実例を提供する。Spec / ADR / hold-out 受入テスト / TDD 実装 / 品質ゲート G1〜G4 通過（テスト101件＋hold-out 19件、カバレッジ 98.8%、mutation score 91.88%。2026-09-19 のリリース時点の値）
 - examples/monthly-billing/docs/deliverables/: 工程成果物27点の**記入済み実例**。品質ゲート（mutation testing / G3 judge / hold-out）が検出した事項を設計書側にも根拠として記載している
 - docs/REFERENCES_AUDIT.md: 2.8「工程成果物・合意形成」（A44 工程成果物と設計書は1対1でない / A45 合意成熟度の3段階 / A46 適格請求書の端数処理）、参考文献に [32] IPA ガイド・[33] 国税庁 Q&A を追加（[26]-[31] は J-SIX.md 側で使用済みのため）
 
@@ -76,6 +78,12 @@ All notable changes to this project will be documented in this file.
 - index.html: J-SIX の全体像を1枚に集約した自己完結型 HTML（外部依存なし。GitHub Pages のルートとしても機能）
 
 ### Changed
+
+**リリース時の整合**
+
+- index.html: v2.1 で追加した工程成果物27点・組立定義・合意成熟度（セクション 05）、第2サンプル monthly-billing と Plugin 実動検証（セクション 08・10）を反映。リポジトリ構成表に case-study-02 / plugin-field-test-01 / ROADMAP / templates/deliverables / monthly-billing を追加し、J-SIX.md の章数を「全8章」から「全9章」に訂正。基準日を 2026-09-19 に
+- examples/monthly-billing: 計測結果を 2026-09-19 の再計測値に更新（テスト 93→101 件、339 ステートメント、mutation score 92.95% → 91.88%〔505 ミュータント中 464 killed〕）。ADR-0004 と CSV 列数の修正でコードとミュータントが増えたため。閾値 90% は満たす。traceability.md の計測日も同様
+- examples/approval-workflow/README.md, README.md: ケーススタディ時点の値に加え、実動検証 #1（TASK-AW-002）後の現在値（テスト 81 件＋hold-out 72 件、カバレッジ 99.0%、mutation 92.42%、トレーサビリティ 21/21）を併記。README の実証表に monthly-billing と実動検証 #1 を追加
 
 **計画**
 
