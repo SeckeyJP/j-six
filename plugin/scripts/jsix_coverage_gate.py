@@ -5,7 +5,8 @@ Cobertura XML と LCOV（`lcov.info`）の両方を読める。どちらも多�
 カバレッジツールが出力できる標準フォーマットであり、本スクリプトは
 **ファイルを読むだけ**でカバレッジツールを起動しない。
 
-  Cobertura: coverage.py (`coverage xml`) / jacoco / cobertura / gocover-cobertura
+  Cobertura: coverage.py (`coverage xml`) / cobertura / gocover-cobertura
+             （JaCoCo の XML は独自形式で line-rate を持たないため、Cobertura へ変換してから渡す）
   LCOV:      istanbul (nyc) / lcov / llvm-cov / jest --coverageReporters=lcov
 
 判定: ライン網羅率が `min` 未満なら不合格。`min` 未指定なら計測のみ（合格扱い）。
