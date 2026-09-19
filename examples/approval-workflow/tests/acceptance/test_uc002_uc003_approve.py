@@ -1,6 +1,6 @@
 """UC-002 / UC-003: 申請の提出と承認（hold-out 受入テスト）。
 
-対応: UC-002, UC-003 / REQ-001, REQ-002, REQ-003, REQ-008, REQ-010
+対応: UC-002, UC-003 / REQ-001, REQ-002, REQ-003, REQ-008, REQ-010 / PROP-007
 """
 
 
@@ -63,3 +63,43 @@ def test_uc003_two_step_approval_requires_both_in_order(client):
     # REQ-010: 一連の操作がすべて監査ログに残る
     actions = [e["action"] for e in second.json()["audit_log"]]
     assert actions == ["CREATE", "SUBMIT", "APPROVE", "APPROVE"]
+
+
+def test_uc002_uc003_notes_on_submit_and_approve_are_recorded(client):
+    """UC-002, UC-003 / REQ-010 / PROP-007: 提出・承認で付けたコメントが監査ログに残る。
+
+    コメントを省略した操作は空文字で記録される。受け付けたコメントを捨てない。
+    """
+    rid = _create(client, 300000, ["bob", "carol"])
+
+    submitted = client.post(
+        f"/requests/{rid}/submit", json={"actor": "alice", "note": "至急お願いします"}
+    )
+    assert submitted.is_success, submitted.text
+    last = submitted.json()["audit_log"][-1]
+    assert last["action"] == "SUBMIT"
+    assert last["actor"] == "alice"
+    assert last["note"] == "至急お願いします"
+
+    first = client.post(
+        f"/requests/{rid}/approve", json={"actor": "bob", "note": "内容確認済み"}
+    )
+    assert first.is_success, first.text
+    last = first.json()["audit_log"][-1]
+    assert last["action"] == "APPROVE"
+    assert last["actor"] == "bob"
+    assert last["note"] == "内容確認済み"
+
+    # コメントを省略した承認は空文字で記録される
+    second = client.post(f"/requests/{rid}/approve", json={"actor": "carol"})
+    assert second.is_success, second.text
+    assert second.json()["status"] == "APPROVED"
+
+    # 取得し直しても、各操作のコメントがそのまま残っている
+    log = client.get(f"/requests/{rid}").json()["audit_log"]
+    assert [(e["action"], e["actor"], e["note"]) for e in log] == [
+        ("CREATE", "alice", ""),
+        ("SUBMIT", "alice", "至急お願いします"),
+        ("APPROVE", "bob", "内容確認済み"),
+        ("APPROVE", "carol", ""),
+    ]

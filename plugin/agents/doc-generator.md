@@ -23,7 +23,7 @@ skills:
 `doc-reverse-gen` スキルを `all` オプションで実行し、以下を順に生成する:
 1. 工程成果物（`docs/deliverables/`）— 対象システムが持つ領域を逆生成し、持たない領域は「該当なし」を記録
 2. 顧客様式の設計書（`docs/design-docs/`）— `docs/design-docs/assembly-*.md` の組立定義ごとに組立。
-   組立定義が無ければ `templates/deliverables/assembly/` の基本設計書・詳細設計書の例を使い、
+   組立定義が無ければ `doc-reverse-gen` Skill に同梱の基本設計書・詳細設計書の組立例を使い、
    **顧客と目次を合意していない**ことをユーザーに報告する
 3. 品質・テスト系の納品物 — 証跡パッケージ（`reports/evidence/`）から変換
 

@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import posixpath
 import subprocess
 from pathlib import Path
 
@@ -143,6 +144,64 @@ def show_file(ref: str, path: str, cwd: Path | None = None) -> str | None:
         return _run(["show", f"{ref}:{path}"], cwd)
     except GitError:
         return None
+
+
+def default_base(cwd: Path | None = None) -> str | None:
+    """タスクの起点とみなすコミット（既定ブランチとの分岐点）を返す。
+
+    tdd-cycle はフェーズごとにコミットするため、未コミットの差分だけを見ると
+    Stop の時点で「変更なし」になり、スコープ検査も G3 も空振りする。ブランチで
+    作業している前提で、既定ブランチとの merge-base を起点にする。
+    既定ブランチが見つからなければ None（呼び出し側は未コミットの差分だけを見る）。
+    """
+    candidates = []
+    try:
+        head = _run(["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"], cwd).strip()
+        if head:
+            candidates.append(head)
+    except GitError:
+        pass
+    candidates += ["origin/main", "main", "origin/master", "master"]
+    for ref in candidates:
+        if ref_exists(ref, cwd):
+            try:
+                return _run(["merge-base", "HEAD", ref], cwd).strip() or None
+            except GitError:
+                continue
+    return None
+
+
+def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = None) -> str | None:
+    """base から作業ツリーまでの差分（base_dir 配下、未追跡ファイルを含む）の指紋。
+
+    G3 の判定がどの差分に対するものかを照合するために使う。判定後にコードが
+    変わった場合や、別タスクの判定が残っている場合に指紋が一致しなくなる。
+
+    exclude（base_dir 相対）には判定ファイルと証跡の出力先を渡す。これらはゲート自身が
+    書くため、含めると判定を書いた瞬間に指紋が変わってしまう。
+    """
+    import hashlib
+
+    root = repo_root(base_dir)
+    if root is None:
+        return None
+    rel = Path(base_dir).resolve().relative_to(root.resolve()).as_posix() or "."
+    pathspec = [rel] + [
+        f":(exclude){posixpath.normpath(posixpath.join(rel, e))}" for e in (exclude or [])
+    ]
+    h = hashlib.sha256()
+    try:
+        h.update(_run(["diff", "--binary", base or "HEAD", "--"] + pathspec, root).encode("utf-8"))
+        untracked = _run(["ls-files", "--others", "--exclude-standard", "--full-name", "--"] + pathspec, root)
+    except GitError:
+        return None
+    for path in sorted(ln.strip() for ln in untracked.splitlines() if ln.strip()):
+        h.update(path.encode("utf-8"))
+        try:
+            h.update((root / path).read_bytes())
+        except OSError:
+            continue
+    return h.hexdigest()[:16]
 
 
 def repo_root(cwd: Path | None = None) -> Path | None:

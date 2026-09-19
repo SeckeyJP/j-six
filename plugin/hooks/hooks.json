@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/jsix_run_checks.py\""
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/jsix_run_checks.py\" --stop-hook"
           },
           {
             "type": "prompt",

@@ -155,7 +155,7 @@ G3 を通過すると証跡パッケージが `reports/evidence/<タスクID>/` 
 - パフォーマンスとのトレードオフ
 - セキュリティに関わる判断
 
-ADR テンプレート: `templates/adr/template.md`
+ADR テンプレート: `${CLAUDE_SKILL_DIR}/templates/adr-template.md`（Skill に同梱）
 
 ---
 

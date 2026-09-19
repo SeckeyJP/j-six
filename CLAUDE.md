@@ -31,4 +31,5 @@ J-SIX (Japanese SI Transformation) のプロセス定義・テンプレート・
 - [ ] `docs/REFERENCES_AUDIT.md` — 監査日、データ修正があった場合は該当エントリ
 - [ ] `plugin/.claude-plugin/plugin.json` — version フィールド（Plugin 変更時）
 - [ ] `plugin/README.md` — Hooks テーブル等（Plugin 変更時）
+- [ ] `python3 tools/sync_plugin_templates.py` — `templates/` を変更したら Plugin 同梱コピーを再生成（CI が `--check` で検査する）
 - [ ] 補足ドキュメント内の本文参照が古くなっていないか（walkthrough, legacy guide）
