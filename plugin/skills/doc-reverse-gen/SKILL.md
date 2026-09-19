@@ -59,15 +59,16 @@ v2.0 の種別は引き続き受け付け、次のように読み替える。読
 
 ## 雛形と記入済み実例
 
-J-SIX リポジトリの次のファイルを雛形・手本として読む。
+次のファイルを雛形・手本として読む。テンプレートは本 Skill に同梱している
+（`${CLAUDE_SKILL_DIR}` は本 Skill のディレクトリ）。
 
 | 用途 | パス |
 |---|---|
-| 工程成果物の空テンプレート | `templates/deliverables/<領域>/*.md` |
-| 27点の索引・由来・作る順序 | `templates/deliverables/README.md` |
-| 組立の原則と手順 | `templates/deliverables/assembly/GUIDE.md` |
-| 組立定義の例 | `templates/deliverables/assembly/kihon-sekkei.md`, `shousai-sekkei.md` |
-| 記入済み実例 | `examples/monthly-billing/docs/deliverables/` |
+| 工程成果物の空テンプレート | `${CLAUDE_SKILL_DIR}/templates/deliverables/<領域>/*.md` |
+| 27点の索引・由来・作る順序 | `${CLAUDE_SKILL_DIR}/templates/deliverables/README.md` |
+| 組立の原則と手順 | `${CLAUDE_SKILL_DIR}/templates/deliverables/assembly/GUIDE.md` |
+| 組立定義の例 | `${CLAUDE_SKILL_DIR}/templates/deliverables/assembly/kihon-sekkei.md`, `shousai-sekkei.md` |
+| 記入済み実例 | https://github.com/SeckeyJP/j-six/tree/main/examples/monthly-billing/docs/deliverables （Plugin には同梱していない） |
 
 各テンプレート末尾の「記入ガイド」に、その成果物の**逆生成の手順と書き落としやすい点**が書いてある。
 逆生成の前に必ず読む。
@@ -84,7 +85,7 @@ J-SIX リポジトリの次のファイルを雛形・手本として読む。
 
 ### 由来ごとの扱い
 
-27点は由来が4種類ある（`templates/deliverables/README.md` の索引）。**由来によって
+27点は由来が4種類ある（同梱の `templates/deliverables/README.md` の索引）。**由来によって
 このスキルがしてよいことが違う。**
 
 | 由来 | 件数 | このスキルの扱い |
@@ -108,10 +109,10 @@ J-SIX リポジトリの次のファイルを雛形・手本として読む。
 
 ## 種別 assemble: 設計書の組立
 
-`templates/deliverables/assembly/GUIDE.md` の手順に従う。要点は次のとおり。
+`${CLAUDE_SKILL_DIR}/templates/deliverables/assembly/GUIDE.md` の手順に従う。要点は次のとおり。
 
 1. **組立定義を探す。**`docs/design-docs/assembly-<設計書名>.md` を優先し、無ければ
-   `templates/deliverables/assembly/<設計書名>.md`（`kihon-sekkei` / `shousai-sekkei`）を使う。
+   同梱の `${CLAUDE_SKILL_DIR}/templates/deliverables/assembly/<設計書名>.md`（`kihon-sekkei` / `shousai-sekkei`）を使う。
    プロジェクトの組立定義が無いまま雛形を使った場合は、その旨を出力の冒頭に書く
    （顧客と目次を合意していない設計書である）
 2. 組立定義の章の順に構成要素を連結する。**構成要素の本文を書き換えない**（要約・言い換えを

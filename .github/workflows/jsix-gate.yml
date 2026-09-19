@@ -25,6 +25,8 @@ on:
       - "examples/approval-workflow/**"
       - "examples/monthly-billing/**"
       - "plugin/**"
+      - "templates/**"
+      - "tools/**"
       - ".github/workflows/jsix-gate.yml"
   push:
     branches: [main]
@@ -32,6 +34,8 @@ on:
       - "examples/approval-workflow/**"
       - "examples/monthly-billing/**"
       - "plugin/**"
+      - "templates/**"
+      - "tools/**"
       - ".github/workflows/jsix-gate.yml"
 
 # SARIF を GitHub の Code scanning に上げるために必要
@@ -49,6 +53,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: npx -y @anthropic-ai/claude-code plugin validate plugin
+      # Skill に同梱したテンプレートが templates/（正）と一致しているか。
+      # インストールされた Plugin からは templates/ が見えないため同梱している。
+      - run: python3 tools/sync_plugin_templates.py --check
 
   # Plugin のチェックスクリプト自体の単体テスト。
   # ゲートを実行する道具が壊れていないことを先に確かめる。

@@ -18,15 +18,13 @@ J-SIX プロセスの Phase 1（要求の合意）または Phase 2（技術設�
 
 ### 2. テンプレートの読み込み
 
-要求 Spec の場合:
-```
-!`cat templates/spec/requirement-spec.md`
-```
+テンプレートは本 Skill に同梱している。Read ツールで読む。
 
-Design Spec の場合:
-```
-!`cat templates/spec/design-spec.md`
-```
+- 要求 Spec: [`templates/requirement-spec.md`](templates/requirement-spec.md)（`${CLAUDE_SKILL_DIR}/templates/requirement-spec.md`）
+- Design Spec: [`templates/design-spec.md`](templates/design-spec.md)（`${CLAUDE_SKILL_DIR}/templates/design-spec.md`）
+
+既存の Spec を改訂する場合も、テンプレートの節構成（非機能要件の6大項目、承認欄の
+合意成熟度チェックなど）と照らし合わせ、欠けている節を補う。
 
 ### 3. 対話的な Spec 策定
 

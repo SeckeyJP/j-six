@@ -105,6 +105,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- plugin/skills: テンプレートをリポジトリルートの `templates/` から読んでいたため、**インストールされた Plugin では Skill が動かなかった**（マーケットプレイスからのインストールでは Plugin ディレクトリだけがコピーされる）。`spec-create` は `` !`cat templates/spec/...` `` が失敗して起動直後に止まっていた。テンプレートを各 Skill に同梱し `${CLAUDE_SKILL_DIR}/templates/...` で参照する形に変更。正は `templates/` のままで、同梱分は `tools/sync_plugin_templates.py` が生成する（Plugin の外を指す相対リンクは GitHub の URL に書き換える）。CI に `--check` を追加し、CLAUDE.md の更新チェックリストにも追記
 - plugin/hooks/hooks.json: prompt 型 Hook を「〜の場合は…してください。該当しなければ何も出力しない」という**指示文の形**で書いていた。prompt 型 Hook は判定役のモデルが `{ok, reason}` を返す評価器で「何も出力しない」選択肢が無いため、**Stop が毎回ブロックされセッションが止まらなくなっていた**（Skill をヘッドレス実行した design-review で同じやり取りが10回以上繰り返された）。ADR 提案の Hook を「ok を false にする条件」を明示する評価器の形に書き直し（迷う場合と `stop_hook_active` が true の場合は ok）、G3 起動の Hook は command 型ゲートの案内と重複していたため削除。判定すべき条件の無い PostToolUse（テスト結果確認）・StopFailure・PermissionDenied の prompt 型 Hook も削除した
 - plugin/scripts/jsix_run_checks.py: git 管理下で変更ファイルが無いセッションでは G3（scope-judge の判定）を求めないようにした。レビューや調査だけの作業でも毎回 scope-judge の起動を強いていた。テスト2件を追加
 - plugin/.claude-plugin/plugin.json: `repository` をオブジェクト（`{type, url}`）で書いていたため、Claude Code がマニフェストを不正と判定し **Plugin 全体が読み込まれていなかった**（Skill / Agent / Hook のいずれも動かない）。文字列に修正し、`claude plugin validate` の通過と、`--plugin-dir` で Skill 7 / Agent 7 が登録されることを確認。Skill をヘッドレス実行して実行ログを取ろうとした際（ROADMAP C2）に発覚した。CI に `plugin validate` のジョブを追加し、ワークフローの対象パスを `plugin/**` に広げた
