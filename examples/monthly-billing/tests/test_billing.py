@@ -252,7 +252,7 @@ def test_reset_clears_store(svc):
 class TestYearBoundary:
     """REQ-001: 1月締めは前年12月から期間が始まる。
 
-    mutation testing で `month > 1` の分岐（前月が前年になる경路）が
+    mutation testing で `month > 1` の分岐（前月が前年になる経路）が
     検証されていないことが判明したため追加した。
     """
 
