@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- examples/monthly-billing/README.md: 「mutation testing が見つけたテストの穴」の表が、本文の「本物の穴が8種」に対して6行しかなかった。実装時のコミット（`3b14aaf`）に残っていた内訳から、抜けていた2種（明細への数量の転記、reset 後の採番リセット）を追加。いずれも対応するテストは既にある
+- examples/monthly-billing/tests/test_billing.py: コメントの誤字（「경路」→「経路」）
+
 ## [2.1.0] - 2026-09-19
 
 ### Added
