@@ -12,7 +12,14 @@ from .models import Action, ApprovalRequest, AuditEntry, Status
 
 
 class WorkflowError(Exception):
-    """ドメインルール違反。API 層で 400/409 に変換する。"""
+    """ドメインルール違反。API 層で 409 に変換する。"""
+
+
+class RequestNotFound(Exception):
+    """対象の申請が存在しない。WorkflowError のサブクラスにはしない（ADR-0003）。
+
+    API 層で 404 に変換する。
+    """
 
 
 def required_approval_levels(amount: int) -> int:
@@ -44,7 +51,7 @@ class WorkflowService:
     def get(self, request_id: str) -> ApprovalRequest:
         req = self._store.get(request_id)
         if req is None:
-            raise WorkflowError(f"申請が存在しません: {request_id}")
+            raise RequestNotFound(f"申請が存在しません: {request_id}")
         return req
 
     def list_all(self) -> list[ApprovalRequest]:
@@ -82,7 +89,7 @@ class WorkflowService:
         return req
 
     # --- 状態遷移 -----------------------------------------------------------
-    def submit(self, request_id: str, actor: str) -> ApprovalRequest:
+    def submit(self, request_id: str, actor: str, note: str = "") -> ApprovalRequest:
         req = self.get(request_id)
         self._ensure_active(req)
         if req.status != Status.DRAFT:
@@ -91,10 +98,10 @@ class WorkflowService:
             raise WorkflowError("提出できるのは申請者のみです")
         req.status = Status.PENDING
         req.current_step = 0
-        self._log(req, Action.SUBMIT, actor)
+        self._log(req, Action.SUBMIT, actor, note)
         return req
 
-    def approve(self, request_id: str, actor: str) -> ApprovalRequest:
+    def approve(self, request_id: str, actor: str, note: str = "") -> ApprovalRequest:
         req = self.get(request_id)
         self._ensure_pending(req)
         if actor != req.next_approver:
@@ -104,7 +111,7 @@ class WorkflowService:
         req.current_step += 1
         if req.current_step >= len(req.approvers):
             req.status = Status.APPROVED
-        self._log(req, Action.APPROVE, actor)
+        self._log(req, Action.APPROVE, actor, note)
         return req
 
     def reject(self, request_id: str, actor: str, note: str = "") -> ApprovalRequest:
@@ -131,14 +138,14 @@ class WorkflowService:
         self._log(req, Action.REMAND, actor, note)
         return req
 
-    def withdraw(self, request_id: str, actor: str) -> ApprovalRequest:
+    def withdraw(self, request_id: str, actor: str, note: str = "") -> ApprovalRequest:
         """取下げ。申請者が DRAFT / PENDING から取り下げる。"""
         req = self.get(request_id)
         self._ensure_active(req)
         if actor != req.applicant:
             raise WorkflowError("取下げできるのは申請者のみです")
         req.status = Status.WITHDRAWN
-        self._log(req, Action.WITHDRAW, actor)
+        self._log(req, Action.WITHDRAW, actor, note)
         return req
 
     # --- 内部ヘルパ ---------------------------------------------------------
