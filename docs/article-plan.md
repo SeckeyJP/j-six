@@ -258,7 +258,7 @@ J-SIX.md
 
 ## 6. 番外編（追加公開）
 
-シリーズ6本の公開後、以下の11本を番外編として追加公開した。
+シリーズ6本の公開後、以下の13本を番外編として追加公開した。
 
 | slug | タイトル | テーマ | 公開済 |
 |---|---|---|---|
@@ -273,3 +273,5 @@ J-SIX.md
 | j-six-scheduled-tasks | CC Scheduled Tasks | CC の定期実行で開発を自動化 | ✅ |
 | j-six-mutation-testing | カバレッジ 99% × mutation testing の実測 | ケーススタディ #2 の記事化。生存ミュータント → PBT | ✅ |
 | j-six-quality-gates | 人間レビューの前に置く4層品質ゲート | G1〜G4 の設計理由と Plugin 実動検証での失敗 | ✅ |
+| j-six-ipa-deliverables | IPA 工程成果物27点で合意を分解する | 合意成熟度・事前設計書・非機能要求グレード | ✅ |
+| j-six-plugin-field-test | Plugin 実動検証で見つけた8件の不具合 | Plugin 作者向け。ヘッドレス実行と評価ケース | ✅ |
