@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 - README.md / docs/article-plan.md / index.html: 番外編記事「カバレッジ 99% のテストに mutation testing をかけたら、監査ログの穴が見つかった」（j-six-mutation-testing）の公開を反映（番外編 10本・全16本）
 - README.md / docs/article-plan.md / index.html: 番外編記事「AI の「テストは通りました」を鵜呑みにしない — 人間レビューの前に置く4層品質ゲート」（j-six-quality-gates）の公開を反映（番外編 11本・全17本）
+- README.md / docs/article-plan.md / index.html: 番外編記事2本（j-six-ipa-deliverables / j-six-plugin-field-test）の公開を反映（番外編 13本・全19本）
 
 ### Fixed
 
