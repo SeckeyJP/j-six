@@ -2,7 +2,7 @@
 
 **工程成果物**: 画面 ④ ／ **由来**: **コードから逆生成**
 **逆生成元**: `app/templates/*.html` の変数、`app/reports.py` の `invoice_view`
-**対象**: 月次請求書発行 ／ **版**: 1.0 ／ **日付**: 2026-09-18
+**対象**: 月次請求書発行 ／ **版**: 1.1 ／ **日付**: 2026-09-21
 
 > IN=入力、OUT=出力。画面が描画するデータは `invoice_view()` が返す辞書に集約されており、
 > **JSON エンドポイント（`/invoices.json`）と同一のデータ源**である（Design Spec 3.1）。
@@ -40,33 +40,34 @@
 | 4 | 締め日 | OUT | 日付 | `YYYY-MM-DD` | `inv.closing_date` |
 | 5 | 支払期日 | OUT | 日付 | `YYYY-MM-DD` | `inv.due_date` |
 | 6 | 状態 | OUT | 列挙 | 色分け | `inv.status` |
+| 7 | 振込先 | OUT | 文字列 | `{金融機関}　{支店}　{種別} {口座番号}`。未登録は「未登録（請求書には「振込先未登録」と印字されます）」 | `inv.bank_account` |
 
 ### 明細部（繰返し）
 
 | # | 項目名 | IN/OUT | 型 | 書式 | データ源 |
 |---|---|---|---|---|---|
-| 7 | # | OUT | 整数 | 右寄せ | `line.line_no` |
-| 8 | 品目 | OUT | 文字列 | — | `line.item_name` |
-| 9 | 数量 | OUT | 整数 | 右寄せ | `line.quantity` |
-| 10 | 単価 | OUT | 整数 | 3桁区切り・右寄せ | `line.unit_price` |
-| 11 | 金額 | OUT | 整数 | 3桁区切り・右寄せ | `line.amount` |
-| 12 | 税率 | OUT | 整数 | `n%`。軽減は色分け＋`※` | `line.tax_rate`, `line.is_reduced` |
+| 8 | # | OUT | 整数 | 右寄せ | `line.line_no` |
+| 9 | 品目 | OUT | 文字列 | — | `line.item_name` |
+| 10 | 数量 | OUT | 整数 | 右寄せ | `line.quantity` |
+| 11 | 単価 | OUT | 整数 | 3桁区切り・右寄せ | `line.unit_price` |
+| 12 | 金額 | OUT | 整数 | 3桁区切り・右寄せ | `line.amount` |
+| 13 | 税率 | OUT | 整数 | `n%`。軽減は色分け＋`※` | `line.tax_rate`, `line.is_reduced` |
 
 ### 税率別内訳部（繰返し）
 
 | # | 項目名 | IN/OUT | 型 | 書式 | データ源 |
 |---|---|---|---|---|---|
-| 13 | 税率 | OUT | 整数 | `n%`。軽減は `（軽減）`付き | `s.tax_rate`, `s.is_reduced` |
-| 14 | 対価の額（税抜） | OUT | 整数 | 3桁区切り・右寄せ | `s.subtotal` |
-| 15 | 消費税額 | OUT | 整数 | 3桁区切り・右寄せ | `s.tax_amount` |
+| 14 | 税率 | OUT | 整数 | `n%`。軽減は `（軽減）`付き | `s.tax_rate`, `s.is_reduced` |
+| 15 | 対価の額（税抜） | OUT | 整数 | 3桁区切り・右寄せ | `s.subtotal` |
+| 16 | 消費税額 | OUT | 整数 | 3桁区切り・右寄せ | `s.tax_amount` |
 
 ### 合計部
 
 | # | 項目名 | IN/OUT | 型 | データ源 |
 |---|---|---|---|---|
-| 16 | 税抜合計 | OUT | 整数 | `inv.subtotal` |
-| 17 | 消費税 | OUT | 整数 | `inv.tax_total` |
-| 18 | 請求金額 | OUT | 整数（強調） | `inv.total` |
+| 17 | 税抜合計 | OUT | 整数 | `inv.subtotal` |
+| 18 | 消費税 | OUT | 整数 | `inv.tax_total` |
+| 19 | 請求金額 | OUT | 整数（強調） | `inv.total` |
 
 ---
 

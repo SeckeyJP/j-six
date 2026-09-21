@@ -2,12 +2,14 @@
 
 **工程成果物**: データモデル ① ／ **由来**: **コードから逆生成**
 **逆生成元**: `app/models.py`
-**対象**: 月次請求書発行 ／ **版**: 1.0 ／ **日付**: 2026-09-18
+**対象**: 月次請求書発行 ／ **版**: 1.1 ／ **日付**: 2026-09-21
 
 ```mermaid
 erDiagram
     Customer ||--o{ SalesRecord : "売上が発生する"
     Customer ||--o{ Invoice : "請求する"
+    Customer ||--o| BankAccount : "振込先を持つ（任意）"
+    Invoice  ||--o| BankAccount : "締め時点の振込先を保持する"
     Invoice  ||--|{ InvoiceLine : "明細を持つ"
     Invoice  ||--|{ TaxSummary : "税率別内訳を持つ"
 
@@ -16,6 +18,14 @@ erDiagram
         string name "取引先名"
         int closing_day "締め日（20 or 31=月末）"
         enum payment_terms "支払サイト"
+        object bank_account "振込先口座（任意）"
+    }
+    BankAccount {
+        string bank_name "金融機関名"
+        string branch_name "支店名"
+        string account_type "預金種別（普通 or 当座）"
+        string account_number "口座番号"
+        string account_holder "口座名義"
     }
     SalesRecord {
         string record_id PK "販売管理システムの採番"
@@ -36,6 +46,7 @@ erDiagram
         date closing_date "締め日"
         date due_date "支払期日"
         enum status "DRAFT / CONFIRMED"
+        object bank_account "締め時点の振込先（任意）"
     }
     InvoiceLine {
         int line_no PK "請求内の連番"

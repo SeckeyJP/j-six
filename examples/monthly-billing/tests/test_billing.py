@@ -337,3 +337,97 @@ class TestInvoiceNumbering:
         )
         _sale(svc, "C001", 3, 1000)
         assert svc.close_month("2026-08", actor="k1")[0].invoice_no == "INV-202608-0001"
+
+
+# --- TASK-MB-007: 振込先口座（REQ-011〜013） -------------------------------
+
+
+BANK = dict(
+    bank_name="ジェイシックス銀行",
+    branch_name="本店営業部",
+    account_type="普通",
+    account_number="1234567",
+    account_holder="カ）ジェイシツクスシヨウジ",
+)
+
+
+def test_req011_bank_account_is_registered_per_customer(svc):
+    """REQ-011: 振込先は取引先ごとに登録する。"""
+    svc.set_bank_account("C001", **BANK)
+
+    account = svc.get_customer("C001").bank_account
+    assert account.bank_name == "ジェイシックス銀行"
+    assert account.account_number == "1234567"
+    assert svc.get_customer("C002").bank_account is None
+
+
+def test_req011_unknown_customer_is_rejected(svc):
+    """REQ-011: 未登録の取引先には口座を登録できない。"""
+    with pytest.raises(BillingError):
+        svc.set_bank_account("C999", **BANK)
+
+
+def test_req011_account_type_must_be_known(svc):
+    """REQ-011: 預金種別は普通・当座のいずれか。"""
+    with pytest.raises(BillingError):
+        svc.set_bank_account("C001", **dict(BANK, account_type="定期"))
+
+
+def test_req012_invoice_keeps_bank_account_at_closing(svc):
+    """REQ-012: 請求は締め時点の振込先を保存する。"""
+    svc.set_bank_account("C001", **BANK)
+    _sale(svc, "C001", 10, 1000)
+
+    invoice = svc.close_month("2026-08", actor="keiri01")[0]
+    svc.set_bank_account("C001", **dict(BANK, bank_name="別銀行"))
+
+    assert invoice.bank_account.bank_name == "ジェイシックス銀行"
+
+
+def test_req013_close_succeeds_without_bank_account(svc):
+    """REQ-013: 振込先が未登録でも締めは成功する。"""
+    _sale(svc, "C001", 10, 1000)
+
+    invoices = svc.close_month("2026-08", actor="keiri01")
+
+    assert len(invoices) == 1
+    assert invoices[0].bank_account is None
+
+
+def test_req013_missing_bank_account_is_logged_as_warning(svc):
+    """REQ-013 / REQ-010: 未登録は監査記録に警告として残る。"""
+    _sale(svc, "C001", 10, 1000)
+
+    svc.close_month("2026-08", actor="keiri01")
+
+    warnings = [e for e in svc.audit_log if e.action == "CLOSE_WARN_NO_BANK_ACCOUNT"]
+    assert len(warnings) == 1
+    assert warnings[0].invoice_no is not None
+    assert warnings[0].actor == "keiri01"
+
+
+def test_req013_no_warning_when_all_registered(svc):
+    """REQ-013: 全社に登録済みなら警告は出ない。"""
+    svc.set_bank_account("C001", **BANK)
+    _sale(svc, "C001", 10, 1000)
+
+    svc.close_month("2026-08", actor="keiri01")
+
+    assert not [e for e in svc.audit_log if e.action == "CLOSE_WARN_NO_BANK_ACCOUNT"]
+
+
+def test_req011_all_account_fields_are_stored(svc):
+    """REQ-011: 登録した5項目がすべて保存される。
+
+    mutation testing で `account_type=None` に変えたミュータントが生き残った。
+    金融機関名・口座番号は検証していたが、預金種別を検証していなかったため
+    （帳票に印字される項目なので、落ちれば請求書の記載が欠ける）。
+    """
+    svc.set_bank_account("C001", **BANK)
+
+    account = svc.get_customer("C001").bank_account
+    assert account.bank_name == BANK["bank_name"]
+    assert account.branch_name == BANK["branch_name"]
+    assert account.account_type == BANK["account_type"]
+    assert account.account_number == BANK["account_number"]
+    assert account.account_holder == BANK["account_holder"]

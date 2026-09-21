@@ -76,6 +76,18 @@ def invoice_view(invoice: Invoice) -> dict:
         "tax_total": invoice.tax_total,
         "total": invoice.total,
         "status": invoice.status.value,
+        # REQ-011/012: 締め時点の振込先。未登録なら None（REQ-013）
+        "bank_account": (
+            {
+                "bank_name": invoice.bank_account.bank_name,
+                "branch_name": invoice.bank_account.branch_name,
+                "account_type": invoice.bank_account.account_type,
+                "account_number": invoice.bank_account.account_number,
+                "account_holder": invoice.bank_account.account_holder,
+            }
+            if invoice.bank_account is not None
+            else None
+        ),
         "lines": [
             {
                 "line_no": line.line_no,

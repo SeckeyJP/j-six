@@ -10,6 +10,15 @@
   <tr><th>締め日</th><td>{{ inv.closing_date }}</td></tr>
   <tr><th>支払期日</th><td>{{ inv.due_date }}</td></tr>
   <tr><th>状態</th><td class="status-{{ inv.status }}">{{ inv.status }}</td></tr>
+  {# REQ-011/013: 締め時点の振込先。未登録は経理が気づけるよう明示する #}
+  <tr><th>振込先</th><td>
+    {%- if inv.bank_account -%}
+      {{ inv.bank_account.bank_name }}　{{ inv.bank_account.branch_name }}　
+      {{ inv.bank_account.account_type }} {{ inv.bank_account.account_number }}
+    {%- else -%}
+      <span class="reduced">未登録（請求書には「振込先未登録」と印字されます）</span>
+    {%- endif -%}
+  </td></tr>
 </table>
 
 <h2>明細</h2>

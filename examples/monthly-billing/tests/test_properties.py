@@ -252,3 +252,49 @@ def test_prop_004_period_is_contiguous_and_ends_on_closing_date(month, closing_d
     prev_month, prev_year = (month - 1, 2026) if month > 1 else (12, 2025)
     prev_close = closing_date_of(f"{prev_year:04d}-{prev_month:02d}", closing_day)
     assert period_from == date.fromordinal(prev_close.toordinal() + 1)
+
+
+# --- TASK-MB-007: 振込先口座（PROP-007 / PROP-008） ------------------------
+
+BANK_KW = dict(
+    bank_name="ジェイシックス銀行",
+    branch_name="本店営業部",
+    account_type="普通",
+    account_number="1234567",
+    account_holder="カ）ジェイシツクスシヨウジ",
+)
+
+
+@given(
+    lines=st.lists(LineSpec, min_size=1, max_size=6),
+    new_bank=st.text(min_size=1, max_size=12),
+)
+@settings(max_examples=50)
+def test_prop_007_bank_account_is_frozen_at_closing(lines, new_bank):
+    """PROP-007 / REQ-012: 保存された振込先は、締め後のマスタ変更で変化しない。"""
+    svc = _service_with(lines)
+    svc.set_bank_account("C001", **BANK_KW)
+
+    invoice = svc.close_month("2026-08", actor="keiri01")[0]
+    before = invoice.bank_account
+
+    svc.set_bank_account("C001", **dict(BANK_KW, bank_name=new_bank))
+
+    assert invoice.bank_account == before
+    assert invoice.bank_account.bank_name == BANK_KW["bank_name"]
+
+
+@given(lines=st.lists(LineSpec, min_size=1, max_size=6), registered=st.booleans())
+@settings(max_examples=50)
+def test_prop_008_bank_account_does_not_change_invoice_amounts(lines, registered):
+    """PROP-008 / REQ-013: 振込先の登録有無は請求の件数と金額に影響しない。"""
+    baseline = _service_with(lines)
+    invoices_without = baseline.close_month("2026-08", actor="keiri01")
+
+    svc = _service_with(lines)
+    if registered:
+        svc.set_bank_account("C001", **BANK_KW)
+    invoices = svc.close_month("2026-08", actor="keiri01")
+
+    assert len(invoices) == len(invoices_without)
+    assert [inv.total for inv in invoices] == [inv.total for inv in invoices_without]

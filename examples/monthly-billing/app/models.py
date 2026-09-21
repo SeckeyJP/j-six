@@ -54,14 +54,38 @@ class PaymentTerms(str, Enum):
 ALLOWED_CLOSING_DAYS = (20, 31)
 
 
+#: 預金種別として許容する値（REQ-011）。
+ALLOWED_ACCOUNT_TYPES = ("普通", "当座")
+
+
+@dataclass(frozen=True)
+class BankAccount:
+    """振込先口座（REQ-011）。
+
+    **不変**にしてある。請求は締め時点の口座を保存し（REQ-012）、後からマスタを
+    変更しても作成済みの請求書の記載が変わってはならない。可変にすると、
+    同じインスタンスを共有した時点でスナップショットが崩れる。
+    """
+
+    bank_name: str
+    branch_name: str
+    account_type: str
+    account_number: str
+    account_holder: str
+
+
 @dataclass
 class Customer:
-    """取引先。締め日と支払サイトを持つ（REQ-001, REQ-002）。"""
+    """取引先。締め日と支払サイトを持つ（REQ-001, REQ-002）。
+
+    振込先口座は任意（REQ-013。未登録でも締めは止めない）。
+    """
 
     customer_code: str
     name: str
     closing_day: int
     payment_terms: PaymentTerms
+    bank_account: Optional[BankAccount] = None
 
 
 @dataclass
@@ -125,6 +149,9 @@ class Invoice:
     lines: List[InvoiceLine] = field(default_factory=list)
     tax_summaries: List[TaxSummary] = field(default_factory=list)
     status: InvoiceStatus = InvoiceStatus.DRAFT
+    #: 締め時点の振込先（REQ-012）。交付先名称と同じくスナップショットで持つ。
+    #: 未登録の取引先では None（REQ-013）。
+    bank_account: Optional[BankAccount] = None
 
     @property
     def subtotal(self) -> int:
