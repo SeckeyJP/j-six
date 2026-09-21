@@ -13,6 +13,7 @@ J-SIX (Japanese SI Transformation) のプロセス定義・テンプレート・
 - `docs/REFERENCES_AUDIT.md` — 出典監査レポート
 - `templates/` — CLAUDE.md / Spec / ADR テンプレート
 - `plugin/` — Claude Code Plugin（Skills / Agents / Hooks）
+- `process/` — プロセス定義のデータ版（`jsix-process.yaml`）。正は `docs/J-SIX.md`。Phase・ゲートを変えたら yaml も直し、`python3 tools/validate_process.py` を通す
 
 ## 品質ルール
 

@@ -1,0 +1,39 @@
+# J-SIX プロセス定義（process/jsix-process.yaml）の検証
+#
+# プロセス定義は J-SIX Plugin と J-SIX Hub の双方が参照するデータである
+# （docs/control-plane/adr/0003-dependency-direction-and-process-as-data.md）。
+# 構造（JSON Schema）と参照整合性（存在しない Phase・役割・状態を指していないか）を検査する。
+# 検証スクリプト自体の単体テストも先に実行する。
+
+name: Process Definition
+
+on:
+  pull_request:
+    paths:
+      - "process/**"
+      - "tools/validate_process.py"
+      - "tools/tests/test_validate_process.py"
+      - ".github/workflows/process-definition.yml"
+  push:
+    branches: [main]
+    paths:
+      - "process/**"
+      - "tools/validate_process.py"
+      - "tools/tests/test_validate_process.py"
+      - ".github/workflows/process-definition.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: スキーマと参照整合性の検証
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -q "pyyaml==6.0.3" "jsonschema==4.25.1" pytest
+      - run: python -m pytest tools/tests -q
+      - run: python tools/validate_process.py

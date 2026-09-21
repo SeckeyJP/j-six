@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 - README.md「今後の展開」、docs/J-SIX.md 付録B: J-SIX Hub を「構想中（仮説であり未実装）」として追加
 - docs/control-plane/concept.md: J-SIX Hub の構想文書（ROADMAP H1）。課題、3層構成、人間の4役割、J-SIX.md から導出した状態モデル（Phase・タスクの状態、ゲートの判定の3種類、逸脱と回収）、スイムレーン図（Mermaid）、案件階層・Interface Contract・憲法の版管理、関連研究とポジショニング、仮説と評価計画（人間の被験者なしの予備実験の設計）、課題と制約。すべて仮説であり、効果の数値は主張しない
 - docs/REFERENCES_AUDIT.md: 2.9「J-SIX Hub の関連研究」（A49-A62）、カテゴリB に B21-B23、参考文献 [35]-[59]、7.1 に未確認事項（Osterweil 1987 の頁、IEEE 掲載3件の書誌、関連研究の網羅性）と、PSEE が普及しなかった理由の表現を弱めた経緯を記録
+- process/: プロセス定義のデータ版（ROADMAP H2）。`jsix-process.yaml`（Phase・ゲート・成果物・役割・遷移・状態・エスカレーション条件・逸脱。各要素に J-SIX.md の出典と、J-SIX 本体の定義か J-SIX Hub の構想で追加したものかを記録）、`jsix-process.schema.json`、`README.md`（J-SIX.md との照合結果。J-SIX.md は変更していない）、`plugin-integration.md`（Plugin から参照する場合の設計メモ。未実装）
+- tools/validate_process.py: プロセス定義の検証（JSON Schema と、ID の参照整合性・人間承認は Phase 境界だけ・状態の到達可能性などの規則）。単体テスト 26 件（`tools/tests/`）
+- .github/workflows/process-definition.yml: 上記の検証を CI で実行
+- CLAUDE.md: リポジトリ構成に `process/` を追加
 - docs/control-plane/adr/0002: H1 の調査結果を追記。フェーズ状態機械による工程統制は既存研究にあるため、研究に対する差別化は契約型開発への適用と4点の組み合わせで説明する（判断そのものは変更しない）
 
 ### Fixed
