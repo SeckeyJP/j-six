@@ -5,7 +5,7 @@
 > 埋めた**記入済み実例**であり、設計書テンプレート（`templates/deliverables/`）の
 > 記入済み実例を作るための題材でもある。
 
-**Version**: 1.0 | **Date**: 2026-09-18 | **Author**: H.Sekita
+**Version**: 1.1 | **Date**: 2026-09-21 | **Author**: H.Sekita
 **Status**: 承認済み
 
 ---
