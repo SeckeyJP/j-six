@@ -400,9 +400,7 @@ def test_req013_missing_bank_account_is_logged_as_warning(svc):
 
     svc.close_month("2026-08", actor="keiri01")
 
-    warnings = [
-        e for e in svc.audit_log if e.action == "CLOSE_WARN_NO_BANK_ACCOUNT"
-    ]
+    warnings = [e for e in svc.audit_log if e.action == "CLOSE_WARN_NO_BANK_ACCOUNT"]
     assert len(warnings) == 1
     assert warnings[0].invoice_no is not None
     assert warnings[0].actor == "keiri01"

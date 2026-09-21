@@ -265,7 +265,10 @@ BANK_KW = dict(
 )
 
 
-@given(lines=st.lists(LineSpec, min_size=1, max_size=6), new_bank=st.text(min_size=1, max_size=12))
+@given(
+    lines=st.lists(LineSpec, min_size=1, max_size=6),
+    new_bank=st.text(min_size=1, max_size=12),
+)
 @settings(max_examples=50)
 def test_prop_007_bank_account_is_frozen_at_closing(lines, new_bank):
     """PROP-007 / REQ-012: 保存された振込先は、締め後のマスタ変更で変化しない。"""
