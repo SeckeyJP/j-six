@@ -28,7 +28,7 @@ J-SIX 本体は、個人〜小規模チームが Claude Code Plugin として使
   Spec / ADR / コード / テスト / 逆生成設計書
 ```
 
-構想の詳細（課題、状態モデル、関連研究、評価計画、課題と制約）は `concept.md` にまとめる予定である（未作成）。
+構想の詳細（課題、状態モデルとスイムレーン図、関連研究とポジショニング、仮説と評価計画、課題と制約）は [concept.md](concept.md) にまとめている。
 
 ## 決定事項と ADR
 
@@ -39,7 +39,7 @@ J-SIX 本体は、個人〜小規模チームが Claude Code Plugin として使
 | D3 | J-SIX は Hub に依存しない。依存は Hub → J-SIX の一方向 | [ADR-0003](adr/0003-dependency-direction-and-process-as-data.md) |
 | D4 | プロセス定義をデータ化して J-SIX に置く（`process/jsix-process.yaml`） | [ADR-0003](adr/0003-dependency-direction-and-process-as-data.md) |
 | D5 | サンプル環境は実行記録を再生するリプレイ型 | [ADR-0004](adr/0004-replay-sample-environment.md) |
-| D6 | 逸脱の扱い（Phase 逆戻り、ゲート例外承認、エスカレーション、ローカル退避、Interface Contract 違反）を状態モデルに明示する | `concept.md` の状態モデルと `jsix-process.yaml` で定義する（未作成） |
+| D6 | 逸脱の扱い（Phase 逆戻り、ゲート例外承認、エスカレーション、ローカル退避、Interface Contract 違反）を状態モデルに明示する | [concept.md §4.3](concept.md#43-逸脱と回収)。`jsix-process.yaml`（H2）でデータ化する |
 | D7 | 実装は CC ネイティブのまま。マルチモデル・オーケストレータは作らない。モデル非依存性はプロセス定義の記述レベルで主張する | 本表のみ（スコープの決定のため ADR は作らない） |
 | D8 | 中央実行を基本とし、ローカル CC への退避路を残す。ローカルの成果物は必ずゲートを再通過する | [ADR-0005](adr/0005-central-execution-with-local-fallback.md) |
 | D9 | Hub 自体を J-SIX で開発し、その記録をケーススタディにする | 本表のみ。開発は [j-six-hub](https://github.com/SeckeyJP/j-six-hub) リポジトリで行う |
@@ -48,5 +48,5 @@ J-SIX 本体は、個人〜小規模チームが Claude Code Plugin として使
 
 | リポジトリ | 置くもの |
 |---|---|
-| `SeckeyJP/j-six`（本リポジトリ） | 構想文書・ADR（本ディレクトリ）、プロセス定義 `process/`（予定） |
+| `SeckeyJP/j-six`（本リポジトリ） | 構想文書・ADR（本ディレクトリ）、プロセス定義 `process/`（H2 で作成予定） |
 | `SeckeyJP/j-six-hub` | リプレイ型サンプル Web アプリ、リプレイ用イベントデータ（MIT） |

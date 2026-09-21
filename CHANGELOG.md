@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 - docs/control-plane/: J-SIX Hub（旧称 J-SIX Control Plane）の構想を置くディレクトリを新設。J-SIX を大規模・複数チーム・複数ベンダーの案件に広げるための構想で、現時点では仮説であり実装・実証はしていない。`README.md`（一文定義・3層構成・決定事項 D1〜D9 と記録先の対応）と、決定事項の ADR 5本（`adr/0001`〜`0005`：正本は Git／差別化軸はプロセス適合性／依存方向とプロセス定義のデータ化／リプレイ型サンプル環境／中央実行とローカル退避路）。ADR はいずれも「提案中」
 - docs/ROADMAP.md: H「J-SIX Hub（構想）」を追加（H0 決定事項の記録を完了、H1〜H5 は未着手）。項目番号は構想の決定事項 D1〜D9 と区別するため H とした
 - README.md「今後の展開」、docs/J-SIX.md 付録B: J-SIX Hub を「構想中（仮説であり未実装）」として追加
+- docs/control-plane/concept.md: J-SIX Hub の構想文書（ROADMAP H1）。課題、3層構成、人間の4役割、J-SIX.md から導出した状態モデル（Phase・タスクの状態、ゲートの判定の3種類、逸脱と回収）、スイムレーン図（Mermaid）、案件階層・Interface Contract・憲法の版管理、関連研究とポジショニング、仮説と評価計画（人間の被験者なしの予備実験の設計）、課題と制約。すべて仮説であり、効果の数値は主張しない
+- docs/REFERENCES_AUDIT.md: 2.9「J-SIX Hub の関連研究」（A49-A62）、カテゴリB に B21-B23、参考文献 [35]-[59]、7.1 に未確認事項（Osterweil 1987 の頁、IEEE 掲載3件の書誌、関連研究の網羅性）と、PSEE が普及しなかった理由の表現を弱めた経緯を記録
+- docs/control-plane/adr/0002: H1 の調査結果を追記。フェーズ状態機械による工程統制は既存研究にあるため、研究に対する差別化は契約型開発への適用と4点の組み合わせで説明する（判断そのものは変更しない）
 
 ### Fixed
 
