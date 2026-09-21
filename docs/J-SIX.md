@@ -893,6 +893,7 @@ Phase 6 の `doc-reverse-gen` Skill が、証跡パッケージを従来フォ�
 | 9 | 証跡パッケージ（顧客納品対応） | GitHub（evidence-pack Skill） | ✅ 完成 |
 | 10 | mutation testing × PBT の実測（ケーススタディ #2） | 記事 + GitHub | ✅ 完成 |
 | 11 | 工程成果物テンプレート（IPA 27点）・組立定義・第2サンプル | GitHub（templates / examples） | ✅ 完成 |
+| 12 | J-SIX Hub（大規模・複数チーム向けにプロセス適合性を中央で統制する構想） | GitHub（構想文書 + リプレイ型サンプル） | 構想中（`docs/control-plane/`。仮説であり未実装） |
 
 次フェーズの改善計画は補足資料の ROADMAP（`docs/ROADMAP.md`）に整理している。
 
