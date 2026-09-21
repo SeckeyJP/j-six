@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SeckeyJP/j-six/process/jsix-process.schema.json",
+  "title": "J-SIX プロセス定義",
+  "description": "process/jsix-process.yaml の構造。ID の参照整合性（存在しない Phase・役割・成果物を指していないか）はスキーマでは表せないため tools/validate_process.py が検査する。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "process", "autonomy_levels", "roles", "artifacts", "check_kinds", "gates", "phases", "transitions", "state_machines", "escalation_conditions", "deviations"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "derived_from"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "name": {"type": "string", "minLength": 1},
+        "derived_from": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["document", "version"],
+          "properties": {
+            "document": {"type": "string", "minLength": 1},
+            "version": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "autonomy_levels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "description"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^L[0-9]$"},
+          "name": {"type": "string", "minLength": 1},
+          "description": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "kind", "description", "origin", "source"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "name": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["human", "ai", "system"]},
+          "description": {"type": "string", "minLength": 1},
+          "origin": {"$ref": "#/$defs/origin"},
+          "source": {"$ref": "#/$defs/source"}
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "kind", "origin", "source"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "name": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["config", "spec", "prototype", "decision_record", "plan", "test", "code", "evidence", "report", "document", "contract"]},
+          "description": {"type": "string"},
+          "origin": {"$ref": "#/$defs/origin"},
+          "source": {"$ref": "#/$defs/source"}
+        }
+      }
+    },
+    "check_kinds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "evidence_class", "description"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "name": {"type": "string", "minLength": 1},
+          "evidence_class": {"enum": ["evidence", "advisory", "approval"]},
+          "description": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "phase", "scope", "origin", "source", "layers"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "name": {"type": "string", "minLength": 1},
+          "phase": {"$ref": "#/$defs/phaseId"},
+          "scope": {"enum": ["project", "task"]},
+          "ordered": {"type": "boolean"},
+          "description": {"type": "string"},
+          "origin": {"$ref": "#/$defs/origin"},
+          "source": {"$ref": "#/$defs/source"},
+          "layers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "name", "checks"],
+              "properties": {
+                "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$"},
+                "name": {"type": "string", "minLength": 1},
+                "optional": {"type": "boolean"},
+                "note": {"type": "string"},
+                "checks": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {"$ref": "#/$defs/check"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "mode", "autonomy", "gate", "outputs", "origin", "source"],
+        "properties": {
+          "id": {"$ref": "#/$defs/phaseId"},
+          "name": {"type": "string", "minLength": 1},
+          "mode": {"enum": ["continuous", "sequential", "per_task"]},
+          "autonomy": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^L[0-9]$"}},
+          "gate": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+          "inputs": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+          "outputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}},
+          "steps": {"type": "array", "items": {"$ref": "#/$defs/id"}},
+          "note": {"type": "string"},
+          "origin": {"$ref": "#/$defs/origin"},
+          "source": {"$ref": "#/$defs/source"}
+        }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "condition"],
+        "properties": {
+          "from": {"$ref": "#/$defs/phaseId"},
+          "to": {"$ref": "#/$defs/phaseId"},
+          "condition": {"$ref": "#/$defs/id"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "state_machines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "applies_to", "initial", "states", "transitions", "origin", "source"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "applies_to": {"enum": ["phase", "task"]},
+          "initial": {"$ref": "#/$defs/id"},
+          "origin": {"$ref": "#/$defs/origin"},
+          "source": {"$ref": "#/$defs/source"},
+          "states": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "name"],
+              "properties": {
+                "id": {"$ref": "#/$defs/id"},
+                "name": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "transitions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["from", "to"],
+              "properties": {
+                "from": {"$ref": "#/$defs/id"},
+                "to": {"$ref": "#/$defs/id"},
+                "via_deviation": {"$ref": "#/$defs/id"},
+                "note": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "escalation_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "origin", "source"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "name": {"type": "string", "minLength": 1},
+          "origin": {"$ref": "#/$defs/origin"},
+          "source": {"$ref": "#/$defs/source"}
+        }
+      }
+    },
+    "deviations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "trigger", "recovery", "records", "origin", "source"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "name": {"type": "string", "minLength": 1},
+          "trigger": {"type": "string", "minLength": 1},
+          "approver_roles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}},
+          "recovery": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "records": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "constraint": {"type": "string"},
+          "origin": {"$ref": "#/$defs/origin"},
+          "source": {"$ref": "#/$defs/source"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+    "phaseId": {"type": "string", "pattern": "^P[0-9]+$"},
+    "origin": {
+      "description": "jsix = J-SIX.md が定義しているもの / hub-concept = J-SIX Hub の構想で追加したもの",
+      "enum": ["jsix", "hub-concept"]
+    },
+    "source": {"type": "string", "minLength": 1},
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "name": {"type": "string", "minLength": 1},
+        "kind": {"$ref": "#/$defs/id"},
+        "approver_roles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}},
+        "criteria": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "origin": {"$ref": "#/$defs/origin"},
+        "source": {"$ref": "#/$defs/source"}
+      }
+    }
+  }
+}

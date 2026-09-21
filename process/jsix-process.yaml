@@ -1,0 +1,573 @@
+# J-SIX プロセス定義（データ版）
+#
+# docs/J-SIX.md の Phase・ゲート・成果物・役割・遷移をデータとして記述したもの。
+# J-SIX Plugin と J-SIX Hub の双方が参照する前提で置いている
+# （docs/control-plane/adr/0003-dependency-direction-and-process-as-data.md）。
+#
+# - 正は docs/J-SIX.md。本ファイルと食い違う場合は J-SIX.md を正とし、本ファイルを直す
+# - 各要素の source は J-SIX.md（または構想文書）の該当箇所
+# - origin は定義の出どころ
+#     jsix        … J-SIX.md が定義しているもの
+#     hub-concept … J-SIX Hub の構想（docs/control-plane/concept.md）で追加したもの。J-SIX 単体では使わない
+# - 特定のモデル・ツール（Claude Code の Skill 名など）は書かない。モデル非依存性はこの記述の水準で保つ（決定事項 D7）
+# - 検証: python3 tools/validate_process.py
+
+schema_version: 1
+
+process:
+  id: jsix
+  name: J-SIX
+  derived_from:
+    document: docs/J-SIX.md
+    version: "2.1"
+
+# ---------------------------------------------------------------------------
+# 自律度（J-SIX.md 2.3）
+# ---------------------------------------------------------------------------
+autonomy_levels:
+  - id: L0
+    name: 手動
+    description: 人間が全て実行し、AI は参考回答のみ
+  - id: L1
+    name: AI 支援
+    description: 人間が主導し、AI が補助する
+  - id: L2
+    name: AI 主導
+    description: AI が実行案を作成し、人間が毎回承認する
+  - id: L3
+    name: AI 自律
+    description: AI が自律実行し、人間は結果を監督・異常時に介入する
+  - id: L4
+    name: AI 完全自律
+    description: AI が自律実行し、人間は介入しない。条件は Phase 4 の G1〜G4 全層通過
+
+# ---------------------------------------------------------------------------
+# 役割
+# ---------------------------------------------------------------------------
+roles:
+  # 人間（J-SIX.md 第8章）
+  - id: business_translator
+    name: ビジネス翻訳者
+    kind: human
+    description: ステークホルダーの要求を Spec に翻訳する
+    origin: jsix
+    source: J-SIX.md 第8章
+  - id: architect
+    name: アーキテクト
+    kind: human
+    description: 技術的判断・トレードオフを決定する
+    origin: jsix
+    source: J-SIX.md 第8章
+  - id: gatekeeper
+    name: 品質の門番
+    kind: human
+    description: Phase Gate での承認・判定を行う
+    origin: jsix
+    source: J-SIX.md 第8章
+  - id: constitution_designer
+    name: CLAUDE.md 設計者
+    kind: human
+    description: プロジェクト憲法を策定し、継続的に改善する
+    origin: jsix
+    source: J-SIX.md 第8章
+  - id: sampling_verifier
+    name: サンプリング検証者
+    kind: human
+    description: AI 出力の妥当性をサンプリングで確認する
+    origin: jsix
+    source: J-SIX.md 第8章
+  - id: customer_negotiator
+    name: 顧客折衝者
+    kind: human
+    description: 顧客との合意を形成する
+    origin: jsix
+    source: J-SIX.md 第8章
+  - id: exploratory_tester
+    name: 探索的テスター
+    kind: human
+    description: 人間の直感による探索的テストを行う
+    origin: jsix
+    source: J-SIX.md 第8章
+  - id: customer
+    name: 顧客
+    kind: human
+    description: 要求と納品物を承認する発注者
+    origin: jsix
+    source: J-SIX.md Phase 1, Phase 6
+  - id: contract_owner
+    name: 契約所有者
+    kind: human
+    description: Interface Contract を所有し、その変更を承認するチーム
+    origin: hub-concept
+    source: concept.md §5.2
+  # 人間以外
+  - id: ai_agent
+    name: AI エージェント
+    kind: ai
+    description: Spec のドラフト、タスク案、TDD 実装、G3 判定、設計書の逆生成を行う
+    origin: jsix
+    source: J-SIX.md 第2章〜第4章
+  - id: automation
+    name: 自動検証
+    kind: system
+    description: 決定論的チェック（スクリプト）を実行する。ローカルの Hook と CI の双方を含む
+    origin: jsix
+    source: J-SIX.md 4.4
+
+# ---------------------------------------------------------------------------
+# 成果物
+# ---------------------------------------------------------------------------
+artifacts:
+  - id: constitution
+    name: プロジェクト憲法（CLAUDE.md）
+    kind: config
+    origin: jsix
+    source: J-SIX.md Phase 0
+  - id: requirement_spec
+    name: 要求 Spec
+    kind: spec
+    description: 業務背景・REQ・受入条件と PROP・非機能要件（IPA 非機能要求グレードの6大項目）
+    origin: jsix
+    source: J-SIX.md Phase 1
+  - id: business_flow_prototype
+    name: 業務フロープロトタイプ
+    kind: prototype
+    origin: jsix
+    source: J-SIX.md Phase 1
+  - id: design_spec
+    name: Design Spec
+    kind: spec
+    origin: jsix
+    source: J-SIX.md Phase 2
+  - id: adr
+    name: ADR
+    kind: decision_record
+    origin: jsix
+    source: J-SIX.md Phase 2, Phase 6（3層戦略の第2層）
+  - id: working_prototype
+    name: 実動プロトタイプ
+    kind: prototype
+    origin: jsix
+    source: J-SIX.md Phase 2
+  - id: properties
+    name: Property（PROP-nnn）
+    kind: spec
+    description: 受入条件から導出した「任意の〈前提〉について〈性質〉が成り立つ」形式の性質
+    origin: jsix
+    source: J-SIX.md Phase 2
+  - id: task_list
+    name: タスク一覧
+    kind: plan
+    description: 受入条件・PROP・変更許可ファイル範囲（allow / deny）・依存関係を持つ
+    origin: jsix
+    source: J-SIX.md Phase 3
+  - id: task_definition
+    name: タスク定義（docs/tasks/<タスクID>.md）
+    kind: plan
+    description: G3 の判定基準にする
+    origin: jsix
+    source: J-SIX.md Phase 3
+  - id: holdout_tests
+    name: hold-out 受入テスト
+    kind: test
+    description: 受入条件 1件につき最低1テスト。実装担当からは読めない
+    origin: jsix
+    source: J-SIX.md Phase 4 メカニズム①
+  - id: tests
+    name: テスト（PBT を含む）
+    kind: test
+    origin: jsix
+    source: J-SIX.md Phase 4 メカニズム①
+  - id: code
+    name: コード
+    kind: code
+    origin: jsix
+    source: J-SIX.md Phase 4
+  - id: evidence_pack
+    name: 証跡パッケージ
+    kind: evidence
+    description: 証跡 / 参考所見 / 承認の3区分（reports/evidence/<task-id>/）
+    origin: jsix
+    source: J-SIX.md 第9章
+  - id: quality_metrics
+    name: 品質メトリクス
+    kind: report
+    origin: jsix
+    source: J-SIX.md Phase 5
+  - id: reverse_generated_docs
+    name: 逆生成した工程成果物・設計書
+    kind: document
+    origin: jsix
+    source: J-SIX.md Phase 6
+  - id: interface_contract
+    name: Interface Contract
+    kind: contract
+    description: OpenAPI / AsyncAPI / DB スキーマ / イベントスキーマ。所有者・利用者・版・互換性・承認状態を持つ
+    origin: hub-concept
+    source: concept.md §5.2
+
+# ---------------------------------------------------------------------------
+# ゲートを構成するチェックの種類（concept.md §4.1。証跡パッケージの3区分に対応）
+# ---------------------------------------------------------------------------
+check_kinds:
+  - id: deterministic
+    name: 決定論的チェック
+    evidence_class: evidence
+    description: 同じ入力なら同じ結果になるスクリプトの判定
+  - id: llm_judge
+    name: LLM 判定
+    evidence_class: advisory
+    description: 再実行で結果が変わりうる。単独で合否の根拠にしない
+  - id: human_approval
+    name: 人間承認
+    evidence_class: approval
+    description: 承認者と日付を記録する
+  - id: evidence_generation
+    name: 証跡生成
+    evidence_class: evidence
+    description: 前段の結果を構造化して出力する。スクリプト部分は証跡、LLM による要約部分は参考所見として区別する
+
+# ---------------------------------------------------------------------------
+# ゲート
+# ---------------------------------------------------------------------------
+gates:
+  - id: customer_approval
+    name: 顧客承認
+    phase: P1
+    scope: project
+    origin: jsix
+    source: J-SIX.md Phase 1, 「合意成熟度による判定」
+    layers:
+      - id: agreement
+        name: 合意
+        checks:
+          - id: agreement_maturity
+            name: 合意成熟度の判定
+            kind: human_approval
+            approver_roles: [customer, customer_negotiator]
+            criteria:
+              - 要求 Spec（ユースケース・業務ルール REQ・受入条件と PROP・非機能要件）が完成レベル
+              - 業務フローはプロトタイプで確認し、充実レベルでよい
+              - 仕掛レベルの項目は「未確定」と明記し、確定させる Phase と担当者を決める
+
+  - id: design_review
+    name: 設計レビュー
+    phase: P2
+    scope: project
+    origin: jsix
+    source: J-SIX.md Phase 2, 「合意成熟度による判定」
+    layers:
+      - id: review
+        name: レビュー
+        checks:
+          - id: prototype_based_review
+            name: プロトタイプベースの設計レビュー
+            kind: human_approval
+            approver_roles: [gatekeeper, architect]
+            criteria:
+              - Design Spec・ADR・実動プロトタイプ、人手で書く工程成果物、提出する設計書の目次が完成レベル
+              - 実装から逆生成する工程成果物は代替物による充実レベルでよい（Phase 6 で差し替える）
+
+  - id: task_approval
+    name: タスク承認
+    phase: P3
+    scope: project
+    origin: jsix
+    source: J-SIX.md Phase 3
+    description: 自律実行圏への最後のゲート
+    layers:
+      - id: approval
+        name: 承認
+        checks:
+          - id: task_and_scope_approval
+            name: タスクと変更許可ファイル範囲の承認
+            kind: human_approval
+            approver_roles: [gatekeeper]
+            criteria:
+              - 各タスクに受入条件と対応する PROP がある
+              - 各タスクの変更許可ファイル範囲（allow / deny）が承認されている
+              - 依存関係と並列実行可能性が分析されている
+
+  - id: task_quality_gate
+    name: 4層品質ゲート（G1→G2→G3→G4）
+    phase: P4
+    scope: task
+    ordered: true
+    origin: jsix
+    source: J-SIX.md Phase 4 メカニズム②
+    description: 後段は前段を通過した場合のみ実行する。人間承認は置かない
+    layers:
+      - id: G1
+        name: 決定論的検証
+        checks:
+          - {id: build, name: ビルド, kind: deterministic}
+          - {id: typecheck, name: 型検査, kind: deterministic}
+          - {id: lint, name: lint, kind: deterministic}
+          - {id: format, name: format, kind: deterministic}
+          - {id: sast, name: SAST, kind: deterministic}
+          - {id: secrets, name: secret scan, kind: deterministic}
+          - {id: deps, name: 依存脆弱性, kind: deterministic}
+          - {id: scope, name: スコープ検査（変更ファイル ⊆ タスクの許可リスト）, kind: deterministic}
+          - id: interface_contract
+            name: Interface Contract の破壊的変更の検出
+            kind: deterministic
+            origin: hub-concept
+            source: concept.md §5.2
+      - id: G2
+        name: テスト品質検証
+        checks:
+          - {id: tests, name: 全テスト通過, kind: deterministic}
+          - {id: coverage, name: カバレッジ閾値, kind: deterministic}
+          - {id: mutation, name: mutation score, kind: deterministic}
+          - {id: test_tamper, name: テスト改変検出, kind: deterministic}
+          - {id: holdout, name: hold-out 受入テスト通過, kind: deterministic}
+          - {id: traceability, name: トレーサビリティ（REQ・PROP ⇔ テスト）, kind: deterministic}
+      - id: G3
+        name: 意図・スコープ判定
+        optional: true
+        note: 固定装備ではない。却下率と却下理由の分布を計測し、不要になれば外す（J-SIX.md Phase 4「G3 は固定装備ではない」）
+        checks:
+          - id: scope_judge
+            name: 正確性・要件未充足・スコープ逸脱の判定
+            kind: llm_judge
+      - id: G4
+        name: 証跡パッケージ生成
+        checks:
+          - {id: evidence_pack, name: 証跡パッケージ生成, kind: evidence_generation}
+
+  - id: quality_acceptance
+    name: 品質基準達成判定
+    phase: P5
+    scope: project
+    origin: jsix
+    source: J-SIX.md Phase 5
+    layers:
+      - id: acceptance
+        name: 判定
+        checks:
+          - id: integration_tests
+            name: 結合・E2E テスト
+            kind: deterministic
+          - id: quality_judgement
+            name: 証跡パッケージのレビューと品質基準の判定
+            kind: human_approval
+            approver_roles: [gatekeeper, sampling_verifier, exploratory_tester]
+            criteria:
+              - 証跡と参考所見を区別して確認し、参考所見を単独で判定の根拠にしない
+              - 品質基準（バグ密度・カバレッジ率等）は従来と同等を維持する
+
+  - id: deliverable_review
+    name: 納品物レビュー
+    phase: P6
+    scope: project
+    origin: jsix
+    source: J-SIX.md Phase 6, 「合意成熟度による判定」
+    layers:
+      - id: review
+        name: レビュー
+        checks:
+          - id: deliverable_maturity
+            name: 全納品物の合意成熟度
+            kind: human_approval
+            approver_roles: [customer, customer_negotiator, gatekeeper]
+            criteria:
+              - 逆生成した工程成果物を含む全納品物が完成レベル
+              - Phase 2 で充実レベルに留めた合意対象を閉じる
+
+# ---------------------------------------------------------------------------
+# Phase
+# ---------------------------------------------------------------------------
+phases:
+  - id: P0
+    name: プロジェクト憲法策定
+    mode: continuous
+    autonomy: [L1]
+    gate: null
+    outputs: [constitution]
+    origin: jsix
+    source: J-SIX.md Phase 0
+    note: 月次ループで継続的に改訂する（品質ゲートの失敗理由と人間レビューの指摘を還元する）。J-SIX.md はゲートを定義していない
+  - id: P1
+    name: 要求の合意
+    mode: sequential
+    autonomy: [L1, L2]
+    gate: customer_approval
+    inputs: [constitution]
+    outputs: [requirement_spec, business_flow_prototype]
+    origin: jsix
+    source: J-SIX.md Phase 1
+  - id: P2
+    name: 技術設計
+    mode: sequential
+    autonomy: [L2]
+    gate: design_review
+    inputs: [requirement_spec]
+    outputs: [design_spec, adr, working_prototype, properties]
+    origin: jsix
+    source: J-SIX.md Phase 2
+  - id: P3
+    name: タスク分解
+    mode: sequential
+    autonomy: [L2]
+    gate: task_approval
+    inputs: [design_spec, properties]
+    outputs: [task_list, task_definition]
+    origin: jsix
+    source: J-SIX.md Phase 3
+  - id: P4
+    name: TDD 実装
+    mode: per_task
+    autonomy: [L3, L4]
+    gate: task_quality_gate
+    inputs: [task_definition, requirement_spec, properties]
+    outputs: [holdout_tests, tests, code, evidence_pack]
+    steps: [holdout, red, green, refactor]
+    origin: jsix
+    source: J-SIX.md Phase 4
+  - id: P5
+    name: 品質検証
+    mode: sequential
+    autonomy: [L2, L3]
+    gate: quality_acceptance
+    inputs: [evidence_pack]
+    outputs: [quality_metrics]
+    origin: jsix
+    source: J-SIX.md Phase 5
+  - id: P6
+    name: ドキュメント生成
+    mode: sequential
+    autonomy: [L3]
+    gate: deliverable_review
+    inputs: [code, tests, requirement_spec, design_spec, adr, evidence_pack]
+    outputs: [reverse_generated_docs]
+    origin: jsix
+    source: J-SIX.md Phase 6
+
+# Phase 間の遷移。condition（通常は from の Phase のゲート）を満たしたら to に進む
+transitions:
+  - {from: P1, to: P2, condition: customer_approval}
+  - {from: P2, to: P3, condition: design_review}
+  - {from: P3, to: P4, condition: task_approval}
+  - from: P4
+    to: P5
+    condition: all_tasks_done
+    note: J-SIX.md は P4→P5 の条件を明記していない。全タスクが完了（G1〜G4 通過・統合）したことを条件と仮定した
+  - {from: P5, to: P6, condition: quality_acceptance}
+
+# ---------------------------------------------------------------------------
+# 状態（concept.md §4.2）
+# ---------------------------------------------------------------------------
+state_machines:
+  - id: phase
+    applies_to: phase
+    origin: hub-concept
+    source: concept.md §4.2
+    initial: not_started
+    states:
+      - {id: not_started, name: 未着手}
+      - {id: in_progress, name: 進行中}
+      - {id: awaiting_review, name: レビュー待ち}
+      - {id: approved, name: 承認済み}
+      - {id: rejected, name: 差戻し}
+    transitions:
+      - {from: not_started, to: in_progress}
+      - {from: in_progress, to: awaiting_review}
+      - {from: awaiting_review, to: approved}
+      - {from: awaiting_review, to: rejected}
+      - {from: rejected, to: in_progress}
+      - {from: approved, to: in_progress, via_deviation: phase_rollback}
+
+  - id: task
+    applies_to: task
+    origin: hub-concept
+    source: concept.md §4.2
+    initial: waiting
+    states:
+      - {id: waiting, name: 待機}
+      - {id: running, name: 実行中}
+      - {id: gate_checking, name: ゲート判定中}
+      - {id: passed, name: 合格}
+      - {id: failed, name: 不合格}
+      - {id: escalated, name: エスカレーション中}
+      - {id: local_fallback, name: ローカル退避中}
+      - {id: done, name: 完了}
+    transitions:
+      - {from: waiting, to: running}
+      - {from: running, to: gate_checking}
+      - {from: running, to: escalated, via_deviation: escalation}
+      - {from: gate_checking, to: passed}
+      - {from: gate_checking, to: failed}
+      - {from: failed, to: running, note: 自動修正の上限内（例：G3 のスコープ逸脱は修正1回まで）}
+      - {from: failed, to: escalated, via_deviation: escalation}
+      - {from: failed, to: passed, via_deviation: gate_exception}
+      - {from: escalated, to: running}
+      - {from: escalated, to: local_fallback, via_deviation: local_fallback}
+      - {from: local_fallback, to: gate_checking}
+      - {from: passed, to: done}
+
+# ---------------------------------------------------------------------------
+# エスカレーション条件（J-SIX.md Phase 4）
+# ---------------------------------------------------------------------------
+escalation_conditions:
+  - {id: spec_gap, name: Spec に記載のない要件が必要, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+  - {id: security_decision, name: セキュリティに関わる判断, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+  - {id: external_interface_change, name: 外部 IF 仕様の変更が必要, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+  - {id: repeated_test_failure, name: テスト3回連続失敗, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+  - {id: architecture_change, name: アーキテクチャ変更が必要, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+  - {id: test_weakening, name: テストを弱める変更を試みた, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+  - {id: scope_judge_rejected_twice, name: G3 がスコープ逸脱で2回却下, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+  - {id: stop_hook_limit, name: Stop hook の連続ブロックが上限に近づいた, origin: jsix, source: J-SIX.md Phase 4 エスカレーション条件}
+
+# ---------------------------------------------------------------------------
+# 逸脱の種類と回収（concept.md §4.3。決定事項 D6）
+# ---------------------------------------------------------------------------
+deviations:
+  - id: phase_rollback
+    name: Phase 逆戻り
+    trigger: 後続 Phase の作業中に、承認済み Phase の成果物の変更が必要になった
+    recovery:
+      - 影響するタスクをフラグ付けする
+      - 該当 Phase を進行中に戻し、ゲートで再承認する
+      - 影響タスクを再投入する
+    records: [変更理由, 影響タスクの一覧, 再承認の記録]
+    origin: hub-concept
+    source: concept.md §4.3
+  - id: gate_exception
+    name: ゲート例外承認
+    trigger: ゲートの判定は不合格だが、合理的な理由がある
+    approver_roles: [gatekeeper]
+    recovery:
+      - 理由・承認者・期限を記録した例外として通過させる
+      - 期限を過ぎたら再判定する
+    records: [理由, 承認者, 期限]
+    constraint: 決定論的チェックの判定結果は書き換えない。例外の記録を証跡パッケージの承認区分に追加する
+    origin: hub-concept
+    source: concept.md §4.3
+  - id: escalation
+    name: エスカレーション
+    trigger: escalation_conditions のいずれかに該当した
+    recovery:
+      - 人間に相談要求を送る
+      - 回答を Spec / ADR に反映する
+      - タスクを再開する
+    records: [相談内容, 回答, 反映先のコミット]
+    origin: jsix
+    source: J-SIX.md Phase 4 エスカレーション条件（回収手順と記録は concept.md §4.3）
+  - id: local_fallback
+    name: ローカル退避
+    trigger: 中央実行では解決できず、人間がローカルで作業する
+    recovery:
+      - 成果物を PR としてゲートに再投入する
+      - ゲートは省略しない
+    records: [退避の開始・終了, 再判定の結果]
+    origin: hub-concept
+    source: concept.md §4.3, ADR-0005
+  - id: interface_contract_violation
+    name: Interface Contract 違反
+    trigger: 他チームが所有する契約を破る変更が検出された
+    approver_roles: [contract_owner]
+    recovery:
+      - 契約所有者の承認なしには通過させない
+    records: [違反内容, 所有者の判断]
+    origin: hub-concept
+    source: concept.md §4.3, §5.2
