@@ -79,8 +79,8 @@ J-SIX 本体は Hub に依存しない（[ADR-0003](control-plane/adr/0003-depen
 | H1 | 構想文書（課題・状態モデル・関連研究・評価計画・課題と制約）とスイムレーン図。関連研究の出典を REFERENCES_AUDIT で監査 | `docs/control-plane/concept.md` | 大 | ✅ 2026-09-22（関連研究 [35]-[59] を REFERENCES_AUDIT 2.9 に登録。「フェーズ状態機械による統制は既存に見当たらない」は否定されたため、独自性を4点の組み合わせに改めた。ICSSP・JSEP 等は未確認で、論文化の前に追加調査する） |
 | H2 | プロセス定義のデータ化（Phase・ゲート・成果物・役割・遷移・逸脱）と JSON Schema、CI でのスキーマ検証。J-SIX.md との照合結果を報告 | `process/jsix-process.yaml`, `process/jsix-process.schema.json`, `tools/validate_process.py` | 中 | ✅ 2026-09-22（照合結果は `process/README.md`。J-SIX.md は変更していない。Plugin 連携は設計メモ `process/plugin-integration.md` のみ） |
 | H2' | Plugin から `jsix-process.yaml` を参照する実装（H2 では設計メモのみ） | `plugin/` | 中 | ☐（H2 の後に判断） |
-| H3 | リプレイ用イベントデータ。approval-workflow の実行記録から、実測 / 再構成のラベル付きで作成。記録が不足すればイベント出力用 Hook（オプトイン）を Plugin に追加して再実行 | j-six-hub `data/`（Hook を追加する場合は `plugin/`） | 中 | ☐ |
-| H4 | リプレイ型サンプル Web アプリ（静的・GitHub Pages）。Hub 自体を J-SIX で開発する | [j-six-hub](https://github.com/SeckeyJP/j-six-hub) | 大 | ☐ |
+| H3 | リプレイ用イベントデータ。approval-workflow の実行記録から、実測 / 再構成のラベル付きで作成。記録が不足すればイベント出力用 Hook（オプトイン）を Plugin に追加して再実行 | j-six-hub `data/`（Hook を追加する場合は `plugin/`） | 中 | ✅ 2026-09-22（82件：実測62・再構成20。Plugin へのイベント出力 Hook は追加せず、既存のコミット・セッション記録・証跡パッケージから抽出。j-six-hub の `data/`・ADR-0001） |
+| H4 | リプレイ型サンプル Web アプリ（静的・GitHub Pages）。Hub 自体を J-SIX で開発する | [j-six-hub](https://github.com/SeckeyJP/j-six-hub) | 大 | ✅ 2026-09-22（https://seckeyjp.github.io/j-six-hub/ 。プロセス定義は `process-v0.1.0` をハッシュ照合して取り込む。要求の閲覧・トレーサビリティ画面は未着手） |
 | H5 | Hub を J-SIX で開発した記録のケーススタディ | `docs/case-study-NN.md` | 中 | ☐（番号は着手時点で決める） |
 
 ---
@@ -127,3 +127,4 @@ H0 → H1 → H2 → (H3 ∥ H4 前半) → H4 後半
 | 2026-09-22 | H（J-SIX Hub の構想）を追加。H0（決定事項の記録）を完了。項目番号は、構想の決定事項 D1〜D9 と区別するため H とした |
 | 2026-09-22 | H1（構想文書）を完了 |
 | 2026-09-22 | H2（プロセス定義のデータ化）を完了 |
+| 2026-09-22 | H3（リプレイ用データ）・H4（リプレイ型サンプル Web アプリ）を完了 |
