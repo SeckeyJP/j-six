@@ -2,7 +2,7 @@
 
 **工程成果物**: データモデル ③ ／ **由来**: **コードから逆生成**
 **逆生成元**: `app/models.py` の型注釈
-**対象**: 月次請求書発行 ／ **版**: 1.0 ／ **日付**: 2026-09-18
+**対象**: 月次請求書発行 ／ **版**: 1.1 ／ **日付**: 2026-09-21
 
 ## Customer（取引先）
 
@@ -12,6 +12,20 @@
 | 2 | name | str | | ○ | 取引先名 | 請求書の交付先名称に使う（REQ-006） |
 | 3 | closing_day | int | | ○ | 締め日 | **20 または 31（月末）のみ**。他は `BillingError`（REQ-001） |
 | 4 | payment_terms | PaymentTerms | | ○ | 支払サイト | 列挙型以外は `BillingError`（REQ-002） |
+| 5 | bank_account | BankAccount / None | | | 振込先口座 | **任意**。未登録でも締めは止めない（REQ-013） |
+
+## BankAccount（振込先口座）
+
+**不変オブジェクト**（`frozen=True`）。請求は締め時点の口座を保存するため（REQ-012）、
+可変にすると同じインスタンスを共有した時点でスナップショットが崩れる。
+
+| # | 属性 | 型 | PK | 必須 | 説明 | 制約 |
+|---|---|---|---|---|---|---|
+| 1 | bank_name | str | | ○ | 金融機関名 | — |
+| 2 | branch_name | str | | ○ | 支店名 | — |
+| 3 | account_type | str | | ○ | 預金種別 | **普通 または 当座のみ**。他は `BillingError`（REQ-011） |
+| 4 | account_number | str | | ○ | 口座番号 | 文字列。先頭の 0 を保つため整数にしない |
+| 5 | account_holder | str | | ○ | 口座名義 | — |
 
 ## SalesRecord（売上）
 
@@ -42,6 +56,7 @@
 | 9 | status | InvoiceStatus | | ○ | 状態 | 既定 DRAFT |
 | 10 | lines | InvoiceLine[] | | ○ | 明細 | 1件以上（REQ-008） |
 | 11 | tax_summaries | TaxSummary[] | | ○ | 税率別内訳 | 税率の昇順 |
+| 12 | bank_account | BankAccount / None | | | 締め時点の振込先 | **締め後にマスタを変更しても変わらない**（REQ-012 / PROP-007）。未登録は None（REQ-013） |
 
 **導出属性**
 

@@ -16,7 +16,7 @@
       {{ inv.bank_account.bank_name }}　{{ inv.bank_account.branch_name }}　
       {{ inv.bank_account.account_type }} {{ inv.bank_account.account_number }}
     {%- else -%}
-      <span class="reduced">未登録（請求書に印字されません）</span>
+      <span class="reduced">未登録（請求書には「振込先未登録」と印字されます）</span>
     {%- endif -%}
   </td></tr>
 </table>

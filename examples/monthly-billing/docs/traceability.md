@@ -1,7 +1,7 @@
 # トレーサビリティマトリクス — 月次請求書発行
 
 > J-SIX `j-six:traceability` Skill の出力に相当する、要件 ⇔ テスト ⇔ コードの対応表。
-> 計測日: 2026-09-19（テスト 101件 + hold-out 19件 / カバレッジ 98.8% / mutation 91.88%）
+> 計測日: 2026-09-21（テスト 111件 + hold-out 23件 / カバレッジ 99.7% / mutation 91.49%）
 
 ## 業務ルール（REQ）⇔ テスト ⇔ 実装
 
@@ -17,6 +17,9 @@
 | REQ-008 | 対象売上が無ければ請求を作らない | `TestAggregation` | `BillingService._build_invoice` |
 | REQ-009 | 会計連携は税率ごとの内訳行を持つ | `tests/test_accounting.py` | `accounting.build_accounting_csv` |
 | REQ-010 | 締め処理を監査記録 | `TestAudit` | `BillingService._log`, `models.AuditEntry` |
+| REQ-011 | 振込先口座は取引先ごとに登録する | `test_req011_*`, `test_uc004_report_shows_bank_account` | `BillingService.set_bank_account`, `models.BankAccount` |
+| REQ-012 | 振込先は締め時点の内容を請求に保存する | `test_req012_*`, `test_prop_007_*`, `test_uc002_bank_account_is_snapshot_at_closing` | `BillingService._build_invoice`, `models.Invoice.bank_account` |
+| REQ-013 | 振込先が未登録でも締めは止めない | `test_req013_*`, `test_prop_008_*`, `test_uc002_close_succeeds_when_bank_account_is_missing` | `BillingService.close_month`, `templates/report_invoice.html` |
 
 ## Property（PROP）⇔ テスト
 
@@ -30,6 +33,8 @@
 | PROP-004 | 支払期日 ≥ 締め日 / 対象期間は締め日で終わる | `test_prop_004_due_date_is_not_before_closing_date`, `test_prop_004_period_is_contiguous_and_ends_on_closing_date` |
 | PROP-005 | 請求は取引先ごとに高々1件。再締めしても番号が変わらない | `test_prop_005_at_most_one_invoice_per_customer`, `test_prop_005_reclose_keeps_invoice_number` |
 | PROP-006 | 確定済みの請求は金額が変化しない | `test_prop_006_confirmed_invoice_amount_never_changes` |
+| PROP-007 | 保存された振込先は締め後のマスタ変更で変化しない | `test_prop_007_bank_account_is_frozen_at_closing` |
+| PROP-008 | 振込先の登録有無は請求の件数と金額に影響しない | `test_prop_008_bank_account_does_not_change_invoice_amounts` |
 
 ## hold-out 受入テスト ⇔ ユースケース
 

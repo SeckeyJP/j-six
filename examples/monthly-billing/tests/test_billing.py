@@ -416,3 +416,20 @@ def test_req013_no_warning_when_all_registered(svc):
     svc.close_month("2026-08", actor="keiri01")
 
     assert not [e for e in svc.audit_log if e.action == "CLOSE_WARN_NO_BANK_ACCOUNT"]
+
+
+def test_req011_all_account_fields_are_stored(svc):
+    """REQ-011: 登録した5項目がすべて保存される。
+
+    mutation testing で `account_type=None` に変えたミュータントが生き残った。
+    金融機関名・口座番号は検証していたが、預金種別を検証していなかったため
+    （帳票に印字される項目なので、落ちれば請求書の記載が欠ける）。
+    """
+    svc.set_bank_account("C001", **BANK)
+
+    account = svc.get_customer("C001").bank_account
+    assert account.bank_name == BANK["bank_name"]
+    assert account.branch_name == BANK["branch_name"]
+    assert account.account_type == BANK["account_type"]
+    assert account.account_number == BANK["account_number"]
+    assert account.account_holder == BANK["account_holder"]
