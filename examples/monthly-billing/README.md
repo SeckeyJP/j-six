@@ -50,7 +50,9 @@ monthly-billing/
     ├── design-spec.md        # PROP の実装方針・品質ゲート設定を含む
     ├── adr/                  # 0001 端数処理の単位 / 0002 方法 / 0003 帳票形式
     ├── traceability.md
-    └── deliverables/         # ★ 工程成果物27点の記入済み実例
+    ├── tasks/                # Phase 3 のタスク定義（受入条件・変更許可範囲）
+    ├── deliverables/         # ★ 工程成果物27点の記入済み実例
+    └── design-docs/          # ★ 顧客様式に束ねた設計書と品質系納品物
 ```
 
 ## ID 体系
@@ -157,3 +159,25 @@ make gate                     # 品質ゲート G1→G4
 記す5点に限られる**（残り3点はコードと Spec／ADR の併用）。
 
 空のテンプレートは [`templates/deliverables/`](../../templates/deliverables/) を参照。
+
+## 組み立てた設計書と品質系納品物
+
+[`docs/design-docs/`](docs/design-docs/) に、工程成果物を顧客様式に束ねた設計書と、
+証跡パッケージから変換した品質・テスト系の納品物を置いている。
+
+| 納品物 | 由来 | 作り方 |
+|---|---|---|
+| [基本設計書](docs/design-docs/kihon-sekkei.md) | 工程成果物27点 ＋ Spec ＋ ADR ＋ トレーサビリティ | 組立定義に従って束ねる（`doc-reverse-gen assemble kihon-sekkei`） |
+| [詳細設計書](docs/design-docs/shousai-sekkei.md) | コード ＋ 性質テスト ＋ ADR ＋ 証跡 | 内部設計を逆生成（`assemble shousai-sekkei`） |
+| [テスト結果報告書](docs/design-docs/test-report.md) | 証跡 01・02 | `doc-reverse-gen quality` |
+| [品質報告書](docs/design-docs/quality-report.md) | 証跡 03・05 | 同上 |
+| [セキュリティ診断結果](docs/design-docs/security-report.md) | 証跡 04 | 同上 |
+| [トレーサビリティマトリクス](docs/design-docs/traceability-matrix.md) | 証跡 01 | 同上 |
+| [レビュー記録](docs/design-docs/review-record.md) | 証跡 06（参考所見）・07（承認） | 同上 |
+
+**設計書は工程成果物のビューであり、直接編集しない。** 修正は構成要素（`docs/deliverables/`、
+Spec、ADR）の側で行い、逆生成した章はさらにその逆生成元（コード・受入テスト）を直してから
+組み立て直す。品質系納品物の数値はすべて証跡からの引用で、再計算していない。
+
+> 本サンプルの組立定義は**プロジェクト固有のものを持っていない**（顧客と目次を合意していない）。
+> J-SIX 同梱の組立例をそのまま使って組み立て、その旨を各設計書の冒頭に明記している。
