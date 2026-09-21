@@ -12,8 +12,10 @@ from datetime import date, datetime
 from typing import Callable, Dict, List, Optional
 
 from .models import (
+    ALLOWED_ACCOUNT_TYPES,
     ALLOWED_CLOSING_DAYS,
     AuditEntry,
+    BankAccount,
     Customer,
     Invoice,
     InvoiceLine,
@@ -135,6 +137,35 @@ class BillingService:
         self._customers[customer_code] = customer
         return customer
 
+    def set_bank_account(
+        self,
+        customer_code: str,
+        bank_name: str,
+        branch_name: str,
+        account_type: str,
+        account_number: str,
+        account_holder: str,
+    ) -> BankAccount:
+        """取引先の振込先口座を登録・変更する（REQ-011）。
+
+        ここで変更しても、作成済みの請求の記載は変わらない（REQ-012）。
+        """
+        customer = self.get_customer(customer_code)
+        if account_type not in ALLOWED_ACCOUNT_TYPES:
+            raise BillingError(
+                f"預金種別は {ALLOWED_ACCOUNT_TYPES} のいずれかで指定してください: {account_type}"
+            )
+
+        account = BankAccount(
+            bank_name=bank_name,
+            branch_name=branch_name,
+            account_type=account_type,
+            account_number=account_number,
+            account_holder=account_holder,
+        )
+        customer.bank_account = account
+        return account
+
     def add_sale(
         self,
         record_id: str,
@@ -182,6 +213,19 @@ class BillingService:
             if invoice is not None:
                 self._invoices[invoice.invoice_no] = invoice
                 created.append(invoice)
+
+        # REQ-013: 振込先が未登録でも締めは止めず、警告として監査記録に残す。
+        for invoice in created:
+            if invoice.bank_account is None:
+                self._log(
+                    AuditEntry(
+                        action="CLOSE_WARN_NO_BANK_ACCOUNT",
+                        actor=actor,
+                        at=self._clock(),
+                        year_month=year_month,
+                        invoice_no=invoice.invoice_no,
+                    )
+                )
 
         self._log(
             AuditEntry(
@@ -249,6 +293,9 @@ class BillingService:
             due_date=due_date_of(period_to, customer.payment_terms),
             lines=lines,
             tax_summaries=summarize_tax(lines),
+            # REQ-012: 締め時点の口座を保存する。BankAccount は不変なので、
+            # 同じインスタンスを持っても後からの変更で記載が変わることはない。
+            bank_account=customer.bank_account,
         )
 
     def _find_invoice(self, customer_code: str, year_month: str) -> Optional[Invoice]:
