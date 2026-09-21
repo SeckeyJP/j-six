@@ -49,4 +49,4 @@ J-SIX 本体は、個人〜小規模チームが Claude Code Plugin として使
 | リポジトリ | 置くもの |
 |---|---|
 | `SeckeyJP/j-six`（本リポジトリ） | 構想文書・ADR（本ディレクトリ）、プロセス定義 [`process/`](../../process/) |
-| `SeckeyJP/j-six-hub` | リプレイ型サンプル Web アプリ、リプレイ用イベントデータ（MIT） |
+| `SeckeyJP/j-six-hub` | リプレイ型サンプル Web アプリ（https://seckeyjp.github.io/j-six-hub/ ）、リプレイ用イベントデータ（MIT） |
