@@ -76,7 +76,7 @@ J-SIX 本体は Hub に依存しない（[ADR-0003](control-plane/adr/0003-depen
 | # | タスク | 成果物 | 規模 | 状態 |
 |---|---|---|---|---|
 | H0 | 決定事項（D1〜D9）の記録 | `docs/control-plane/README.md`, `docs/control-plane/adr/` ×5 | 小 | ✅ 2026-09-22（ADR は「提案中」） |
-| H1 | 構想文書（課題・状態モデル・関連研究・評価計画・課題と制約）とスイムレーン図。関連研究の出典を REFERENCES_AUDIT で監査 | `docs/control-plane/concept.md` | 大 | ☐ |
+| H1 | 構想文書（課題・状態モデル・関連研究・評価計画・課題と制約）とスイムレーン図。関連研究の出典を REFERENCES_AUDIT で監査 | `docs/control-plane/concept.md` | 大 | ✅ 2026-09-22（関連研究 [35]-[59] を REFERENCES_AUDIT 2.9 に登録。「フェーズ状態機械による統制は既存に見当たらない」は否定されたため、独自性を4点の組み合わせに改めた。ICSSP・JSEP 等は未確認で、論文化の前に追加調査する） |
 | H2 | プロセス定義のデータ化（Phase・ゲート・成果物・役割・遷移・逸脱）と JSON Schema、CI でのスキーマ検証。J-SIX.md との照合結果を報告 | `process/jsix-process.yaml`, `process/jsix-process.schema.json` | 中 | ☐ |
 | H2' | Plugin から `jsix-process.yaml` を参照する実装（H2 では設計メモのみ） | `plugin/` | 中 | ☐（H2 の後に判断） |
 | H3 | リプレイ用イベントデータ。approval-workflow の実行記録から、実測 / 再構成のラベル付きで作成。記録が不足すればイベント出力用 Hook（オプトイン）を Plugin に追加して再実行 | j-six-hub `data/`（Hook を追加する場合は `plugin/`） | 中 | ☐ |
@@ -125,3 +125,4 @@ H0 → H1 → H2 → (H3 ∥ H4 前半) → H4 後半
 | 2026-09-19 | A1'（人手のみ実装との工数 A/B 比較）を見送り。実装工数の削減率は推定のまま据え置く |
 | 2026-09-19 | v2.1.0 をリリース。残タスクは A5（12月の鮮度レビュー）、B1'（別スタック実例）、中規模題材での mutation score 再現。A1' は見送り |
 | 2026-09-22 | H（J-SIX Hub の構想）を追加。H0（決定事項の記録）を完了。項目番号は、構想の決定事項 D1〜D9 と区別するため H とした |
+| 2026-09-22 | H1（構想文書）を完了 |

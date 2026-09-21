@@ -2,7 +2,7 @@
 
 ## — 全ドキュメントの主張に対する根拠の整理 —
 
-**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施） / 2026-09-19（工程成果物テンプレートの追加に伴い、IPA 合意形成ガイドと国税庁 Q&A を A44-A46 として追加。非機能要件の分類に伴い IPA 非機能要求グレードを A47-A48 として追加） / 2026-09-20（[3] の一次情報を再確認し、公開日と連続自律アクション数を訂正。参考文献一覧の [4] の日付を訂正）
+**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施） / 2026-09-19（工程成果物テンプレートの追加に伴い、IPA 合意形成ガイドと国税庁 Q&A を A44-A46 として追加。非機能要件の分類に伴い IPA 非機能要求グレードを A47-A48 として追加） / 2026-09-20（[3] の一次情報を再確認し、公開日と連続自律アクション数を訂正。参考文献一覧の [4] の日付を訂正） / 2026-09-22（J-SIX Hub 構想 `docs/control-plane/concept.md` の関連研究を A49-A62、著者見解を B21-B23、参考文献 [35]-[59] として追加。Unpaywall 等の外部 API には識別情報を送らない運用とした）
 
 ---
 
@@ -130,6 +130,34 @@
 
 ---
 
+### 2.9 J-SIX Hub の関連研究（構想文書で追加）
+
+使用箇所はいずれも `docs/control-plane/concept.md`（以下 concept）。確認日は 2026-09-22。
+「確認方法」欄は、書誌と主張の根拠をどこで確かめたかを示す。
+
+| # | 主張 | 内容 | 出典 | 確認方法 | 使用箇所 |
+|---|---|---|---|---|---|
+| A49 | SASE の構成要素（SE4H / SE4A、ACE / AEE、MRP / CRP / VCR、BriefingScript / LoopScript / MentorScript） | 各定義。実証評価を含まないビジョン論文である | [35] | arXiv の HTML 版（v1・v3）を通読。節番号は v3 | concept §6.1 |
+| A50 | SASE は硬直した普遍的プロセスを避けるが、組織が定義するプロセスをタスクごとの上書きを記録したうえで使うことは認める | "SE is a "wicked problem" where rigid, universal processes are futile."（§1）／"This process can be defined at an organizational level by process engineers (e.g., for regulatory purposes) and optionally overridden by the coach for a specific ticket, with the override being recorded."（§4.2.3） | [35] | 同上 | concept §6.1 |
+| A51 | SASE は PSEE・Osterweil を参照していない | v1・v3 の本文と参考文献に "Osterweil" "process-centered" "PSEE" が出現しない | [35] | 同上（全文検索） | concept §6.1 |
+| A52 | ソフトウェアプロセスをソフトウェアとして記述する研究の系譜と PSEE | 書誌のみ使用 | [36][37][38][39][40] | Crossref / OpenAlex の DOI メタデータ。[36] は本文 PDF のみ確認（7.1） | concept §6.2 |
+| A53 | プロセス支援システムは広く普及せず、主要な欠点の一つは想定外の状況への対処の仕組みが不十分なことだった | "One of their major drawbacks is that they do not offer adequate mechanisms to cope with unforeseen situations. They are good at supporting business processes if all proceeds as expected, but if an unexpected situation is met, which would require one to deviate from the process model, they often become more an obstacle than a help." | [41] | OpenAlex の抄録（本文は未読） | concept §4.3, §6.2 |
+| A54 | 逸脱と不整合の許容はプロセス技術の本質的な要件である | 抄録 | [42] | OpenAlex の抄録 | concept §6.2 |
+| A55 | MetaGPT は SOP をプロンプト列に埋め込む | "MetaGPT encodes Standardized Operating Procedures (SOPs) into prompt sequences…"（抄録）。"Code = SOP(Team)" は論文ではなく GitHub README の表現なので使わない | [43] | arXiv PDF | concept §6.3 |
+| A56 | ChatDev はウォーターフォールモデルに倣い、設計・コーディング・テストを順に進める | "ChatDev thus adopts the core principles of the waterfall model…"（arXiv v5, p.3） | [44] | arXiv PDF、ACL Anthology の書誌 | concept §6.3 |
+| A57 | GitHub Agent HQ / Enterprise AI Controls の統制の中心はポリシー・監査ログ・アクセス管理・カスタムエージェント定義 | 公式ブログ・Changelog | [45][46] | 公式ページ（要約ツール経由で閲覧。引用文の逐語照合は未実施のため、concept では引用せず要旨のみ記載） | concept §6.5 |
+| A58 | Copilot のエージェントにも既存のブランチ保護・必須チェックが適用され、依頼者は自分が依頼した PR を承認できない | 公式ドキュメント | [47] | 同上 | concept §6.5 |
+| A59 | Kiro の Spec は `.kiro/specs` に保存され、コードとともにコミットすることが推奨されている | 公式ドキュメント | [48] | 同上 | concept §6.5 |
+| A60 | Spec Kit は constitution → specify → plan → tasks → implement の段階を持つ | "Constitution once per project; specify → plan → tasks → implement → converge per feature." | [49] | README の原文を直接取得 | concept §6.5 |
+| A61 | エージェントの工程を状態機械で外部から統制する研究は既にある（フェーズ状態機械、要求→ファイル→テストのトレーサビリティ、モデル外の状態機械によるゲート） | Madatha: "gates feature work through a phase state machine with requirement-to-file-to-test traceability"／Moreira: "the gate is enforced by a state machine outside the model: the agent may request advancement, not grant it" | [50][54] | arXiv の抄録を直接確認 | concept §6.4, §6.6 |
+| A62 | 承認ゲート・証跡・組織横断の受入れを扱う近年の研究 | 各抄録 | [51][52][53][55][56][57][58][59] | arXiv の抄録（[51][52][53] は Semantic Scholar API の書誌と抄録のみ。7.1） | concept §6.4 |
+
+> **A61 の意味**: H1 以前の検討では「フェーズ状態機械によるプロセス適合性の強制は既存に見当たらない」としていたが、
+> A61 により**否定された**。concept §6.6 では、独自性を単独の機構ではなく4点の組み合わせと適用先（契約型開発）に改め、
+> かつ「本調査の範囲では確認できなかった」という限定付きの表現にしている（B23）。
+
+---
+
 ## 3. カテゴリB：推定・著者見解（明示が必要な箇所）
 
 以下の数値・主張は、著者の分析・推定に基づくものであり、記事公開時にはその旨を明記する必要がある。
@@ -156,6 +184,9 @@
 | B18 | G3 却下2回目で人間へエスカレーション | A37 の「veto されたうち半分は自己修正できる」から、1回の自動修正には合理性があると判断した著者の推奨値 | 「著者推奨。A37 の自己修正率から設定」 | J-SIX v2.1 第3章 Phase 4 |
 | B19 | Stop hook 連続ブロック6回目で人間へ通知 | A41 の8回上限に対し、到達前に判断を仰ぐための著者設定値 | 「著者推奨。A41 の上限に対するマージン」 | J-SIX v2.1 第3章 Phase 4 |
 | B20 | 証跡パッケージの3区分（証跡 / 参考所見 / 承認） | 日本の SI の納品・監査慣行に基づく著者設計。外部の標準に対応するものではない | 「著者設計」 | J-SIX v2.1 第9章 |
+| B21 | 大規模・複数チームで J-SIX を各開発者の規律に委ねると、環境のばらつき・工程順序の個人依存・承認と証跡の散在・チーム間境界の侵害・例外の不可視化が起きる | 著者の実務経験に基づく見解。定量データはない | 「著者見解」 | concept §1 |
+| B22 | J-SIX Hub の仮説 H-1〜H-4（統制による逸脱・迂回の減少、トレーサビリティ欠落の減少、逸脱回収による停止時間の抑制、Phase 境界限定での承認負荷） | 未検証の仮説。予備実験の設計のみ（concept §7.3） | 「仮説（未検証）」 | concept §7 |
+| B23 | 4点（契約型開発の工程に沿った統制と逸脱回収、証跡の顧客納品物化、多重下請け・複数ベンダーでの中央統制、Interface Contract によるエージェント拘束）を統合した研究・製品は確認できない | A49-A62 の調査範囲に限った判断。網羅調査ではなく、ICSSP・JSEP・Google Scholar は未確認（7.1） | 「本調査の範囲では確認できなかった」。「存在しない」とは書かない | concept §6.6 |
 
 ---
 
@@ -224,6 +255,32 @@
 [32] IPA.「機能要件の合意形成ガイド ver.1.0」(2010.03.31). https://www.ipa.go.jp/archive/files/000004517.pdf
 [33] 国税庁.「インボイス制度に関するQ&A」問57. https://www.nta.go.jp/taxes/shiraberu/zeimokubetsu/shohi/keigenzeiritsu/pdf/qa/57.pdf
 [34] IPA.「非機能要求グレード2018」. https://www.ipa.go.jp/archive/digital/iot-en-ci/jyouryuu/hikinou/ent03-b.html
+### J-SIX Hub の関連研究（`docs/control-plane/concept.md` で使用）
+[35] A. E. Hassan, H. Li, D. Lin, B. Adams, T.-H. Chen, Y. Kashiwa, D. Qiu. "Agentic Software Engineering: Foundational Pillars and a Research Roadmap". arXiv:2509.06216 (v1 2025.09 / v3 2026.06). https://arxiv.org/abs/2509.06216
+[36] L. J. Osterweil. "Software Processes are Software Too". Proc. ICSE '87 (1987).（頁・DOI 要確認）
+[37] L. J. Osterweil. "Software processes are software too, revisited". Proc. ICSE '97, pp. 540–548 (1997). https://doi.org/10.1145/253228.253440
+[38] S. C. Bandinelli, A. Fuggetta, C. Ghezzi. "Software process model evolution in the SPADE environment". IEEE TSE 19(12), pp. 1128–1144 (1993). https://doi.org/10.1109/32.249659
+[39] V. Ambriola, R. Conradi, A. Fuggetta. "Assessing process-centered software engineering environments". ACM TOSEM 6(3), pp. 283–328 (1997). https://doi.org/10.1145/258077.258080
+[40] S. Arbaoui, J.-C. Derniame, F. Oquendo, H. Verjus. "A Comparative Review of Process-Centered Software Engineering Environments". Annals of Software Engineering 14, pp. 311–340 (2002). https://doi.org/10.1023/A:1020513911052
+[41] G. Cugola. "Tolerating deviations in process support systems via flexible enactment of process models". IEEE TSE 24(11), pp. 982–1001 (1998). https://doi.org/10.1109/32.730546
+[42] G. Cugola, E. Di Nitto, A. Fuggetta, C. Ghezzi. "A framework for formalizing inconsistencies and deviations in human-centered systems". ACM TOSEM 5(3), pp. 191–230 (1996). https://doi.org/10.1145/234426.234427
+[43] S. Hong, M. Zhuge, et al. "MetaGPT: Meta Programming for a Multi-Agent Collaborative Framework". ICLR 2024. https://arxiv.org/abs/2308.00352
+[44] C. Qian, W. Liu, et al. "ChatDev: Communicative Agents for Software Development". ACL 2024, pp. 15174–15186. https://doi.org/10.18653/v1/2024.acl-long.810
+[45] GitHub. "Welcome home, agents" (2025.10.28). https://github.blog/news-insights/company-news/welcome-home-agents/
+[46] GitHub Changelog. "Enterprise AI controls & agent control plane now generally available" (2026.02.26). https://github.blog/changelog/2026-02-26-enterprise-ai-controls-agent-control-plane-now-generally-available/
+[47] GitHub Docs. "Risks and mitigations for Copilot coding agent". https://docs.github.com/en/copilot/concepts/agents/coding-agent/risks-and-mitigations
+[48] Kiro Docs. "Specs". https://kiro.dev/docs/specs/
+[49] GitHub. "Spec Kit". https://github.com/github/spec-kit
+[50] P. Madatha. "A Deterministic Control Plane for LLM Coding Agents". arXiv:2606.26924 (2026.06). https://arxiv.org/abs/2606.26924
+[51] S. Vella, A. Ferworn, M. Sharieh. "ATeam: Governance-Aware LLM-Assisted Software Sustaining Engineering for Enterprise Systems". ICECET 2026. https://doi.org/10.1109/ICECET65726.2026.11633274
+[52] S. Vella, M. Sharieh, et al. "Executable Control Matters More Than Model Intelligence in LLM-Assisted Software Sustaining Engineering". FLICS 2026. https://doi.org/10.1109/FLICS70075.2026.11621935
+[53] F. Meawad. "Design-First Governance for Reliable AI-Assisted Software Development". ICSA-C 2026. https://doi.org/10.1109/ICSA-C68850.2026.00048
+[54] J. Moreira. "IACDM: Interactive Adversarial Convergence Development Methodology". arXiv:2604.16399 (v3 2026.08). https://arxiv.org/abs/2604.16399
+[55] C. Koch. "Agentic Agile-V: From Vibe Coding to Verified Engineering in Software and Hardware Development". arXiv:2605.20456. https://arxiv.org/abs/2605.20456
+[56] R. Kang. "Governed AI-Assisted Engineering: Graduated Human Oversight for Agentic Code Generation in Regulated Domains". arXiv:2606.22484. https://arxiv.org/abs/2606.22484
+[57] X. Zhang, W. Sun. "Knowledge-Based Pull Requests: A Trusted Workflow for Agent-Mediated Knowledge Collaboration". arXiv:2606.26721. https://arxiv.org/abs/2606.26721
+[58] Z. Wang, M. Liu. "Software Engineering in the Agent Era: From Trustworthy Change to Human Agent Software Organizations". arXiv:2609.04630. https://arxiv.org/abs/2609.04630
+[59] P. Taghavi, S. Bhavani. "Spec Kit Agents: Context-Grounded Agentic Workflows". arXiv:2604.05278. https://arxiv.org/abs/2604.05278
 ```
 
 > **番号 [26]-[31] が本リストに無い理由**: この番号は `docs/J-SIX.md` の参考文献セクションで
@@ -276,6 +333,11 @@
 | 「DORA 2026 が verification tax（検証税）という語で AI 生成コードの検証負荷を定義している」 | **不採用（2026-09-10）**: 二次記事に頻出する表現だが、DORA の公開ページで当該用語を確認できなかった（報告書本体はフォーム経由の配布）。 | 用語「verification tax」は使用せず、DORA の公開ページ [31] で確認できた記述（検証負荷に関する開発者の声、30%が AI 生成コードをほぼ信頼していない）のみを引用する（A43） |
 | ~~Anthropic社内「CC初回成功率33%」~~ | **訂正（2026-04-18）**: 一次ソース [3] の原文は「人間の介入ターン数が33%減少（6.2→4.1）」であり、「初回自律実行成功率33%」ではなかった。二次ソース [16] (DataCamp) で "unguided attempts 成功率約33%" と引用されていたが、原文の文脈と異なる可能性がある | J-SIX v1.0 を「人間の介入頻度33%減少」に修正。連続自律アクション数（約10→約20）を併記 |
 | 「CC の連続自律アクション数 約10→約20（6ヶ月で2倍）」 | **訂正（2026-09-20）**: 一次ソース [3]（2025-12-02 公開）の原文は「連続ツール呼び出しの最大数が116%増加（約10→約21）」。あわせて [3] の公開日を「2025」から「2025.12」に、参考文献一覧の [4] の日付を 2026.02 → 2025.09 に訂正（J-SIX.md の [4] は v2.0 で訂正済みだったが、本レポートの一覧に残っていた） | J-SIX.md 第1章 1.3 を訂正。記事側（j-six-articles）に残っていた「初回自律実行成功率33%」の記述も同日に訂正した |
+| 「PSEE は想定外の状況で人を支援できなかったために定着しなかった」 | **表現を弱めて採用（2026-09-22）**: 一次資料 [41] は対象を PSEE ではなくプロセス支援システム（PSS）全般とし、「主要な欠点の一つ」として述べている。普及しなかった原因を実証的に調べた研究は確認できなかった | concept では「主要な欠点の一つとして指摘されている」と書き、単一の原因として断定しない（A53） |
+| Osterweil 1987 [36] の頁（pp. 2–13）と DOI | 本文 PDF は確認したが、会議録の書誌ページを確認できなかった（ACM DL が取得不可） | 頁・DOI を「要確認」のまま記載。論文化の前に ACM DL で確認する |
+| [51][52][53] の書誌（IEEE 掲載） | Semantic Scholar API の書誌と抄録のみで確認。IEEE Xplore・dblp のページは取得できなかった | 「書誌は要確認」と明記。論文化の前に確認する |
+| [45]-[48] の引用文 | 公式ページを要約ツール経由で閲覧したため、逐語の照合をしていない | concept では引用符付きの引用をせず、要旨のみ記載（A57-A59） |
+| 関連研究の網羅性 | ICSSP 2024-2026 のプログラム、Journal of Software: Evolution and Process、Google Scholar の被引用、ChatDev の後継研究は未確認 | B23 の表現を「本調査の範囲では」に限定。論文化の前に追加調査する |
 
 ### 7.2 時間経過で陳腐化する可能性がある情報
 
