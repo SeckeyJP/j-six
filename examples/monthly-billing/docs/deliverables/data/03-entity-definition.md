@@ -92,11 +92,14 @@
 
 | # | 属性 | 型 | 必須 | 説明 |
 |---|---|---|---|---|
-| 1 | action | str | ○ | `CLOSE` / `CONFIRM` |
+| 1 | action | str | ○ | `CLOSE` / `CONFIRM` / `CLOSE_WARN_NO_BANK_ACCOUNT`（振込先未登録の警告。REQ-013） |
 | 2 | actor | str | ○ | 操作者 ID |
 | 3 | at | datetime | ○ | 実行日時（注入された clock から取得） |
 | 4 | year_month | str | ○ | 対象年月 |
 | 5 | created_count | int | | 作成件数（CLOSE のみ） |
-| 6 | invoice_no | str | | 請求番号（CONFIRM のみ） |
+| 6 | invoice_no | str | | 請求番号（`CONFIRM` と `CLOSE_WARN_NO_BANK_ACCOUNT`） |
 
 > 明細の内容を保持する属性は持たない（Design Spec 6.2）。
+>
+> **記録の順序**: 月次締めでは、振込先未登録の警告を請求ごとに記録した後、最後に `CLOSE` を記録する。
+> 締めの結果を表す `CLOSE` が監査ログの末尾に来る（hold-out 受入テストが規定）。
