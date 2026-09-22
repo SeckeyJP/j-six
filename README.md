@@ -165,7 +165,7 @@ L0         L1-L2             L2-L3                L3-L4
 | 8 | 証跡パッケージ（顧客納品対応） | evidence-pack Skill | ✅ 完成 |
 | 9 | [ケーススタディ #2](docs/case-study-02.md)（mutation score の実測） | 記事 + GitHub | ✅ 完成 |
 | 10 | 工程成果物テンプレート（IPA 27点）・組立定義・第2サンプル [monthly-billing](examples/monthly-billing/) | テンプレート + 実例 | ✅ 完成 |
-| 11 | [J-SIX Hub](docs/control-plane/)（大規模・複数チーム向けにプロセス適合性を中央で統制する構想） | 構想文書 + リプレイ型サンプル Web アプリ | 構想中（決定事項の ADR のみ。仮説であり未実装） |
+| 11 | [J-SIX Hub](docs/control-plane/)（大規模・複数チーム向けにプロセス適合性を中央で統制する構想） | 構想文書 + [リプレイ型サンプル](https://seckeyjp.github.io/j-six-hub/) + [ケーススタディ #3](docs/case-study-03.md) | 構想中（仮説であり未実装。サンプルは公開済み） |
 
 次フェーズ（実証・テンプレート実例・Plugin 実用拡張）の計画は [ROADMAP.md](docs/ROADMAP.md) を参照してください。
 
