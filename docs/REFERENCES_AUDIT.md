@@ -2,7 +2,7 @@
 
 ## — 全ドキュメントの主張に対する根拠の整理 —
 
-**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施） / 2026-09-19（工程成果物テンプレートの追加に伴い、IPA 合意形成ガイドと国税庁 Q&A を A44-A46 として追加。非機能要件の分類に伴い IPA 非機能要求グレードを A47-A48 として追加） / 2026-09-20（[3] の一次情報を再確認し、公開日と連続自律アクション数を訂正。参考文献一覧の [4] の日付を訂正） / 2026-09-22（J-SIX Hub 構想 `docs/control-plane/concept.md` の関連研究を A49-A62、著者見解を B21-B23、参考文献 [35]-[59] として追加。Unpaywall 等の外部 API には識別情報を送らない運用とした）
+**監査日**: 2026-03-29（初版） / 2026-04-18（v2.0 改訂時に更新） / 2026-06-14（鮮度レビュー: 出典リンク・数値の有効性を再確認、変更なし） / 2026-09-10（v2.1 改訂: 品質ゲート関連の出典 A36-A43 を追加、四半期鮮度レビューを実施） / 2026-09-19（工程成果物テンプレートの追加に伴い、IPA 合意形成ガイドと国税庁 Q&A を A44-A46 として追加。非機能要件の分類に伴い IPA 非機能要求グレードを A47-A48 として追加） / 2026-09-20（[3] の一次情報を再確認し、公開日と連続自律アクション数を訂正。参考文献一覧の  / 2026-09-22（追加調査: ICSSP 2024・JSEP を確認し A65・A66 を追加。IEEE 掲載3件の書誌を確定。隣接研究 [60][61] を A63・A64 として追加） / 2026-09-22（J-SIX Hub 構想 `docs/control-plane/concept.md` の関連研究を A49-A62、著者見解を B21-B23、参考文献 [35]-[59] として追加。Unpaywall 等の外部 API には識別情報を送らない運用とした）
 
 ---
 
@@ -150,7 +150,11 @@
 | A59 | Kiro の Spec は `.kiro/specs` に保存され、コードとともにコミットすることが推奨されている | 公式ドキュメント | [48] | 同上 | concept §6.5 |
 | A60 | Spec Kit は constitution → specify → plan → tasks → implement の段階を持つ | "Constitution once per project; specify → plan → tasks → implement → converge per feature." | [49] | README の原文を直接取得 | concept §6.5 |
 | A61 | エージェントの工程を状態機械で外部から統制する研究は既にある（フェーズ状態機械、要求→ファイル→テストのトレーサビリティ、モデル外の状態機械によるゲート） | Madatha: "gates feature work through a phase state machine with requirement-to-file-to-test traceability"／Moreira: "the gate is enforced by a state machine outside the model: the agent may request advancement, not grant it" | [50][54] | arXiv の抄録を直接確認 | concept §6.4, §6.6 |
-| A62 | 承認ゲート・証跡・組織横断の受入れを扱う近年の研究 | 各抄録 | [51][52][53][55][56][57][58][59] | arXiv の抄録（[51][52][53] は Semantic Scholar API の書誌と抄録のみ。7.1） | concept §6.4 |
+| A62 | 承認ゲート・証跡・組織横断の受入れを扱う近年の研究 | 各抄録 | [51][52][53][55][56][57][58][59] | arXiv の抄録。[51][52][53] は 2026-09-22 に OpenAlex・Semantic Scholar で書誌を確定（巻号・頁・DOI）。いずれも単一組織内の保守工程・アーキテクチャ統制が対象で、契約型・多重下請けは扱っていない | concept §6.4, §6.6 |
+| A63 | 実行時の証跡が統制上の問いに答えるに足るかを測るベンチマーク | 8つの証跡レジームで比較し、trace / schema を用いる基準線は 75% で過大主張になると報告 | [60] | arXiv の抄録 | concept §6.6 |
+| A64 | 組織をまたぐエージェント協調で、実装（IP）を出さずに型付き I/O と信頼階層だけを公開する提案 | 複数主体のエージェントが PR レビューを分担する | [61] | arXiv の抄録 | concept §6.6 |
+| A65 | ICSSP 2024 に LLM エージェントの工程統制を扱う論文は無い | プロセス制約違反への是正ガイダンス生成、プロセスのサービス化などはある | ICSSP 2024 プログラム | https://icssp2024.events.isspa-process.org/program/ を確認（2026-09-22） | concept §6.6 |
+| A66 | Journal of Software: Evolution and Process（2024-2026）に、LLM エージェントの工程統制・ガバナンスを扱う論文は無い | 近接は規制領域の成果物モデル生成、自然文からの検査制約生成、プロセス制約充足のガイダンス | OpenAlex での網羅検索（source S4210172359、10 語） | 2026-09-22 実施 | concept §6.6 |
 
 > **A61 の意味**: H1 以前の検討では「フェーズ状態機械によるプロセス適合性の強制は既存に見当たらない」としていたが、
 > A61 により**否定された**。concept §6.6 では、独自性を単独の機構ではなく4点の組み合わせと適用先（契約型開発）に改め、
@@ -186,7 +190,7 @@
 | B20 | 証跡パッケージの3区分（証跡 / 参考所見 / 承認） | 日本の SI の納品・監査慣行に基づく著者設計。外部の標準に対応するものではない | 「著者設計」 | J-SIX v2.1 第9章 |
 | B21 | 大規模・複数チームで J-SIX を各開発者の規律に委ねると、環境のばらつき・工程順序の個人依存・承認と証跡の散在・チーム間境界の侵害・例外の不可視化が起きる | 著者の実務経験に基づく見解。定量データはない | 「著者見解」 | concept §1 |
 | B22 | J-SIX Hub の仮説 H-1〜H-4（統制による逸脱・迂回の減少、トレーサビリティ欠落の減少、逸脱回収による停止時間の抑制、Phase 境界限定での承認負荷） | 未検証の仮説。予備実験の設計のみ（concept §7.3） | 「仮説（未検証）」 | concept §7 |
-| B23 | 4点（契約型開発の工程に沿った統制と逸脱回収、証跡の顧客納品物化、多重下請け・複数ベンダーでの中央統制、Interface Contract によるエージェント拘束）を統合した研究・製品は確認できない | A49-A62 の調査範囲に限った判断。網羅調査ではなく、ICSSP・JSEP・Google Scholar は未確認（7.1） | 「本調査の範囲では確認できなかった」。「存在しない」とは書かない | concept §6.6 |
+| B23 | 4点（契約型開発の工程に沿った統制と逸脱回収、証跡の顧客納品物化、多重下請け・複数ベンダーでの中央統制、Interface Contract によるエージェント拘束）を**統合して**扱った研究・製品は確認できない | A49-A66 の調査範囲に限った判断。2026-09-22 に ICSSP 2024・JSEP を追加確認した。Google Scholar の被引用一覧は未確認（7.1）。隣接研究（[60][61][53]）は個別に存在する | 「本調査の範囲では、4点を統合して扱ったものは確認できなかった」。「存在しない」とは書かない。隣接研究を併記する | concept §6.6 |
 
 ---
 
@@ -272,15 +276,17 @@
 [48] Kiro Docs. "Specs". https://kiro.dev/docs/specs/
 [49] GitHub. "Spec Kit". https://github.com/github/spec-kit
 [50] P. Madatha. "A Deterministic Control Plane for LLM Coding Agents". arXiv:2606.26924 (2026.06). https://arxiv.org/abs/2606.26924
-[51] S. Vella, A. Ferworn, M. Sharieh. "ATeam: Governance-Aware LLM-Assisted Software Sustaining Engineering for Enterprise Systems". ICECET 2026. https://doi.org/10.1109/ICECET65726.2026.11633274
-[52] S. Vella, M. Sharieh, et al. "Executable Control Matters More Than Model Intelligence in LLM-Assisted Software Sustaining Engineering". FLICS 2026. https://doi.org/10.1109/FLICS70075.2026.11621935
-[53] F. Meawad. "Design-First Governance for Reliable AI-Assisted Software Development". ICSA-C 2026. https://doi.org/10.1109/ICSA-C68850.2026.00048
+[51] S. Vella, A. Ferworn, M. Sharieh. "ATeam: Governance-Aware LLM-Assisted Software Sustaining Engineering for Enterprise Systems". Proc. 2026 6th Int. Conf. on Electrical, Computer and Energy Technologies (ICECET), pp. 1-6, 2026. https://doi.org/10.1109/ICECET65726.2026.11633274
+[52] S. Vella, S. Sharieh, M. Sharieh, A. Ferworn. "Executable Control Matters More Than Model Intelligence in LLM-Assisted Software Sustaining Engineering". Proc. 2026 2nd Int. Conf. on Federated Learning and Intelligent Computing Systems (FLICS), pp. 48-56, 2026. https://doi.org/10.1109/FLICS70075.2026.11621935
+[53] F. Meawad. "Design-First Governance for Reliable AI-Assisted Software Development". Proc. 2026 IEEE 23rd Int. Conf. on Software Architecture Companion (ICSA-C), pp. 194-198, 2026. https://doi.org/10.1109/ICSA-C68850.2026.00048
 [54] J. Moreira. "IACDM: Interactive Adversarial Convergence Development Methodology". arXiv:2604.16399 (v3 2026.08). https://arxiv.org/abs/2604.16399
 [55] C. Koch. "Agentic Agile-V: From Vibe Coding to Verified Engineering in Software and Hardware Development". arXiv:2605.20456. https://arxiv.org/abs/2605.20456
 [56] R. Kang. "Governed AI-Assisted Engineering: Graduated Human Oversight for Agentic Code Generation in Regulated Domains". arXiv:2606.22484. https://arxiv.org/abs/2606.22484
 [57] X. Zhang, W. Sun. "Knowledge-Based Pull Requests: A Trusted Workflow for Agent-Mediated Knowledge Collaboration". arXiv:2606.26721. https://arxiv.org/abs/2606.26721
 [58] Z. Wang, M. Liu. "Software Engineering in the Agent Era: From Trustworthy Change to Human Agent Software Organizations". arXiv:2609.04630. https://arxiv.org/abs/2609.04630
 [59] P. Taghavi, S. Bhavani. "Spec Kit Agents: Context-Grounded Agentic Workflows". arXiv:2604.05278. https://arxiv.org/abs/2604.05278
+[60] O. Solozobov. "DEMM-Bench: A Cross-Regime Benchmark for Agent-Runtime Governance-Evidence Sufficiency". arXiv:2606.20634. https://arxiv.org/abs/2606.20634
+[61] Z. Zhao et al. "Skill-as-API: Confidential Multi-Agent Coordination for Agentic Software Engineering". arXiv:2609.01677. https://arxiv.org/abs/2609.01677
 ```
 
 > **番号 [26]-[31] が本リストに無い理由**: この番号は `docs/J-SIX.md` の参考文献セクションで
@@ -337,7 +343,7 @@
 | Osterweil 1987 [36] の頁（pp. 2–13）と DOI | 本文 PDF は確認したが、会議録の書誌ページを確認できなかった（ACM DL が取得不可） | 頁・DOI を「要確認」のまま記載。論文化の前に ACM DL で確認する |
 | [51][52][53] の書誌（IEEE 掲載） | Semantic Scholar API の書誌と抄録のみで確認。IEEE Xplore・dblp のページは取得できなかった | 「書誌は要確認」と明記。論文化の前に確認する |
 | [45]-[48] の引用文 | 公式ページを要約ツール経由で閲覧したため、逐語の照合をしていない | concept では引用符付きの引用をせず、要旨のみ記載（A57-A59） |
-| 関連研究の網羅性 | ICSSP 2024-2026 のプログラム、Journal of Software: Evolution and Process、Google Scholar の被引用、ChatDev の後継研究は未確認 | B23 の表現を「本調査の範囲では」に限定。論文化の前に追加調査する |
+| 関連研究の網羅性 | **2026-09-22 に一部を実施**：ICSSP 2024 のプログラムと JSEP（2024-2026）を確認し、該当論文が無いことを確かめた（A65・A66）。ICSSP 2025・2026 は開催記録を確認できず（シリーズ休止の可能性、要確認）。Google Scholar の被引用一覧は自動取得を拒否されるため未確認（表示は 76 件、Semantic Scholar では 60 件）。ChatDev の後継研究は未確認 | B23 の表現は「本調査の範囲では」に限定したまま。隣接研究（[60][61]）を concept §6.6 に明記した |
 
 ### 7.2 時間経過で陳腐化する可能性がある情報
 

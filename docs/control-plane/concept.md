@@ -369,13 +369,26 @@ SASE の被引用論文とキーワード検索から、2026年に次の研究�
 3. **多重下請け・複数ベンダー構造での中央統制**：国際的には「契約型の外部委託開発での統制」として一般化する
 4. **チーム間 Interface Contract によるエージェントの拘束**：所有者の承認なしに契約を破る変更を通さない
 
-> 本調査の範囲（2026年9月、上記の方法）では、これら4点を統合した研究・製品は確認できなかった。
-> 「存在しない」とは主張しない。
+> 本調査の範囲（2026年9月、上記の方法）では、これら4点を**統合して**扱った研究・製品は確認できなかった。
+> 「存在しない」とは主張しない。個別には隣接する取り組みがある。実行時の証跡が統制上の問いに答えるに足るかを
+> 測るベンチマーク [60]、組織をまたぐエージェント協調で実装の秘匿と信頼階層を扱う提案 [61]、アーキテクチャの
+> 制約層を生成する contract-driven な統制 [53] などである。いずれも、契約型開発の工程統制・顧客納品物としての
+> 証跡・多重下請けの中央統制を同時に満たすものではない。
 
-**未確認の範囲**：ICSSP（International Conference on Software and Systems Processes）2024〜2026 のプログラム、
-Journal of Software: Evolution and Process、Google Scholar での被引用、ChatDev の後継研究。
-IEEE 掲載の3件 [51][52][53] は書誌と抄録を Semantic Scholar 経由でのみ確認している。
-論文化（H5 以降）の前にこれらを確認する。
+**追加調査の結果（2026-09-22）**：
+
+- ICSSP 2024 のプログラムを確認した。工程適合性の支援（プロセス制約違反への是正ガイダンス生成）や
+  プロセスのサービス化の研究はあるが、**LLM エージェントの工程統制を扱う論文は無い**。ICSSP 2025・2026 は
+  開催記録を確認できなかった（シリーズ休止の可能性。要確認）
+- Journal of Software: Evolution and Process（2024〜2026）には、**LLM エージェントの工程統制・ガバナンスを
+  扱う論文は無い**。近いものは、規制領域の成果物モデル生成、自然文からの検査制約生成、プロセス制約充足の
+  ガイダンスである（いずれもエージェントではない）
+- SASE [35] の被引用は Semantic Scholar で 60 件のまま（Google Scholar の表示は 76 件だが、一覧は自動取得を
+  拒否されるため未確認）。新たに [60][61] を関連研究に加えた
+- IEEE 掲載の3件 [51][52][53] の書誌を確定した。いずれも**単一組織内**の保守工程・アーキテクチャ統制が対象で、
+  契約型・多重下請けは扱っていない
+
+**なお未確認**：ChatDev の後継研究、Google Scholar での被引用一覧、ICSSP 2025・2026 の開催有無。
 
 ---
 
@@ -462,3 +475,5 @@ IEEE 掲載の3件 [51][52][53] は書誌と抄録を Semantic Scholar 経由で
 - [57] X. Zhang, W. Sun. "Knowledge-Based Pull Requests: A Trusted Workflow for Agent-Mediated Knowledge Collaboration". arXiv:2606.26721. https://arxiv.org/abs/2606.26721
 - [58] Z. Wang, M. Liu. "Software Engineering in the Agent Era: From Trustworthy Change to Human Agent Software Organizations". arXiv:2609.04630. https://arxiv.org/abs/2609.04630
 - [59] P. Taghavi, S. Bhavani. "Spec Kit Agents: Context-Grounded Agentic Workflows". arXiv:2604.05278. https://arxiv.org/abs/2604.05278
+- [60] O. Solozobov. "DEMM-Bench: A Cross-Regime Benchmark for Agent-Runtime Governance-Evidence Sufficiency". arXiv:2606.20634. https://arxiv.org/abs/2606.20634
+- [61] Z. Zhao et al. "Skill-as-API: Confidential Multi-Agent Coordination for Agentic Software Engineering". arXiv:2609.01677. https://arxiv.org/abs/2609.01677

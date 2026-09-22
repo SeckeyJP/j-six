@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- docs/control-plane/concept.md・docs/REFERENCES_AUDIT.md: 関連研究の追加調査（2026-09-22）。ICSSP 2024 と Journal of Software: Evolution and Process（2024-2026）に LLM エージェントの工程統制を扱う論文が無いことを確認（A65・A66）。IEEE 掲載3件の書誌を確定。隣接研究 2件（実行時証跡の統制十分性のベンチマーク、組織横断のエージェント協調）を [60][61] として追加し、独自性の主張を「4点を統合して扱ったものは確認できなかった」に改めた
 - docs/ROADMAP.md: H3（リプレイ用データ）・H4（リプレイ型サンプル Web アプリ、https://seckeyjp.github.io/j-six-hub/ ）を完了に更新
 - docs/control-plane/: J-SIX Hub（旧称 J-SIX Control Plane）の構想を置くディレクトリを新設。J-SIX を大規模・複数チーム・複数ベンダーの案件に広げるための構想で、現時点では仮説であり実装・実証はしていない。`README.md`（一文定義・3層構成・決定事項 D1〜D9 と記録先の対応）と、決定事項の ADR 5本（`adr/0001`〜`0005`：正本は Git／差別化軸はプロセス適合性／依存方向とプロセス定義のデータ化／リプレイ型サンプル環境／中央実行とローカル退避路）。ADR はいずれも「提案中」
 - docs/ROADMAP.md: H「J-SIX Hub（構想）」を追加（H0 決定事項の記録を完了、H1〜H5 は未着手）。項目番号は構想の決定事項 D1〜D9 と区別するため H とした
