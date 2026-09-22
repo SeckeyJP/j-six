@@ -26,6 +26,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- docs/control-plane/concept.md・ADR-0001・ADR-0005: 適合性を成果物・作業履歴・承認手続に分け、承認・検査の対象と版、主体の確認、失効条件、ローカル退避からの回収を明確化。複数ベンダー間の契約変更の影響・移行・再検査・受入れと、Hub／Plugin／必須 CI・PR 承認を比較する未実装の評価計画も具体化。再検査だけで過去の工程順序まで証明できるとの説明を訂正。Git を正本とする方針と中央実行・ローカル退避は維持。実行基盤は未実装であり、REFERENCES_AUDIT の B24 に著者提案として登録
+
 - README.md / docs/article-plan.md / index.html: 番外編記事「カバレッジ 99% のテストに mutation testing をかけたら、監査ログの穴が見つかった」（j-six-mutation-testing）の公開を反映（番外編 10本・全16本）
 - README.md / docs/article-plan.md / index.html: 番外編記事「AI の「テストは通りました」を鵜呑みにしない — 人間レビューの前に置く4層品質ゲート」（j-six-quality-gates）の公開を反映（番外編 11本・全17本）
 - README.md / docs/article-plan.md / index.html: 番外編記事2本（j-six-ipa-deliverables / j-six-plugin-field-test）の公開を反映（番外編 13本・全19本）
