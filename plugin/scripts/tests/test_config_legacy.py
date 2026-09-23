@@ -109,3 +109,9 @@ def test_load_reports_bad_json(tmp_path):
     (tmp_path / config.CONFIG_NAME).write_text("{ not json", encoding="utf-8")
     with pytest.raises(config.ConfigError, match="解析に失敗"):
         config.load(tmp_path)
+
+
+@pytest.mark.parametrize("gate", ["g1", "g2"])
+def test_unknown_check_is_configuration_error(gate):
+    with pytest.raises(config.ConfigError, match="未知のチェック"):
+        config.normalize({"gates": {gate: {"typo_test": {}}}})

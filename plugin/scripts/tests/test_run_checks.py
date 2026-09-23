@@ -536,3 +536,24 @@ def test_history_keeps_failure_detail(tmp_path):
     detail = rec["details"]["g2.tests"]
     assert detail.endswith("DeadlineExceeded: Test took 250ms")
     assert len(detail) <= 1000
+
+
+def test_unknown_check_cannot_pass_even_without_normalization(tmp_path):
+    cfg = {"gates": {"g2": {"typo_test": {}}, "g3": {"agent": "scope-judge"}}}
+    ok, results = runner.run_gates(cfg, runner.Context(tmp_path, run_commands=False))
+    assert not ok
+    assert results["g2"]["status"] == "failed"
+    assert results["g2"]["checks"]["typo_test"]["skipped"] is False
+    assert results["g3"]["status"] == "not-run"
+
+
+def test_unknown_check_cli_blocks(tmp_path):
+    _write(tmp_path / ".jsix-checks.json", {"gates": {"g2": {"typo_test": {}}}})
+    assert runner.main(["--dir", str(tmp_path)]) == runner.EXIT_BLOCK
+
+
+def test_empty_configuration_is_not_evidence_of_required_checks(tmp_path):
+    # 既存 no-op の成功は「実行すべき必須検査を満たした」という意味ではない。
+    ok, results = runner.run_gates({"gates": {}}, runner.Context(tmp_path, run_commands=False))
+    assert ok
+    assert results == {}

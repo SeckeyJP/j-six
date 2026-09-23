@@ -93,6 +93,10 @@ def normalize(raw: dict) -> dict:
             continue
         if not isinstance(cfg, dict):
             raise ConfigError(f"gates.{gate} はオブジェクトである必要があります")
+        if gate not in SINGLE_CHECK_GATES:
+            unknown_checks = set(cfg) - set(CHECK_ORDER[gate])
+            if unknown_checks:
+                raise ConfigError(f"gates.{gate}: 未知のチェック: {', '.join(sorted(unknown_checks))}")
         normalized["gates"][gate] = dict(cfg)
     stop_hook = raw.get("stop_hook", {})
     if not isinstance(stop_hook, dict):
@@ -143,7 +147,7 @@ def iter_checks(cfg: dict):
             continue
 
         known = CHECK_ORDER[gate]
-        # 既知のチェックを定義順に、その後に未知のキーを名前順に（前方互換）
+        # 既知のチェックを定義順に、その後に未知のキーを名前順に（直接呼出しでも runner が拒否できるよう残す）
         for name in known:
             if name in gcfg:
                 yield gate, name, gcfg[name]
