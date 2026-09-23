@@ -1,3 +1,6 @@
+<!-- Jinja2 のコード例を GitHub Pages の Liquid が評価しないようにする。 -->
+<!-- {% raw %} -->
+
 # 基本設計書 — 月次請求書発行
 
 > **本書はプロジェクトの組立定義に基づいていない。** `docs/design-docs/assembly-kihon-sekkei.md` が無く、
@@ -2622,3 +2625,5 @@ IPA「機能要件の合意形成ガイド」の工程成果物と、その逆�
 |---|---|
 | 詳細設計書（内部設計） | `doc-reverse-gen assemble shousai-sekkei`。コード・テスト・ADR から逆生成する |
 | テスト結果報告書 / 品質報告書 / セキュリティ診断結果 / レビュー記録 | `doc-reverse-gen quality`。証跡パッケージから変換する |
+
+<!-- {% endraw %} -->

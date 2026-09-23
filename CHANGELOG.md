@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- GitHub Pages: 月次請求の画面成果物3件と基本設計書の Jinja2 コード例を Liquid の評価対象から外し、公開ビルドの停止と変数例の欠落を修正。PRで公開と同じJekyllビルドを検査する。
+
 - Plugin: G1・G2 の未知チェック名を設定エラーにし、runner の直接呼出しでも不合格にする。未設定・任意検査の互換動作と必須検査の網羅確認を区別して文書化。
 
 - plugin/README.md, plugin/scripts/jsix_coverage_gate.py: JaCoCo を Cobertura XML の生成ツールとして挙げていたが、JaCoCo の XML レポートは独自形式で `line-rate` 属性を持たず、カバレッジゲートはそのままでは読めない（「line-rate 属性がありません」で失敗する）。Cobertura 形式への変換が必要である旨に訂正
