@@ -1,3 +1,6 @@
+<!-- Jinja2 のコード例を GitHub Pages の Liquid が評価しないようにする。 -->
+<!-- {% raw %} -->
+
 # 画面入出力項目一覧
 
 **工程成果物**: 画面 ④ ／ **由来**: **コードから逆生成**
@@ -90,3 +93,5 @@
 | 日付 | `YYYY-MM-DD` | `invoice_view` が ISO 文字列に変換 |
 | 軽減税率 | 色分け（`class="reduced"`）＋ `※` | `is_reduced` フラグ |
 | 状態 | 色分け（`class="status-{{ status }}"`） | DRAFT=茶、CONFIRMED=緑・太字 |
+
+<!-- {% endraw %} -->

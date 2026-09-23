@@ -1,0 +1,24 @@
+# 公開と同じ Jekyll で文書中のテンプレート記法の誤解釈をマージ前に検出する。
+name: Pages Build Check
+
+on:
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "**/*.html"
+      - "_config.yml"
+      - "Gemfile*"
+      - ".github/workflows/pages-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
