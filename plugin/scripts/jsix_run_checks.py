@@ -334,7 +334,8 @@ def run_gates(cfg: dict, ctx: Context, only: set | None = None) -> tuple:
         for g, name, check_cfg in config.iter_checks({"gates": {gate: gate_cfg}}):
             handler = CHECKS.get(name)
             if handler is None:
-                gate_results[name] = skipped(f"{name}: 未知のチェックのためスキップ").to_dict()
+                gate_results[name] = failed(f"{name}: 未知のチェック。設定を確認してください").to_dict()
+                gate_ok = False
                 continue
             try:
                 result = handler(name, check_cfg, ctx)

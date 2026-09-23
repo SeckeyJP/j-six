@@ -22,9 +22,13 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Plugin: G1・G2 の未知チェック名を設定エラーにし、runner の直接呼出しでも不合格にする。未設定・任意検査の互換動作と必須検査の網羅確認を区別して文書化。
+
 - plugin/README.md, plugin/scripts/jsix_coverage_gate.py: JaCoCo を Cobertura XML の生成ツールとして挙げていたが、JaCoCo の XML レポートは独自形式で `line-rate` 属性を持たず、カバレッジゲートはそのままでは読めない（「line-rate 属性がありません」で失敗する）。Cobertura 形式への変換が必要である旨に訂正
 
 ### Changed
+
+- Hub 構想: 権限分離と有効方針、必須検査、通常改訂・緊急失効、実行要求の先行記録と障害復旧を ADR-0006・0007 に具体化。複数ベンダーの運営・開示・利用者登録、評価の環境統一と集計単位を定義。いずれも著者提案で実行基盤は未実装。定義文、Git を選ぶ理由、G3 の一時停止と最終品質判断の違いを修正。
 
 - docs/control-plane/concept.md・ADR-0001・ADR-0005: 適合性を成果物・作業履歴・承認手続に分け、承認・検査の対象と版、主体の確認、失効条件、ローカル退避からの回収を明確化。複数ベンダー間の契約変更の影響・移行・再検査・受入れと、Hub／Plugin／必須 CI・PR 承認を比較する未実装の評価計画も具体化。再検査だけで過去の工程順序まで証明できるとの説明を訂正。Git を正本とする方針と中央実行・ローカル退避は維持。実行基盤は未実装であり、REFERENCES_AUDIT の B24 に著者提案として登録
 
