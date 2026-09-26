@@ -101,15 +101,36 @@ def _relative_to_base(path: Path | None, base: Path) -> str | None:
         return Path(path).name
 
 
-def build_env(base: Path, results: dict, config_path: Path | None) -> dict:
+def build_env(base: Path, results: dict, config_path: Path | None,
+              out_dir: Path | None = None) -> dict:
     """再現情報。第三者が同じ結果を得るために必要なものだけを入れる。"""
     config_hash = None
     if config_path and Path(config_path).is_file():
         config_hash = hashlib.sha256(Path(config_path).read_bytes()).hexdigest()
 
+    worktree_fingerprint = None
+    if git.is_repo(base):
+        excluded = ["reports/gate-history.jsonl"]
+        if out_dir:
+            try:
+                excluded.append(Path(out_dir).resolve().relative_to(base.resolve()).as_posix())
+            except ValueError:
+                pass
+        if config_path and Path(config_path).is_file():
+            try:
+                history = json.loads(Path(config_path).read_text(encoding="utf-8")).get("history")
+                if isinstance(history, str):
+                    excluded.append(history)
+            except (ValueError, OSError):
+                pass
+        worktree_fingerprint = git.diff_fingerprint("HEAD", base, exclude=excluded)
+        if worktree_fingerprint is None:
+            raise git.GitError("承認対象の作業ツリーを指紋化できません")
+
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "commit_sha": git.head_sha(base),
+        "worktree_fingerprint": worktree_fingerprint,
         "baseline_ref": _baseline_ref(results),
         "config_file": _relative_to_base(config_path, base),
         "config_sha256": config_hash,
@@ -146,8 +167,9 @@ def _gate_rows(results: dict) -> list:
         info = results.get(gate)
         if not info:
             continue
-        if info.get("status") == "not-run":
-            rows.append((gate.upper(), "—", "⏭ 未実行", info.get("reason", "")))
+        if info.get("status") in ("not-run", "excluded"):
+            label = "⏭ 対象外" if info["status"] == "excluded" else "⏭ 未実行"
+            rows.append((gate.upper(), "—", label, info.get("reason", "")))
             continue
         for name, res in (info.get("checks") or {}).items():
             rows.append((gate.upper(), name, _status_mark(res), res.get("summary", "")))
@@ -156,7 +178,14 @@ def _gate_rows(results: dict) -> list:
 
 def render_summary(task_id: str, results: dict, env: dict, overall_ok: bool) -> str:
     rows = "\n".join(f"| {g} | `{n}` | {m} | {s} |" for g, n, m, s in _gate_rows(results))
-    verdict = "全ゲート通過" if overall_ok else "**未通過のゲートあり**"
+    incomplete = any(
+        info.get("status") in ("excluded", "not-run")
+        or any(check.get("skipped") for check in (info.get("checks") or {}).values())
+        for info in results.values()
+    )
+    verdict = ("**未通過のゲートあり**" if not overall_ok else
+               "選択した検査は通過（一部は未実施・対象外）" if incomplete else
+               "設定された検査は通過")
 
     return f"""# 00. 要約 — {task_id}
 
@@ -236,7 +265,7 @@ def render_test_results(tests: dict | None, holdout: dict | None) -> str:
     for label, res, note in (
         ("通常テスト", tests, "RED Phase で作成したテスト。Green Phase から可視。"),
         ("hold-out 受入テスト", holdout,
-         "実装を書くエージェントが読めない受入テスト。可視テストへの過剰適合を検出する。"),
+         "実装担当とは役割を分けた受入テスト。現在の Hook だけでは全経路からの不可視性を保証しない。"),
     ):
         body += [f"## {label}", "", f"_{note}_", ""]
         if res is None:
@@ -499,6 +528,7 @@ def render_approval(task_id: str, env: dict) -> str:
 
 **対象タスク**: {task_id}
 **対象 commit**: `{env.get('commit_sha') or '不明'}`
+**承認対象 ID**: `{env.get('approval_target') or '不明'}`
 
 証跡（01〜05）と参考所見（06）を確認した上で記入してください。
 **参考所見のみを根拠に承認しないでください。**
@@ -547,6 +577,7 @@ def _unchanged(target: Path, evidence: dict) -> bool:
 
 
 _APPROVAL_COMMIT = re.compile(r"\*\*対象 commit\*\*: `([^`]*)`")
+_APPROVAL_TARGET = re.compile(r"\*\*承認対象 ID\*\*: `([^`]*)`")
 
 
 def _preserve_approval(target: Path, task_id: str, env: dict) -> str | None:
@@ -554,8 +585,8 @@ def _preserve_approval(target: Path, task_id: str, env: dict) -> str | None:
 
     承認は人間だけが書く区分であり、ゲートの再実行で消してはならない。
     - 未記入（テンプレートのまま）なら、新しいテンプレートで置き換える
-    - 記入済みで対象 commit が同じなら、そのまま残す
-    - 記入済みで commit が変わったなら、承認は失効する。記録は別名で残し、
+    - 記入済みで承認対象 ID が同じなら、そのまま残す
+    - 記入済みで承認対象が変わったなら、承認は失効する。記録は別名で残し、
       再承認を求めるテンプレートを置く
     """
     path = target / "07_approval.md"
@@ -565,17 +596,26 @@ def _preserve_approval(target: Path, task_id: str, env: dict) -> str | None:
     existing = path.read_text(encoding="utf-8")
     m = _APPROVAL_COMMIT.search(existing)
     old_commit = m.group(1) if m else None
-    blank_for_old = render_approval(task_id, {"commit_sha": old_commit if old_commit != "不明" else None})
+    t = _APPROVAL_TARGET.search(existing)
+    old_target = t.group(1) if t else None
+    blank_for_old = render_approval(task_id, {
+        "commit_sha": old_commit if old_commit != "不明" else None,
+        "approval_target": old_target if old_target != "不明" else None,
+    })
     if existing in (blank_for_old, fresh) or _strip_reapproval(existing) == blank_for_old:
         return fresh  # 未記入
-    new_commit = env.get("commit_sha") or "不明"
-    if old_commit == new_commit:
-        return None  # 記入済み・同じ commit
-    archive = target / f"07_approval.{(old_commit or 'unknown')[:12]}.md"
+    if old_target and old_target == env.get("approval_target"):
+        return None  # 記入済み・同じ固定対象
+    stem = f"07_approval.{(old_target or old_commit or 'unknown')[:12]}"
+    archive = target / f"{stem}.md"
+    suffix = 2
+    while archive.exists():
+        archive = target / f"{stem}-{suffix}.md"
+        suffix += 1
     archive.write_text(existing, encoding="utf-8")
     return fresh.replace(
         "証跡（01〜05）と参考所見（06）を確認した上で記入してください。",
-        f"> **再承認が必要です。**前回の承認（commit `{old_commit}`）の後にコードが変わりました。"
+        f"> **再承認が必要です。**前回の承認対象（`{old_target or old_commit or '不明'}`）からコードまたは証跡が変わりました。"
         f"前回の記録は `{archive.name}` に保存しています。\n\n"
         "証跡（01〜05）と参考所見（06）を確認した上で記入してください。",
         1,
@@ -599,7 +639,18 @@ def generate(results: dict, overall_ok: bool, base: Path, out_dir: Path,
     target = Path(out_dir) / task_id
     target.mkdir(parents=True, exist_ok=True)
 
-    env = build_env(base, results, config_path)
+    env = build_env(base, results, config_path, out_dir)
+    approval_material = {
+        "task_id": task_id,
+        "ok": overall_ok,
+        "commit_sha": env["commit_sha"],
+        "worktree_fingerprint": env["worktree_fingerprint"],
+        "config_sha256": env["config_sha256"],
+        "results": results,
+    }
+    env["approval_target"] = hashlib.sha256(json.dumps(
+        approval_material, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")).hexdigest()
     evidence = {"task_id": task_id, "ok": overall_ok, "env": env, "gates": results}
     if _unchanged(target, evidence):
         return target

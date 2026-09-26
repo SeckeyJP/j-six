@@ -169,7 +169,7 @@ class TestContent:
     def test_test_results_separate_holdout(self, generated):
         text = (generated / "02_test_results.md").read_text(encoding="utf-8")
         assert "hold-out 受入テスト" in text
-        assert "実装を書くエージェントが読めない" in text
+        assert "全経路からの不可視性を保証しない" in text
         assert "| 総数 | 37 |" in text and "| 総数 | 10 |" in text
 
     def test_survivors_are_listed_as_exploration_hints(self, generated):
@@ -251,15 +251,17 @@ class TestRegeneration:
         target = self._gen(generated.parent.parent.parent, results)
         assert "38件" in (target / "02_test_results.md").read_text(encoding="utf-8")
 
-    def test_filled_approval_is_never_overwritten(self, generated):
-        """人間が記入した承認欄を、ゲートの再実行で空のテンプレートに戻さない。"""
+    def test_changed_results_require_reapproval(self, generated):
+        """検査結果が変わった場合は、同じ commit でも旧承認を履歴に退避する。"""
         import copy
 
         self._fill_approval(generated)
         results = copy.deepcopy(RESULTS)
         results["g2"]["checks"]["tests"]["summary"] = "tests: 全 38件 通過"
         target = self._gen(generated.parent.parent.parent, results)
-        assert "山田" in (target / "07_approval.md").read_text(encoding="utf-8")
+        assert "山田" not in (target / "07_approval.md").read_text(encoding="utf-8")
+        assert "再承認" in (target / "07_approval.md").read_text(encoding="utf-8")
+        assert "山田" in next(target.glob("07_approval.*.md")).read_text(encoding="utf-8")
 
     def test_approval_for_old_commit_is_archived(self, generated, monkeypatch):
         """コードが変わったら承認は失効する。記録は消さず別名で残し、再承認を求める。"""
@@ -272,6 +274,41 @@ class TestRegeneration:
         archived = list(target.glob("07_approval.*.md"))
         assert len(archived) == 1
         assert "山田" in archived[0].read_text(encoding="utf-8")
+
+    def test_same_evidence_preserves_filled_approval(self, generated):
+        self._fill_approval(generated)
+        target = self._gen(generated.parent.parent.parent)
+        assert "山田" in (target / "07_approval.md").read_text(encoding="utf-8")
+
+    def test_uncommitted_code_change_invalidates_approval(self, tmp_path):
+        import subprocess
+
+        (tmp_path / ".jsix-checks.json").write_text('{"gates":{}}', encoding="utf-8")
+        source = tmp_path / "app.py"
+        source.write_text("value = 1\n", encoding="utf-8")
+        subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+        subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.com",
+                        "commit", "-qm", "base"], cwd=tmp_path, check=True)
+        target = self._gen(tmp_path)
+        self._fill_approval(target)
+        source.write_text("value = 2\n", encoding="utf-8")
+        target = self._gen(tmp_path)
+        assert "山田" not in (target / "07_approval.md").read_text(encoding="utf-8")
+        assert "山田" in next(target.glob("07_approval.*.md")).read_text(encoding="utf-8")
+
+
+def test_summary_marks_excluded_and_skipped(tmp_path):
+    import copy
+
+    results = copy.deepcopy(RESULTS)
+    results["g3"] = {"status": "excluded", "reason": "--gates で対象外", "checks": {}}
+    results["g2"]["checks"]["holdout"] = {"ok": True, "skipped": True,
+                                               "summary": "未実施", "metrics": {}, "findings": []}
+    target = pack.generate(results, True, tmp_path, tmp_path / "ev", task_id="T")
+    summary = (target / "00_summary.md").read_text(encoding="utf-8")
+    assert "対象外" in summary and "一部は未実施" in summary
+    assert "全ゲート通過" not in summary
 
 
 def test_coverage_section_shows_missing_lines(tmp_path):
