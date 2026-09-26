@@ -205,3 +205,5 @@ Issue や Pull Request を歓迎します。特に以下の観点でのフィー
 - 設計書逆生成の品質に関する知見
 - TDD × Claude Code の実践パターン
 - 日本のSI業界特有の課題・制約への対応
+
+案件導入の準備には[適用条件と検証戦略](docs/adoption-and-verification.md)、[記入例](docs/verification-examples.md)、[共通フレームとの限定的対応](docs/process-mapping.md)を参照。現段階の検証はサンプル・合成例を対象とし、企業の実PJでの適用効果は未検証。
