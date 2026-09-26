@@ -216,7 +216,7 @@
     <div class="layer"><div class="lab">第2層 — WHY NOT</div><h3>ADR（判断記録）</h3><p style="margin:0;color:var(--muted);font-size:13.5px">なぜその選択をしたか。検討した代替案と却下理由。</p></div>
     <div class="layer"><div class="lab">第3層 — WHAT / HOW</div><h3>逆生成設計書</h3><p style="margin:0;color:var(--muted);font-size:13.5px">何をどう実装したか。コードから自動生成（例: OpenAPI）。</p></div>
   </div>
-  <p class="note">第3層のうちコードや受入テストから逆生成する部分は <b>設計書⇔コードの乖離が原理的にゼロ</b>。一方、Why を記す第1・2層と、人手で書く・Spec と併用する工程成果物は乖離リスクが残る（→ 下の内訳、実証セクション参照）。</p>
+  <p class="note">逆生成は <b>対象版を固定し、記述・変換結果を照合する</b>。LLMの誤解釈や省略、生成後の変更は別途確認する。Spec/ADRも人手で維持する。コードとの一致は要求の妥当性を証明しない（→ 実証セクション参照）。</p>
 
   <h3 style="margin-top:22px">工程成果物27点と設計書への組立</h3>
   <p class="lead">第3層は「基本設計書」を直接生成しない。IPA「機能要件の合意形成ガイド」の<b>工程成果物27点</b>（システム振舞い・画面・データモデル・外部IF・バッチ・帳票）を単位に作り、<b>組立定義</b>に従って顧客様式の基本設計書に束ねる。正は工程成果物で、設計書はそのビューである。27点は外部設計の範囲で、詳細設計書は範囲外としてコード・PROP・ADR から逆生成する。</p>
@@ -239,7 +239,7 @@
     <div class="st"><div class="lv">L2–L3</div><b>Stage 2（3–6ヶ月）</b><div class="red">40–50%</div><div style="color:var(--muted);font-size:12.5px;margin-top:6px">SDD + V字互換</div></div>
     <div class="st"><div class="lv">L3–L4</div><b>Stage 3（6ヶ月〜）</b><div class="red">60–70%</div><div style="color:var(--muted);font-size:12.5px;margin-top:6px">J-SIX 全面適用</div></div>
   </div>
-  <p class="note">工数削減率はステージ完了基準としての著者推定目標値。下段「赤字」は工数削減の目安。</p>
+  <p class="note">期間・工数削減率は未検証の著者推定であり、ステージ合格条件ではない。品質・受入条件を維持し、全投入の工数と費用を計測する。削減時間と現金支出削減を区別する。詳細は <a href="docs/evaluation-design.md">評価設計</a> を参照。</p>
 </section>
 
 <!-- 期待効果 -->
@@ -250,14 +250,14 @@
     <thead><tr><th>指標</th><th>従来V字</th><th>J-SIX</th><th>改善</th><th>検証ステータス</th></tr></thead>
     <tbody>
       <tr><td>実装工数</td><td>100%</td><td>30–40%</td><td><b>60–70%削減</b></td><td><span class="tag t-warn">推定（未実測）</span></td></tr>
-      <tr><td>設計書⇔コード乖離</td><td>常態化</td><td>原理的にゼロ</td><td><b>解消</b></td><td><span class="tag t-ok">一部実測</span></td></tr>
+      <tr><td>設計書⇔コード乖離</td><td>更新漏れのリスク</td><td>対象版を固定して逆生成・照合</td><td><b>低減を目指す</b></td><td><span class="tag t-ok">一部実測</span></td></tr>
       <tr><td>設計判断の記録率</td><td>10–20%</td><td>80%以上(ADR)</td><td><b>4倍以上</b></td><td><span class="tag t-warn">推定</span></td></tr>
       <tr><td>テストカバレッジ（必要条件）</td><td>60–70%</td><td>85–95%</td><td><b>15–25pt向上</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
-      <tr><td>mutation score（十分条件側）</td><td>通常は未計測</td><td>90%以上</td><td><b>新規指標</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
+      <tr><td>mutation score（検出力の補助指標）</td><td>通常は未計測</td><td>90%以上</td><td><b>新規指標</b></td><td><span class="tag t-ok">実測例あり</span></td></tr>
       <tr><td>手戻り率</td><td>15–25%</td><td>5–10%</td><td><b>半減以下</b></td><td><span class="tag t-warn">推定</span></td></tr>
     </tbody>
   </table>
-  <p class="note">「一部実測」: IF 設計書（OpenAPI）の逆生成による乖離ゼロを確認。Why を記す Spec/ADR の乖離リスクは残る。「実測例あり」: ケーススタディ #1 でカバレッジ 99% を実測（N=1・小規模）。mutation score はケーススタディ #2 で 91.8%（PBT 追加後 93.4%）を実測。</p>
+  <p class="note">「一部実測」: 対象版のIF設計書（OpenAPI）の一致を確認。全設計書への一般化ではなく、記述・変換と変更後の再確認が必要。「実測例あり」: ケーススタディ #1 でカバレッジ 99% を実測（N=1・小規模）。mutation score はケーススタディ #2 で 91.8%（PBT 追加後 93.4%）を実測。</p>
 </section>
 
 <!-- 実証 -->

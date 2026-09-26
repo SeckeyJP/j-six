@@ -27,6 +27,8 @@ J-SIX プロセスの Phase 4（TDD 実装）で、TDD サイクルと**順序�
 ```
 
 ゲートは**順序固定**で、後段は前段を通過した場合のみ実行する。
+G3省略が事前に人間の確認した方針として決まっている構成はG1→G2→G4とし、最大L3で結果監督を維持する。
+省略をPASSとして記録せず、実施済みG3のREJECTを省略へ読み替えない。以下のG3手順はG3有効構成に適用する。
 
 ---
 
@@ -138,7 +140,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jsix_run_checks.py"
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jsix_run_checks.py" --run-commands
 ```
 
-終了コード 0 = 全ゲート通過 / 2 = いずれか未達。
+終了コード0は設定・選択された検査についての結果であり、必須集合の充足やL4認定を単独では証明しない。2はいずれか未達。
 
 ### G1 / G2 が落ちた場合
 
@@ -205,7 +207,7 @@ ADR テンプレート: `${CLAUDE_SKILL_DIR}/templates/adr-template.md`（Skill 
 - [ ] 全受入条件・REQ・PROP に対応するテストが存在する
 - [ ] 全テストが成功している
 - [ ] RED タグ（`jsix/red-<タスクID>`）が打たれている
-- [ ] **G1〜G4 が全て通過している**
+- [ ] 方針上の必須検査を満たす。L4はG1〜G4全層通過。G3省略構成はG1/G2/G4と省略方針を確認し最大L3とする
 - [ ] コードが CLAUDE.md の規約に準拠している（G1 の lint / format で確認済み）
 - [ ] 必要な ADR が記録されている
 - [ ] コミット履歴が Hold-out → Red → Green → Refactor の流れを反映している

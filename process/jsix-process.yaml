@@ -39,7 +39,7 @@ autonomy_levels:
     description: AI が自律実行し、人間は結果を監督・異常時に介入する
   - id: L4
     name: AI 完全自律
-    description: AI が自律実行し、人間は介入しない。条件は Phase 4 の G1〜G4 全層通過
+    description: AI が自律実行し、人間は介入しない。条件は Phase 4 の G1〜G4 全層通過。G3省略時は最大L3とし、結果監督を維持する
 
 # ---------------------------------------------------------------------------
 # 役割
@@ -325,7 +325,7 @@ gates:
       - id: G3
         name: 意図・スコープ判定
         optional: true
-        note: 固定装備ではない。却下率と却下理由の分布を計測し、不要になれば外す（J-SIX.md Phase 4「G3 は固定装備ではない」）
+        note: 固定装備ではない。却下率・理由に加え見逃しと省略後の品質を確認し、人間が省略範囲と方針を決める。省略時は最大L3であり、未実施はPASSではない（J-SIX.md Phase 4「G3 は固定装備ではない」）
         checks:
           - id: scope_judge
             name: 正確性・要件未充足・スコープ逸脱の判定
@@ -354,7 +354,7 @@ gates:
             approver_roles: [gatekeeper, sampling_verifier, exploratory_tester]
             criteria:
               - 証跡と参考所見を区別して確認し、参考所見を単独で判定の根拠にしない
-              - 品質基準（バグ密度・カバレッジ率等）は従来と同等を維持する
+              - 合意した品質要求・受入条件を維持する。バグ密度・カバレッジ率等の代理指標だけで判定せず、要求充足・欠陥・未検証事項を確認する
 
   - id: deliverable_review
     name: 納品物レビュー
