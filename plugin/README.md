@@ -292,3 +292,9 @@ G1・G2 の未知チェック名は設定エラーとして拒否する。runner
 missing / skipped / excluded / not-run は必須条件の合格に数えない。非該当や例外は別途根拠を記録する（[Hub 構想 §2.3](../docs/control-plane/concept.md)）。
 
 G3 の REJECT は進行を一時停止し再判定・人間への相談を促す。肯定だけでは最終品質を証明しない。構想の例外管理は Plugin が実装した機能ではない。
+
+## 判定と生成物の確認範囲
+
+G3省略構成は最大L3。IDトレースは構造的対応であり要求充足の証明ではない。
+逆生成の対象版・内容を確認し、Excel/Wordは案件ごとの変換/表示検証を要する。
+[実装と検証範囲](../docs/implementation-status.md)に本文・データ定義・Pluginの対応を示す。

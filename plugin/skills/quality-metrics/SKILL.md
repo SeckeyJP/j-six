@@ -53,6 +53,9 @@ EOF
 > J-SIX でもこのメトリクスを見て外す判断を行う。G1・G2・G4 は決定論的でコストが低いため
 > この判断の対象外。
 
+G3の省略は人間が範囲・理由・方針版を確認して決める。省略時は最大L3とし結果監督を維持する。
+却下率ゼロだけで安全とせず、人間が発見した見逃しと省略後の品質を観測する。未実施をPASSにせず、REJECTを省略で解消しない。
+
 ### 3. ゲート失敗理由の分布
 
 **Phase 0 の月次ループ（CLAUDE.md をコードとして扱う運用）の入力**になる。
@@ -146,7 +149,7 @@ failures = collections.Counter(c for h in hist if not h["ok"] for c in h["failed
 | mutation score | `gates.g2.mutation.min_score` | **未設定（実測してから決める）** |
 | SARIF の severity | `gates.g1.sast.max_severity` | 未設定なら集計のみ |
 | テストのスキップ数 | `gates.g2.tests.max_skipped` | 未設定なら制限なし |
-| REQ / PROP のテスト網羅率 | `gates.g2.traceability` | 100%（未トレースがあれば不合格） |
+| REQ / PROP のID対応率（意味的充足とは別） | `gates.g2.traceability` | 100%（未トレースがあれば不合格） |
 
 ## 出力フォーマット
 
