@@ -59,3 +59,7 @@ D2 は独自の認証基盤を作らないという位置付けであり、既�
 |---|---|
 | `SeckeyJP/j-six`（本リポジトリ） | 構想文書・ADR（本ディレクトリ）、プロセス定義 [`process/`](../../process/) |
 | `SeckeyJP/j-six-hub` | リプレイ型サンプル Web アプリ（https://seckeyjp.github.io/j-six-hub/ ）、リプレイ用イベントデータ（MIT） |
+
+## 判定条件の具体化
+
+[実行・判定契約](execution-contract.md)、[証跡署名の設計候補](adr/0008-evidence-envelope.md)、[合成判定シナリオ](decision-scenarios.md)を追加した。実行基盤では未実装・未検証。企業の実PJ適用は現段階の対象外で、ローカル/合成検証の準備資料として扱う。

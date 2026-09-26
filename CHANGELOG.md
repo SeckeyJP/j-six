@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - plugin/README.md, plugin/scripts/jsix_coverage_gate.py: JaCoCo を Cobertura XML の生成ツールとして挙げていたが、JaCoCo の XML レポートは独自形式で `line-rate` 属性を持たず、カバレッジゲートはそのままでは読めない（「line-rate 属性がありません」で失敗する）。Cobertura 形式への変換が必要である旨に訂正
 
 ### Changed
+- Hub試作前の実行・判定契約、証跡署名方式の比較ADR、失効/委任/並行変更/復旧/ローカル回収の合成期待値を追加。実行基盤・実PJの実証とは区別。
 - 適用条件・責任分担・独立検証戦略と記入例、共通フレームとの限定的対応表を追加。実PJ適用とサンプル検証を区別し、品質要求と代理指標の扱いを明確化。
 
 - 2026-09-26: Property例を元要求に対応する命題へ訂正。逆生成・証跡・IDトレースの保証範囲を限定し、G3省略時は最大L3と定義。本文・process・テンプレート・同梱Skillを整合。Plugin 2.1.2。実装/適用/実証の確認範囲を docs/implementation-status.md に追加。

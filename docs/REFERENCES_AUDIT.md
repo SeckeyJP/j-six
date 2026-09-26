@@ -390,3 +390,9 @@
 IPA「共通フレーム2013の概説」スライド11・12を確認（https://www.ipa.go.jp/archive/files/000027415.pdf）。process-mapping.mdは取得・供給・要件定義とテスト準備の例に限定する。全タスクの対応・準拠認証・PMBOK対応の確認ではない。既存A47/A48の非機能分類は検討漏れの確認に使う。
 
 B27（著者提案）: adoption-and-verification.md、verification/strategy.md、verification-examples.mdの役割分離・導入条件・レビュー容量・架空例。企業での効果の実証ではなく、架空例の数値は仮定。月次請求の原典を後付けで変更していない。
+
+## 2026-09-26 Hub試作前設計の追加確認
+
+DSSE Envelope 1.0.2（https://github.com/secure-systems-lab/dsse/blob/master/envelope.md）とSLSA v1.2 attestation model（https://slsa.dev/spec/v1.2/attestation-model）を確認。署名された内容の取扱いと真正性の範囲をADR-0008で参照。方式実装や規格準拠の検証ではない。
+
+B28（著者提案）: control-plane/execution-contract.md、decision-scenarios.md、ADR-0008の対象・権限・失効・委任・並行統合・復旧・来歴管理。シナリオは合成期待値であり、実行結果や企業での効果ではない。
