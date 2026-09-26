@@ -50,3 +50,14 @@ def test_non_repo_does_not_mean_no_changes(tmp_path):
                                    runner.Context(tmp_path, False))
     assert not ok
     assert "検証できません" in results["g1"]["checks"]["scope"]["summary"]
+
+
+def test_untracked_file_boundaries_change_fingerprint(tmp_path):
+    _git(tmp_path, "init", "-q")
+    _git(tmp_path, "commit", "--allow-empty", "-qm", "base")
+    (tmp_path / "a.txt").write_text("x", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("b.txty", encoding="utf-8")
+    before = git.diff_fingerprint("HEAD", tmp_path)
+    (tmp_path / "a.txt").write_text("xb.txt", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("y", encoding="utf-8")
+    assert git.diff_fingerprint("HEAD", tmp_path) != before

@@ -46,6 +46,17 @@ def parse_junit(xml_path: Path) -> dict:
     root = ET.parse(xml_path).getroot()
     if root.tag not in ("testsuite", "testsuites"):
         raise ValueError(f"JUnit ではない root: {root.tag}")
+    parents = {child: parent for parent in root.iter() for child in parent}
+    for node in root.iter():
+        parent = parents.get(node)
+        if node.tag == "testsuites" and node is not root:
+            raise ValueError("testsuites は root 以外に置けません")
+        if node.tag == "testsuite" and node is not root and parent.tag not in ("testsuites", "testsuite"):
+            raise ValueError("testsuite が不正な位置にあります")
+        if node.tag == "testcase" and (parent is None or parent.tag != "testsuite"):
+            raise ValueError("testcase が testsuite 直下にありません")
+        if node.tag in ("failure", "error", "skipped") and (parent is None or parent.tag != "testcase"):
+            raise ValueError(f"{node.tag} が testcase 直下にありません")
     suites = list(_iter_suites(root))
     if not suites:
         raise ValueError("testsuite がありません")

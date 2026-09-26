@@ -80,3 +80,21 @@ def test_count_mismatch_is_rejected_but_empty_suite_is_valid(tmp_path):
     assert not junit.check({"junit": "suite.xml"}, tmp_path).ok
     path.write_text('<testsuite tests="0"/>', encoding="utf-8")
     assert junit.check({"junit": "suite.xml"}, tmp_path).ok
+
+
+def test_rejects_testcase_outside_suite_even_when_totals_match(tmp_path):
+    path = tmp_path / "suite.xml"
+    for xml in (
+        '<testsuites tests="1" failures="1"><testsuite/><testcase name="broken"><failure/></testcase></testsuites>',
+        '<testsuite tests="1" failures="1"><wrapper><testcase name="broken"><failure/></testcase></wrapper></testsuite>',
+        '<testsuites tests="1" failures="1"><wrapper><testsuite><testcase name="broken"><failure/></testcase></testsuite></wrapper></testsuites>',
+    ):
+        path.write_text(xml, encoding="utf-8")
+        assert not junit.check({"junit": "suite.xml"}, tmp_path).ok
+
+
+def test_rejects_nested_testsuites_error(tmp_path):
+    path = tmp_path / "suite.xml"
+    path.write_text('<testsuites><testsuite><testsuites><testsuite/><error/></testsuites></testsuite></testsuites>',
+                    encoding="utf-8")
+    assert not junit.check({"junit": "suite.xml"}, tmp_path).ok

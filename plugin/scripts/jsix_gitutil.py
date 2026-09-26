@@ -216,6 +216,8 @@ def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = No
     include（base_dir 相対）を渡すと、そのパスの変更だけを指紋に含める。
     """
     import hashlib
+    import os
+    import stat
 
     root = repo_root(base_dir)
     if root is None:
@@ -230,16 +232,31 @@ def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = No
     ]
     h = hashlib.sha256()
     try:
-        h.update(_run_bytes(["diff", "--binary", base or "HEAD", "--"] + pathspec, root))
+        diff = _run_bytes(["diff", "--binary", base or "HEAD", "--"] + pathspec, root)
         untracked = _paths_z(["ls-files", "-z", "--others", "--exclude-standard", "--full-name", "--"] + pathspec, root)
     except GitError:
         return None
+    h.update(b"jsix-diff-fingerprint-v2\0")
+    h.update(len(diff).to_bytes(8, "big"))
+    h.update(diff)
     for path in sorted(untracked):
-        h.update(path.encode("utf-8", errors="surrogateescape"))
         try:
-            h.update((root / path).read_bytes())
+            file_path = root / path
+            mode = file_path.lstat().st_mode
+            if stat.S_ISLNK(mode):
+                content = os.fsencode(os.readlink(file_path))
+            elif stat.S_ISREG(mode):
+                content = file_path.read_bytes()
+            else:
+                raise GitError(f"指紋対象のファイル形式を扱えません: {path}")
         except OSError as exc:
             raise GitError(f"指紋対象のファイルを読めません: {path}: {exc}") from exc
+        name = path.encode("utf-8", errors="surrogateescape")
+        h.update(len(name).to_bytes(8, "big"))
+        h.update(name)
+        h.update(mode.to_bytes(4, "big"))
+        h.update(len(content).to_bytes(8, "big"))
+        h.update(content)
     return h.hexdigest()[:16]
 
 
