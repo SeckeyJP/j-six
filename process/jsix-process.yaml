@@ -354,7 +354,7 @@ gates:
             approver_roles: [gatekeeper, sampling_verifier, exploratory_tester]
             criteria:
               - 証跡と参考所見を区別して確認し、参考所見を単独で判定の根拠にしない
-              - 品質基準（バグ密度・カバレッジ率等）は従来と同等を維持する
+              - 合意した品質要求・受入条件を維持する。バグ密度・カバレッジ率等の代理指標だけで判定せず、要求充足・欠陥・未検証事項を確認する
 
   - id: deliverable_review
     name: 納品物レビュー

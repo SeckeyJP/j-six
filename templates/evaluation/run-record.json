@@ -1,0 +1,58 @@
+{
+  "record_kind": "template_unmeasured",
+  "experiment_id": null,
+  "task_id": null,
+  "attempt_id": null,
+  "method": null,
+  "evidence_class": null,
+  "fixed": {
+    "subject_sha256": null,
+    "requirements_sha256": null,
+    "oracle_sha256": null,
+    "model": null,
+    "model_checked_at": null,
+    "checks_version": null,
+    "resource_budget": null,
+    "time_budget_seconds": null,
+    "money_budget": null,
+    "currency": null,
+    "cutoff": null,
+    "retry_policy": null
+  },
+  "task_status": null,
+  "acceptance_evidence": [],
+  "requirements": [],
+  "labor_hours": {
+    "requirements": null,
+    "design": null,
+    "implementation": null,
+    "verification": null,
+    "review": null,
+    "migration": null,
+    "education": null,
+    "management": null,
+    "recovery": null
+  },
+  "rework_hours_subset": null,
+  "wait_elapsed_hours": null,
+  "blocked_labor_hours_subset": null,
+  "costs": {
+    "billing_mode": null,
+    "seat": null,
+    "api": null,
+    "ci_execution": null,
+    "storage": null,
+    "other": null,
+    "rate_source": null,
+    "rate_checked_at": null,
+    "allocation_basis": null
+  },
+  "defects": null,
+  "decision": {
+    "expected": null,
+    "actual": null,
+    "reason": null
+  },
+  "limitations": [],
+  "notes": "nullは未測定。共通費用の配賦と全試行を別途集計。状態・単位・計算規則はdocs/evaluation-design.mdを参照。"
+}

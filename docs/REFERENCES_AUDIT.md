@@ -396,3 +396,7 @@ B27（著者提案）: adoption-and-verification.md、verification/strategy.md�
 DSSE Envelope 1.0.2（https://github.com/secure-systems-lab/dsse/blob/master/envelope.md）とSLSA v1.2 attestation model（https://slsa.dev/spec/v1.2/attestation-model）を確認。署名された内容の取扱いと真正性の範囲をADR-0008で参照。方式実装や規格準拠の検証ではない。
 
 B28（著者提案）: control-plane/execution-contract.md、decision-scenarios.md、ADR-0008の対象・権限・失効・委任・並行統合・復旧・来歴管理。シナリオは合成期待値であり、実行結果や企業での効果ではない。
+
+## 2026-09-26 評価設計の追加確認
+
+B29（著者提案）: evaluation-design.md、evaluation-example.md、templates/evaluation/run-record.json。指標・比較・配賦の設計と仮定の計算であり、企業適用の実測ではない。公式のMaxプラン、Claude Code利用枠、API料金ページを2026-09-26に確認（リンクはevaluation-design.md）。座席とAPIの区別・利用制限の存在の根拠として用い、円単価の計算例は公式価格として引用しない。価格は実測開始時に再確認する。
