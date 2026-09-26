@@ -400,3 +400,7 @@ B28（著者提案）: control-plane/execution-contract.md、decision-scenarios.
 ## 2026-09-26 評価設計の追加確認
 
 B29（著者提案）: evaluation-design.md、evaluation-example.md、templates/evaluation/run-record.json。指標・比較・配賦の設計と仮定の計算であり、企業適用の実測ではない。公式のMaxプラン、Claude Code利用枠、API料金ページを2026-09-26に確認（リンクはevaluation-design.md）。座席とAPIの区別・利用制限の存在の根拠として用い、円単価の計算例は公式価格として引用しない。価格は実測開始時に再確認する。
+
+## 2026-09-26 ローカル検証の追加確認
+
+B30（著者による合成試験）: docs/local-validation.mdとtools/experiments/。固定期待値36ケース、候補採点11例、局所のGit/暗号/故障注入、エンティティ変換の実行観測。実PJや実AI比較の結果ではない。Claude CLI公式資料 https://code.claude.com/docs/en/cli-reference を2026-09-26に確認し、支出到達時の停止と実請求の厳密上限保証を区別して実AI呼出しを未実施とした。

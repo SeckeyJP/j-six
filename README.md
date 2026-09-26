@@ -211,3 +211,5 @@ Issue や Pull Request を歓迎します。特に以下の観点でのフィー
 Hub構想の試作前設計: [実行・判定契約](docs/control-plane/execution-contract.md)と[合成判定シナリオ](docs/control-plane/decision-scenarios.md)。
 
 - [評価指標・総コスト・比較条件](docs/evaluation-design.md) — 失敗・再試行・レビューを含む評価設計と[仮定の計算例](docs/evaluation-example.md)。実PJの効果実証とは区別。
+
+- [ローカル検証の結果](docs/local-validation.md) — 合成36ケース、既存Plugin検査、Word/Excelの限定的変換。実モデル比較・企業実PJ・実Hub強制力は未検証。
