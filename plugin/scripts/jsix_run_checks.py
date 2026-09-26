@@ -104,13 +104,7 @@ class Context:
         しても、スコープ検査と G3 が空振りしないようにするため。
         """
         if self._changed is None:
-            if not git.is_repo(self.base):
-                self._changed = []
-            else:
-                try:
-                    self._changed = git.changed_files_relative(self.base, self.base_ref)
-                except git.GitError:
-                    self._changed = []
+            self._changed = git.changed_files_relative(self.base, self.base_ref)
         return self._changed
 
 
@@ -147,28 +141,36 @@ def _command_only(name: str, cfg: dict, ctx: Context) -> Result:
 
 
 def _sarif_check(name: str, cfg: dict, ctx: Context) -> Result:
+    if not (cfg.get("sarif") or cfg.get("file")):
+        return _command_only(name, cfg, ctx)
     fail = _run_cmd(name, cfg, ctx)
     if fail:
         return fail
-    if not (cfg.get("sarif") or cfg.get("file")):
-        return _command_only(name, cfg, ctx)
     return sarif_gate.check(cfg, ctx.base, label=name)
 
 
 def _tests_check(name: str, cfg: dict, ctx: Context) -> Result:
+    if not (cfg.get("junit") or cfg.get("file")):
+        return _command_only(name, cfg, ctx)
     fail = _run_cmd(name, cfg, ctx)
     if fail:
         return fail
-    if not (cfg.get("junit") or cfg.get("file")):
-        return _command_only(name, cfg, ctx)
     return junit_check.check(cfg, ctx.base, label=name)
+
+
+def _coverage_check(name: str, cfg: dict, ctx: Context) -> Result:
+    fail = _run_cmd(name, cfg, ctx)
+    if fail:
+        return fail
+    return coverage_gate.check(cfg, ctx.base)
 
 
 def _mutation_check(name: str, cfg: dict, ctx: Context) -> Result:
     fail = _run_cmd(name, cfg, ctx)
     if fail:
         return fail
-    return mutation_gate.check(cfg, ctx.base, ctx.changed_files)
+    changed = ctx.changed_files if cfg.get("scope") == "changed" else None
+    return mutation_gate.check(cfg, ctx.base, changed)
 
 
 def _scope_check(cfg: dict, ctx: Context) -> Result:
@@ -179,12 +181,12 @@ def _scope_check(cfg: dict, ctx: Context) -> Result:
     優先順: 設定の scope.base → RED タグ（$JSIX_TASK_ID → 最新の jsix/red-*）→ 未コミットの変更のみ。
     """
     if not git.is_repo(ctx.base):
-        return scope_check.check(cfg, ctx.base, [])
+        return failed("scope: git リポジトリではないため変更範囲を検証できません")
     ref = cfg.get("base") or tamper_check.resolve_baseline({}, ctx.base)
     try:
         changed = git.changed_files_relative(ctx.base, ref)
-    except git.GitError:
-        changed = []
+    except git.GitError as exc:
+        return failed(f"scope: git の変更比較に失敗: {exc}")
     result = scope_check.check(cfg, ctx.base, changed)
     result.metrics["compared_from"] = ref or "未コミットの変更のみ"
     return result
@@ -211,6 +213,8 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     target = (git.diff_fingerprint(ctx.base_ref, ctx.base, exclude=[verdict_rel, evidence_out, history],
                                    include=cfg.get("fingerprint_paths"))
               if git.is_repo(ctx.base) else None)
+    if git.is_repo(ctx.base) and target is None:
+        return failed("judge: git の差分指紋を計算できないため G3 判定を検証できません")
     target_hint = f', "target": "{target}"' if target else ""
     base_hint = f"（比較元 {ctx.base_ref[:12]}）" if ctx.base_ref else ""
 
@@ -251,6 +255,8 @@ def _judge_check(name: str, cfg: dict, ctx: Context) -> Result:
     }
 
     if verdict == "PASS":
+        if target is None:
+            return failed("judge: git の差分指紋が無いため G3 の PASS を検証できません", metrics)
         return passed("judge: PASS（正確性・要件・スコープに問題なし）", metrics)
 
     if verdict != "REJECT":
@@ -287,7 +293,7 @@ CHECKS = {
     "scope": lambda name, cfg, ctx: _scope_check(cfg, ctx),
     "tests": _tests_check,
     "holdout": _tests_check,
-    "coverage": lambda name, cfg, ctx: coverage_gate.check(cfg, ctx.base),
+    "coverage": _coverage_check,
     "mutation": _mutation_check,
     "test_tamper": lambda name, cfg, ctx: tamper_check.check(cfg, ctx.base),
     "traceability": lambda name, cfg, ctx: traceability_check.check(cfg, ctx.base),

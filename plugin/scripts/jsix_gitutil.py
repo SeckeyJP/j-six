@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """git を叩くための最小限のヘルパ（言語非依存）。
 
-スコープ検査とテスト改変検出が使う。git が無い / リポジトリでない場合は
-例外ではなく None / 空リストを返し、呼び出し側がスキップ扱いにできるようにする。
+スコープ検査とテスト改変検出が使う。比較できない状態を空差分と混同しない。
 """
 from __future__ import annotations
 
@@ -29,6 +28,24 @@ def _run(args: list, cwd: Path | None = None) -> str:
     if proc.returncode != 0:
         raise GitError(f"git {' '.join(args)} が失敗: {proc.stderr.strip()}")
     return proc.stdout
+
+
+def _run_bytes(args: list, cwd: Path | None = None) -> bytes:
+    """Git の -z 出力と binary diff を、パス引用・改行変換なしで取得する。"""
+    try:
+        proc = subprocess.run(["git"] + args, cwd=str(cwd) if cwd else None,
+                              capture_output=True, check=False)
+    except FileNotFoundError as exc:
+        raise GitError("git コマンドが見つかりません") from exc
+    if proc.returncode != 0:
+        detail = proc.stderr.decode("utf-8", errors="replace").strip()
+        raise GitError(f"git {' '.join(args)} が失敗: {detail}")
+    return proc.stdout
+
+
+def _paths_z(args: list, cwd: Path) -> list[str]:
+    data = _run_bytes(args, cwd)
+    return [p.decode("utf-8", errors="surrogateescape") for p in data.split(b"\0") if p]
 
 
 def is_repo(cwd: Path | None = None) -> bool:
@@ -70,21 +87,15 @@ def changed_files(base: str | None = None, cwd: Path | None = None, include_untr
     paths: set = set()
 
     if base:
-        for line in _run(["diff", "--name-only", "--no-renames", base, "HEAD"], root).splitlines():
-            if line.strip():
-                paths.add(line.strip())
+        paths.update(_paths_z(["diff", "--name-only", "-z", "--no-renames", base, "HEAD"], root))
 
     # 未コミットの変更（staged / unstaged）
     for args in (["diff", "--name-only", "--no-renames"],
                  ["diff", "--name-only", "--no-renames", "--cached"]):
-        for line in _run(args, root).splitlines():
-            if line.strip():
-                paths.add(line.strip())
+        paths.update(_paths_z(args + ["-z"], root))
 
     if include_untracked:
-        for line in _run(["ls-files", "--others", "--exclude-standard", "--full-name"], root).splitlines():
-            if line.strip():
-                paths.add(line.strip())
+        paths.update(_paths_z(["ls-files", "-z", "--others", "--exclude-standard", "--full-name"], root))
 
     return sorted(paths)
 
@@ -102,7 +113,7 @@ def changed_files_relative(base_dir: Path, ref: str | None = None) -> list:
     """
     root = repo_root(base_dir)
     if root is None:
-        return []
+        raise GitError("git リポジトリではありません")
     changed = changed_files(ref, cwd=base_dir)
     base_abs = Path(base_dir).resolve()
 
@@ -156,8 +167,8 @@ def latest_tag_touching(prefix: str, base_dir: Path) -> str | None:
 
 def ls_tree(ref: str, paths: list | None = None, cwd: Path | None = None) -> list:
     """指定 ref に存在するファイルのパス一覧を返す。"""
-    args = ["ls-tree", "-r", "--name-only", ref, "--"] + (paths or [])
-    return [ln.strip() for ln in _run(args, cwd).splitlines() if ln.strip()]
+    args = ["ls-tree", "-r", "-z", "--name-only", ref, "--"] + (paths or [])
+    return _paths_z(args, cwd or Path.cwd())
 
 
 def show_file(ref: str, path: str, cwd: Path | None = None) -> str | None:
@@ -205,27 +216,47 @@ def diff_fingerprint(base: str | None, base_dir: Path, exclude: list | None = No
     include（base_dir 相対）を渡すと、そのパスの変更だけを指紋に含める。
     """
     import hashlib
+    import os
+    import stat
 
     root = repo_root(base_dir)
     if root is None:
         return None
-    rel = Path(base_dir).resolve().relative_to(root.resolve()).as_posix() or "."
+    try:
+        rel = Path(base_dir).resolve().relative_to(root.resolve()).as_posix() or "."
+    except ValueError as exc:
+        raise GitError("対象ディレクトリが git リポジトリの外です") from exc
     targets = [posixpath.normpath(posixpath.join(rel, i)) for i in include] if include else [rel]
     pathspec = targets + [
         f":(exclude){posixpath.normpath(posixpath.join(rel, e))}" for e in (exclude or [])
     ]
     h = hashlib.sha256()
     try:
-        h.update(_run(["diff", "--binary", base or "HEAD", "--"] + pathspec, root).encode("utf-8"))
-        untracked = _run(["ls-files", "--others", "--exclude-standard", "--full-name", "--"] + pathspec, root)
+        diff = _run_bytes(["diff", "--binary", base or "HEAD", "--"] + pathspec, root)
+        untracked = _paths_z(["ls-files", "-z", "--others", "--exclude-standard", "--full-name", "--"] + pathspec, root)
     except GitError:
         return None
-    for path in sorted(ln.strip() for ln in untracked.splitlines() if ln.strip()):
-        h.update(path.encode("utf-8"))
+    h.update(b"jsix-diff-fingerprint-v2\0")
+    h.update(len(diff).to_bytes(8, "big"))
+    h.update(diff)
+    for path in sorted(untracked):
         try:
-            h.update((root / path).read_bytes())
-        except OSError:
-            continue
+            file_path = root / path
+            mode = file_path.lstat().st_mode
+            if stat.S_ISLNK(mode):
+                content = os.fsencode(os.readlink(file_path))
+            elif stat.S_ISREG(mode):
+                content = file_path.read_bytes()
+            else:
+                raise GitError(f"指紋対象のファイル形式を扱えません: {path}")
+        except OSError as exc:
+            raise GitError(f"指紋対象のファイルを読めません: {path}: {exc}") from exc
+        name = path.encode("utf-8", errors="surrogateescape")
+        h.update(len(name).to_bytes(8, "big"))
+        h.update(name)
+        h.update(mode.to_bytes(4, "big"))
+        h.update(len(content).to_bytes(8, "big"))
+        h.update(content)
     return h.hexdigest()[:16]
 
 

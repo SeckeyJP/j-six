@@ -1,7 +1,7 @@
 {
   "name": "j-six",
   "description": "J-SIX (Japanese SI Transformation) — 日本のSI業界向け AI ネイティブ開発プロセスの品質レイヤーを Claude Code Plugin として提供。レビュー前の4層品質ゲート（決定論的検証 / テスト品質検証 / 意図・スコープ判定 / 証跡パッケージ）、Spec策定、TDDサイクル、設計書逆生成、品質メトリクスをサポート。",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "keywords": [
     "sdd",
     "spec-driven-development",
