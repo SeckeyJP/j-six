@@ -61,3 +61,22 @@ def test_label_distinguishes_holdout(fixtures):
     r = junit.check({"junit": "junit-pass.xml"}, fixtures, label="holdout")
     assert r.summary.startswith("holdout:")
     assert junit.check({"junit": "junit-pass.xml"}, fixtures).summary.startswith("tests:")
+
+
+def test_non_junit_root_is_rejected(tmp_path):
+    (tmp_path / "wrong.xml").write_text("<report/>", encoding="utf-8")
+    assert not junit.check({"junit": "wrong.xml"}, tmp_path).ok
+
+
+def test_suite_error_without_testcase_is_rejected(tmp_path):
+    (tmp_path / "suite.xml").write_text(
+        '<testsuite tests="0" errors="1"><error message="setup failed"/></testsuite>', encoding="utf-8")
+    assert not junit.check({"junit": "suite.xml"}, tmp_path).ok
+
+
+def test_count_mismatch_is_rejected_but_empty_suite_is_valid(tmp_path):
+    path = tmp_path / "suite.xml"
+    path.write_text('<testsuite tests="2"><testcase name="one"/></testsuite>', encoding="utf-8")
+    assert not junit.check({"junit": "suite.xml"}, tmp_path).ok
+    path.write_text('<testsuite tests="0"/>', encoding="utf-8")
+    assert junit.check({"junit": "suite.xml"}, tmp_path).ok

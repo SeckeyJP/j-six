@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Plugin 2.1.3: Git 比較失敗と特殊文字パスの誤処理、未コミット内容・検査結果変更後の承認残留、coverage コマンド未実行、command-only 二重起動、不正な JUnit の通過、G3 除外の要約欠落を修正。hold-out Hook の保証範囲と逆生成章のレビュー方法を本文・Skill・Agent・組立テンプレートで一致させた。
+
 - GitHub Pages: 月次請求の画面成果物3件と基本設計書の Jinja2 コード例を Liquid の評価対象から外し、公開ビルドの停止と変数例の欠落を修正。PRで公開と同じJekyllビルドを検査する。
 
 - Plugin: G1・G2 の未知チェック名を設定エラーにし、runner の直接呼出しでも不合格にする。未設定・任意検査の互換動作と必須検査の網羅確認を区別して文書化。

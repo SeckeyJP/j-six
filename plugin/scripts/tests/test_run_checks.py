@@ -103,6 +103,35 @@ def test_all_pass(project, fixtures):
     assert runner.main(["--dir", str(project)]) == runner.EXIT_OK
 
 
+@pytest.mark.parametrize("adapter,name", [
+    (runner._sarif_check, "sast"), (runner._sarif_check, "secrets"),
+    (runner._sarif_check, "deps"), (runner._tests_check, "tests"),
+    (runner._tests_check, "holdout"),
+])
+def test_command_only_runs_once(project, adapter, name):
+    cmd = "python3 -c 'from pathlib import Path; p=Path(\"count\"); p.write_text(p.read_text()+\"x\" if p.exists() else \"x\")'"
+    result = adapter(name, {"cmd": cmd}, runner.Context(project, run_commands=True))
+    assert result.ok
+    assert (project / "count").read_text() == "x"
+
+
+def test_coverage_command_refreshes_report_once(project):
+    report = project / "coverage.xml"
+    report.write_text("<coverage line-rate=\"0\"/>", encoding="utf-8")
+    cmd = "python3 -c 'from pathlib import Path; Path(\"coverage.xml\").write_text(\"<coverage line-rate=\\\"0.8\\\"/>\")'"
+    cfg = {"file": "coverage.xml", "min": 70, "cmd": cmd}
+    assert runner._coverage_check("coverage", cfg, runner.Context(project, True)).ok
+    report.write_text("<coverage line-rate=\"0\"/>", encoding="utf-8")
+    assert not runner._coverage_check("coverage", cfg, runner.Context(project, False)).ok
+    assert report.read_text() == '<coverage line-rate="0"/>'
+
+
+def test_failed_coverage_command_cannot_use_stale_report(project):
+    cfg = {"file": "coverage.xml", "min": 10, "cmd": "exit 1"}
+    result = runner._coverage_check("coverage", cfg, runner.Context(project, True))
+    assert not result.ok and "コマンドが失敗" in result.summary
+
+
 def test_traceability_checks_both_req_and_prop(project):
     """PROP をテストに書き忘れていたら落ちる。"""
     (project / "tests" / "test_a.py").write_text(
@@ -135,8 +164,21 @@ class TestG3TwoPhase:
 
     def test_pass_verdict(self, project):
         self._config(project)
-        _write(project / "reports" / "judge.json", {"verdict": "PASS", "reasons": []})
+        self._git_commit_all(project)
+        (project / "docs" / "spec.md").write_text("REQ-001 と REQ-002 と PROP-001\n", encoding="utf-8")
+        cfg = runner.config.load(project)
+        _, results = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        target = results["g3"]["checks"]["judge"]["metrics"]["target"]
+        _write(project / "reports" / "judge.json", {"verdict": "PASS", "reasons": [], "target": target})
         assert runner.main(["--dir", str(project)]) == runner.EXIT_OK
+
+    def test_pass_verdict_without_git_is_not_trusted(self, project):
+        self._config(project)
+        _write(project / "reports" / "judge.json", {"verdict": "PASS", "reasons": []})
+        cfg = runner.config.load(project)
+        ok, results = runner.run_gates(cfg, runner.Context(project, run_commands=False))
+        assert not ok
+        assert "差分指紋が無い" in results["g3"]["checks"]["judge"]["summary"]
 
     @staticmethod
     def _git_commit_all(project):
@@ -387,11 +429,13 @@ class TestGateSelection:
 
     def test_excluding_g3_passes(self, project):
         self._config(project)
+        TestG3TwoPhase._git_commit_all(project)
         assert runner.main(["--dir", str(project), "--gates", "g1,g2,g4"]) == runner.EXIT_OK
 
     def test_excluded_gate_is_recorded_not_silently_dropped(self, project):
         """除外したゲートは「未実行」として結果に残す。黙って消さない。"""
         self._config(project)
+        TestG3TwoPhase._git_commit_all(project)
         cfg = runner.config.load(project)
         ok, results = runner.run_gates(cfg, runner.Context(project, False), only={"g1", "g2"})
         assert ok

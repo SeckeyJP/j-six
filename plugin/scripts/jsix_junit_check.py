@@ -40,17 +40,25 @@ def _iter_suites(root: ET.Element):
 def parse_junit(xml_path: Path) -> dict:
     """JUnit XML から件数とテスト名を集計する。
 
-    testsuites 要素に集計属性があってもそれを信用せず、testsuite を走査して
-    合計する（ランナーによって集計属性の有無・意味が違うため）。
+    testcase を集計し、存在する集計属性とは照合する。属性が欠けた正当な
+    空 suite は許すが、別形式や suite-level error は成功扱いしない。
     """
     root = ET.parse(xml_path).getroot()
+    if root.tag not in ("testsuite", "testsuites"):
+        raise ValueError(f"JUnit ではない root: {root.tag}")
+    suites = list(_iter_suites(root))
+    if not suites:
+        raise ValueError("testsuite がありません")
+    for node in [root, *suites]:
+        if node.find("error") is not None or node.find("failure") is not None:
+            raise ValueError(f"{node.tag} 直下の error/failure は testcase と対応しません")
 
     totals = {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
     failed_tests: list = []
     skipped_tests: list = []
     test_names: list = []
 
-    for suite in _iter_suites(root):
+    for suite in suites:
         for case in suite.findall("testcase"):
             totals["tests"] += 1
             classname = case.get("classname") or ""
@@ -61,12 +69,32 @@ def parse_junit(xml_path: Path) -> dict:
             if case.find("failure") is not None:
                 totals["failures"] += 1
                 failed_tests.append(full)
-            elif case.find("error") is not None:
+            if case.find("error") is not None:
                 totals["errors"] += 1
                 failed_tests.append(full)
-            elif case.find("skipped") is not None:
+            if case.find("skipped") is not None:
                 totals["skipped"] += 1
                 skipped_tests.append(full)
+
+    for node in [root, *suites]:
+        subtree = node.iter("testcase")
+        cases = list(subtree)
+        actual = {
+            "tests": len(cases),
+            "failures": sum(c.find("failure") is not None for c in cases),
+            "errors": sum(c.find("error") is not None for c in cases),
+            "skipped": sum(c.find("skipped") is not None for c in cases),
+        }
+        for field, count in actual.items():
+            declared = node.get(field)
+            if declared is None:
+                continue
+            try:
+                value = int(declared)
+            except ValueError as exc:
+                raise ValueError(f"{node.tag} の {field} が整数ではありません") from exc
+            if value != count:
+                raise ValueError(f"{node.tag} の {field}={value} と testcase 集計 {count} が一致しません")
 
     return {
         **totals,
@@ -93,7 +121,7 @@ def check(cfg: dict, base_dir: Path | None = None, label: str = "tests") -> Resu
 
     try:
         data = parse_junit(path)
-    except ET.ParseError as exc:
+    except (ET.ParseError, ValueError) as exc:
         return failed(f"{label}: {junit} の解析に失敗: {exc}")
 
     metrics = {k: data[k] for k in ("tests", "failures", "errors", "skipped")}
