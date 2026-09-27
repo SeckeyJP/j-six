@@ -80,7 +80,7 @@ J-SIX 本体は Hub に依存しない（[ADR-0003](control-plane/adr/0003-depen
 | H2 | プロセス定義のデータ化（Phase・ゲート・成果物・役割・遷移・逸脱）と JSON Schema、CI でのスキーマ検証。J-SIX.md との照合結果を報告 | `process/jsix-process.yaml`, `process/jsix-process.schema.json`, `tools/validate_process.py` | 中 | ✅ 2026-09-22（照合結果は `process/README.md`。J-SIX.md は変更していない。Plugin 連携は設計メモ `process/plugin-integration.md` のみ） |
 | H2' | Plugin から `jsix-process.yaml` を参照する実装（H2 では設計メモのみ） | `plugin/` | 中 | ☐（H2 の後に判断） |
 | H3 | リプレイ用イベントデータ。approval-workflow の実行記録から、実測 / 再構成のラベル付きで作成。記録が不足すればイベント出力用 Hook（オプトイン）を Plugin に追加して再実行 | j-six-hub `data/`（Hook を追加する場合は `plugin/`） | 中 | ✅ 2026-09-22（82件：実測62・再構成20。Plugin へのイベント出力 Hook は追加せず、既存のコミット・セッション記録・証跡パッケージから抽出。j-six-hub の `data/`・ADR-0001） |
-| H4 | リプレイ型サンプル Web アプリ（静的・GitHub Pages）。Hub 自体を J-SIX で開発する | [j-six-hub](https://github.com/SeckeyJP/j-six-hub) | 大 | ✅ 2026-09-22（https://seckeyjp.github.io/j-six-hub/ 。プロセス定義は `process-v0.1.0` をハッシュ照合して取り込む。要求の閲覧・トレーサビリティ画面は未着手） |
+| H4 | リプレイ型サンプル Web アプリ（静的・GitHub Pages）。Hub 自体を J-SIX で開発する | [j-six-hub](https://github.com/SeckeyJP/j-six-hub) | 大 | ✅ 2026-09-22（https://seckeyjp.github.io/j-six-hub/ 。プロセス定義は `process-v0.1.0` をハッシュ照合して取り込む。後続拡張で要求・トレーサビリティの閲覧画面も実装。中央実行基盤は未実装） |
 | H5 | Hub を J-SIX で開発した記録のケーススタディ | [`docs/case-study-03.md`](case-study-03.md) | 中 | ✅ 2026-09-22（1日・1名の記録。受入条件が設計の抜けを検出／テストが通っても画面が壊れていた／修正が別の不具合を生んだ、を記録。効果は主張しない） |
 
 ---
