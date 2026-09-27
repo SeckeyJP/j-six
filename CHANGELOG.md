@@ -48,6 +48,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- docs/ROADMAP.md H4: リプレイ型サンプルの要求・トレーサビリティ画面を「未着手」とした古い状態を現物に合わせ、中央実行基盤との境界を明記
 - examples/monthly-billing/README.md: 「mutation testing が見つけたテストの穴」の表が、本文の「本物の穴が8種」に対して6行しかなかった。実装時のコミット（`3b14aaf`）に残っていた内訳から、抜けていた2種（明細への数量の転記、reset 後の採番リセット）を追加。いずれも対応するテストは既にある
 - examples/monthly-billing/tests/test_billing.py: コメントの誤字（「경路」→「経路」）
 - docs/J-SIX.md 1.3: 連続自律アクション数を一次情報 [3] に合わせて「約10→約20（6ヶ月で2倍）」から「約10→約21（6ヶ月で116%増）」に訂正。[3] のデータ時点を「2025」から「2025.12」に
