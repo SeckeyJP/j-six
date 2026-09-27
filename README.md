@@ -166,7 +166,7 @@ L0         L1-L2             L2-L3                L3-L4
 | 8 | 証跡パッケージ（顧客納品対応） | evidence-pack Skill | ✅ 完成 |
 | 9 | [ケーススタディ #2](docs/case-study-02.md)（mutation score の実測） | 記事 + GitHub | ✅ 完成 |
 | 10 | 工程成果物テンプレート（IPA 27点）・組立定義・第2サンプル [monthly-billing](examples/monthly-billing/) | テンプレート + 実例 | ✅ 完成 |
-| 11 | [J-SIX Hub](docs/control-plane/)（大規模・複数チーム向けにプロセス適合性を中央で統制する構想） | 構想文書 + [リプレイ型サンプル](https://seckeyjp.github.io/j-six-hub/) + [ケーススタディ #3](docs/case-study-03.md) | 構想中（仮説であり未実装。サンプルは公開済み） |
+| 11 | [J-SIX Hub](docs/control-plane/)（大規模・複数チーム向けにプロセス適合性を中央で統制する構想） | 構想文書 + [リプレイ型サンプル](https://seckeyjp.github.io/j-six-hub/) + [ケーススタディ #3](docs/case-study-03.md) + [単一 PC の中央実行 PoC 設計](docs/control-plane/adr/0009-local-cli-execution-poc.md) | 構想中（リプレイのみ公開済み。CLI 実行基盤と PoC は未実装） |
 
 次フェーズ（実証・テンプレート実例・Plugin 実用拡張）の計画は [ROADMAP.md](docs/ROADMAP.md) を参照してください。
 
@@ -209,6 +209,7 @@ Issue や Pull Request を歓迎します。特に以下の観点でのフィー
 案件導入の準備には[適用条件と検証戦略](docs/adoption-and-verification.md)、[記入例](docs/verification-examples.md)、[共通フレームとの限定的対応](docs/process-mapping.md)を参照。現段階の検証はサンプル・合成例を対象とし、企業の実PJでの適用効果は未検証。
 
 Hub構想の試作前設計: [実行・判定契約](docs/control-plane/execution-contract.md)と[合成判定シナリオ](docs/control-plane/decision-scenarios.md)。
+単一 PC での中央実行 PoC は[専用 ADR](docs/control-plane/adr/0009-local-cli-execution-poc.md)に限定条件を記し、現行リプレイや将来の複数ベンダー向け構想と区別する。
 
 - [評価指標・総コスト・比較条件](docs/evaluation-design.md) — 失敗・再試行・レビューを含む評価設計と[仮定の計算例](docs/evaluation-example.md)。実PJの効果実証とは区別。
 
