@@ -28,6 +28,8 @@ J-SIX 本体は、個人〜小規模チームが Claude Code Plugin として使
   Spec / ADR / コード / テスト / 逆生成設計書
 ```
 
+この図は複数主体への将来構想であり、現行の[リプレイ型サンプル](https://github.com/SeckeyJP/j-six-hub)は AI を起動しない。単一 PC 上で Hub がローカル CLI を投入する限定的 PoC は[ADR-0009](adr/0009-local-cli-execution-poc.md)に分ける。PoC も現時点では設計のみで、中央実行の強制力を実証していない。
+
 構想の詳細（課題、状態モデルとスイムレーン図、関連研究とポジショニング、仮説と評価計画、課題と制約）は [concept.md](concept.md) にまとめている。
 
 ## 決定事項と ADR
@@ -40,8 +42,8 @@ J-SIX 本体は、個人〜小規模チームが Claude Code Plugin として使
 | D4 | プロセス定義をデータ化して J-SIX に置く（`process/jsix-process.yaml`） | [ADR-0003](adr/0003-dependency-direction-and-process-as-data.md) |
 | D5 | サンプル環境は実行記録を再生するリプレイ型 | [ADR-0004](adr/0004-replay-sample-environment.md) |
 | D6 | 逸脱の扱い（Phase 逆戻り、ゲート例外承認、エスカレーション、ローカル退避、Interface Contract 違反）を状態モデルに明示する | [concept.md §4.3](concept.md#43-逸脱と回収)、[`process/jsix-process.yaml`](../../process/jsix-process.yaml) の `deviations` |
-| D7 | 実装は CC ネイティブのまま。マルチモデル・オーケストレータは作らない。モデル非依存性はプロセス定義の記述レベルで主張する | 本表のみ（スコープの決定のため ADR は作らない） |
-| D8 | 中央実行を基本とし、ローカル CC への退避路を残す。ローカルの成果物は必ずゲートを再通過する | [ADR-0005](adr/0005-central-execution-with-local-fallback.md) |
+| D7 | 将来構想の基本は CC ネイティブであり、モデル非依存性はプロセス定義の記述レベルで主張する。単一 PC の中央実行型 PoC に限り、run ごとに Codex CLI または Claude Code CLI の一方を選ぶ最小 adapter を認める。自動振分け・モデル間討論はしない | [ADR-0009](adr/0009-local-cli-execution-poc.md)（PoC の限定例外） |
+| D8 | 将来構想は中央実行を基本とし、ローカル CC への退避路を残す。ローカルの成果物は必ずゲートを再通過する。単一 PC 上の Hub 管理下 CLI 実行は退避ではなく中央実行の PoC 変種 | [ADR-0005](adr/0005-central-execution-with-local-fallback.md)、[ADR-0009](adr/0009-local-cli-execution-poc.md) |
 | D9 | Hub 自体を J-SIX で開発し、その記録をケーススタディにする | 本表のみ。開発は [j-six-hub](https://github.com/SeckeyJP/j-six-hub) リポジトリで行う |
 
 ## 実行基盤の試作前に満たす条件（著者提案）
@@ -59,6 +61,8 @@ D2 は独自の認証基盤を作らないという位置付けであり、既�
 |---|---|
 | `SeckeyJP/j-six`（本リポジトリ） | 構想文書・ADR（本ディレクトリ）、プロセス定義 [`process/`](../../process/) |
 | `SeckeyJP/j-six-hub` | リプレイ型サンプル Web アプリ（https://seckeyjp.github.io/j-six-hub/ ）、リプレイ用イベントデータ（MIT） |
+
+`j-six-hub` に追加するローカル中央実行 PoC は未実装の別仕様とする。公開 Pages のリプレイが実行器に変わったことを意味しない。
 
 ## 判定条件の具体化
 
